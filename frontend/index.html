@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PCS Ticketing System - ITSM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" as="style" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'primary': '#00307d',
+              'primary-container': '#0045ab',
+              'primary-fixed': '#dae2ff',
+              'primary-fixed-dim': '#b2c5ff',
+              'on-primary': '#ffffff',
+              'on-primary-fixed': '#001847',
+              'on-primary-fixed-variant': '#0040a1',
+              'on-primary-container': '#a3bbff',
+              'secondary': '#525f73',
+              'secondary-container': '#d6e3fb',
+              'on-secondary': '#ffffff',
+              'on-secondary-container': '#586579',
+              'tertiary': '#003955',
+              'tertiary-container': '#005177',
+              'tertiary-fixed': '#c9e6ff',
+              'on-tertiary': '#ffffff',
+              'on-tertiary-fixed': '#001e2f',
+              'on-tertiary-fixed-variant': '#004b6f',
+              'on-tertiary-container': '#71c5ff',
+              'surface': '#f8f9fa',
+              'surface-bright': '#f8f9fa',
+              'surface-dim': '#d9dadb',
+              'surface-tint': '#0056d2',
+              'surface-container': '#edeeef',
+              'surface-container-low': '#f3f4f5',
+              'surface-container-high': '#e7e8e9',
+              'surface-container-highest': '#e1e3e4',
+              'surface-container-lowest': '#ffffff',
+              'on-surface': '#191c1d',
+              'on-surface-variant': '#424751',
+              'background': '#f8f9fa',
+              'outline': '#737783',
+              'outline-variant': '#c2c6d3',
+              'error': '#ba1a1a',
+              'error-container': '#ffdad6',
+              'on-error': '#ffffff',
+              'on-error-container': '#93000a',
+              'inverse-primary': '#b2c5ff',
+            },
+            fontFamily: {
+              headline: ['Manrope', 'sans-serif'],
+              body: ['Inter', 'sans-serif'],
+            },
+            borderRadius: {
+              xl: '0.75rem',
+              '2xl': '1rem',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        vertical-align: middle;
+        font-size: 24px;
+        line-height: 1;
+        letter-spacing: normal;
+        text-transform: none;
+        display: inline-block;
+        white-space: nowrap;
+        word-wrap: normal;
+        direction: ltr;
+        -webkit-font-smoothing: antialiased;
+        overflow: hidden;
+        max-width: 24px;
+      }
+      body { font-family: 'Inter', sans-serif; }
+      h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

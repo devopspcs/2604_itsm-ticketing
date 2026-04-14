@@ -1,0 +1,35 @@
+# Environment files
+.env
+*.env.local
+
+# Go
+backend/tools/genhash/
+*.exe
+*.test
+*.out
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Docker
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Stitch design files (optional - remove if you want to keep)
+stitch/
+stitch.zip
+
+# Kiro internal
+.kiro/

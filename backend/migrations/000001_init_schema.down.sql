@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS webhook_logs;
+DROP TABLE IF EXISTS webhook_configs;
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS activity_logs;
+DROP TABLE IF EXISTS approvals;
+DROP TABLE IF EXISTS approval_configs;
+DROP TABLE IF EXISTS tickets;
+DROP TABLE IF EXISTS refresh_tokens;
+DROP TABLE IF EXISTS users;
