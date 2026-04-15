@@ -16,158 +16,282 @@ export function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [actionMsg, setActionMsg] = useState('')
   const [showForm, setShowForm] = useState(false)
-  const [newUser, setNewUser] = useState({
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [form, setForm] = useState({
     full_name: '', email: '', password: '', role: 'user' as Role,
     department_id: '', division_id: '', team_id: '', position: '' as string,
   })
 
-  // Org data for dropdowns
   const [departments, setDepartments] = useState<Department[]>([])
   const [divisions, setDivisions] = useState<Division[]>([])
   const [teams, setTeams] = useState<Team[]>([])
 
+  const showMsg = (msg: string) => { setActionMsg(msg); setTimeout(() => setActionMsg(''), 3000) }
+
   const fetchUsers = () => {
-    api.get<User[]>('/users').then((r) => setUsers(r.data)).catch(() => setError('Failed to load users')).finally(() => setLoading(false))
+    api.get<User[]>('/users').then((r) => setUsers(r.data ?? [])).catch(() => setError('Failed to load users')).finally(() => setLoading(false))
   }
 
   useEffect(() => { fetchUsers() }, [])
 
-  // Load departments when form opens
   useEffect(() => {
-    if (showForm) orgService.listDepartments().then(r => setDepartments(r.data ?? []))
-  }, [showForm])
+    if (showForm || editingUser) orgService.listDepartments().then(r => setDepartments(r.data ?? []))
+  }, [showForm, editingUser])
 
-  // Cascade: load divisions when department changes
   useEffect(() => {
-    if (newUser.department_id) {
-      orgService.listDivisions(newUser.department_id).then(r => setDivisions(r.data ?? []))
-    } else {
-      setDivisions([])
-    }
-    setNewUser(u => ({ ...u, division_id: '', team_id: '' }))
-  }, [newUser.department_id])
+    if (form.department_id) {
+      orgService.listDivisions(form.department_id).then(r => setDivisions(r.data ?? []))
+    } else { setDivisions([]) }
+  }, [form.department_id])
 
-  // Cascade: load teams when division changes
   useEffect(() => {
-    if (newUser.division_id) {
-      orgService.listTeams(newUser.division_id).then(r => setTeams(r.data ?? []))
-    } else {
-      setTeams([])
-    }
-    setNewUser(u => ({ ...u, team_id: '' }))
-  }, [newUser.division_id])
+    if (form.division_id) {
+      orgService.listTeams(form.division_id).then(r => setTeams(r.data ?? []))
+    } else { setTeams([]) }
+  }, [form.division_id])
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const resetForm = () => {
+    setForm({ full_name: '', email: '', password: '', role: 'user', department_id: '', division_id: '', team_id: '', position: '' })
+    setEditingUser(null)
+    setShowForm(false)
+  }
+
+  const openCreate = () => {
+    resetForm()
+    setShowForm(true)
+  }
+
+  const openEdit = (u: User) => {
+    setEditingUser(u)
+    setForm({
+      full_name: u.full_name,
+      email: u.email,
+      password: '',
+      role: u.role,
+      department_id: u.department_id ?? '',
+      division_id: u.division_id ?? '',
+      team_id: u.team_id ?? '',
+      position: u.position ?? '',
+    })
+    setShowForm(true)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
     try {
-      const payload: Record<string, string> = {
-        full_name: newUser.full_name, email: newUser.email, password: newUser.password, role: newUser.role,
+      if (editingUser) {
+        // Update role
+        await api.patch(`/users/${editingUser.id}/role`, { role: form.role })
+        // Update org
+        const orgPayload: Record<string, string | null> = {}
+        orgPayload.department_id = form.department_id || null
+        orgPayload.division_id = form.division_id || null
+        orgPayload.team_id = form.team_id || null
+        orgPayload.position = form.position || null
+        await api.patch(`/users/${editingUser.id}/org`, orgPayload)
+        showMsg('User updated')
+      } else {
+        const payload: Record<string, string> = {
+          full_name: form.full_name, email: form.email, password: form.password, role: form.role,
+        }
+        if (form.department_id) payload.department_id = form.department_id
+        if (form.division_id) payload.division_id = form.division_id
+        if (form.team_id) payload.team_id = form.team_id
+        if (form.position) payload.position = form.position
+        await api.post('/users', payload)
+        showMsg('User created')
       }
-      if (newUser.department_id) payload.department_id = newUser.department_id
-      if (newUser.division_id) payload.division_id = newUser.division_id
-      if (newUser.team_id) payload.team_id = newUser.team_id
-      if (newUser.position) payload.position = newUser.position
-      await api.post('/users', payload)
-      setShowForm(false)
-      setNewUser({ full_name: '', email: '', password: '', role: 'user', department_id: '', division_id: '', team_id: '', position: '' })
+      resetForm()
       fetchUsers()
-    } catch { setError('Failed to create user') }
+    } catch { setError(editingUser ? 'Failed to update user' : 'Failed to create user') }
   }
 
   const handleDeactivate = async (id: string) => {
-    try { await api.patch(`/users/${id}/deactivate`); fetchUsers() }
+    try { await api.patch(`/users/${id}/deactivate`); fetchUsers(); showMsg('User deactivated') }
     catch { setError('Failed to deactivate user') }
   }
 
   const handleActivate = async (id: string) => {
-    try { await api.patch(`/users/${id}/activate`); fetchUsers() }
+    try { await api.patch(`/users/${id}/activate`); fetchUsers(); showMsg('User activated') }
     catch { setError('Failed to activate user') }
   }
 
-  const inputStyle = { width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: 4, boxSizing: 'border-box' as const }
+  const inputStyle = 'w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary'
 
   if (loading) return <LoadingSpinner />
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: 22, fontWeight: 700 }}>User Management</h2>
-        <button onClick={() => setShowForm(!showForm)} style={{ background: '#1e40af', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 4, cursor: 'pointer' }}>
-          + New User
+    <div className="max-w-5xl mx-auto p-8">
+      {actionMsg && (
+        <div className="fixed top-20 right-6 z-50 px-5 py-3 rounded-xl shadow-lg font-semibold text-sm bg-emerald-100 text-emerald-800 flex items-center gap-2">
+          <span className="material-symbols-outlined text-sm">check_circle</span>
+          {actionMsg}
+        </div>
+      )}
+
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-on-surface mb-1">User Management</h1>
+          <p className="text-on-surface-variant text-sm">Manage users, roles, positions, and organizational assignments.</p>
+        </div>
+        <button onClick={openCreate}
+          className="bg-gradient-to-r from-primary to-primary-container text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-primary/20 hover:opacity-90 transition-all">
+          <span className="material-symbols-outlined">person_add</span>
+          New User
         </button>
       </div>
 
-      {error && <ErrorMessage message={error} />}
+      {error && <div className="mb-4"><ErrorMessage message={error} /></div>}
 
+      {/* Create/Edit Form */}
       {showForm && (
-        <form onSubmit={handleCreate} style={{ background: '#fff', padding: '1.5rem', borderRadius: 8, marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <input placeholder="Full Name" value={newUser.full_name} onChange={(e) => setNewUser({ ...newUser, full_name: e.target.value })} required style={inputStyle} />
-          <input placeholder="Email" type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required style={inputStyle} />
-          <input placeholder="Password" type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} required style={inputStyle} />
-          <select value={newUser.role} onChange={(e) => setNewUser({ ...newUser, role: e.target.value as Role })} style={inputStyle}>
-            <option value="user">User</option>
-            <option value="approver">Approver</option>
-            <option value="admin">Admin</option>
-          </select>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant/20">
+              <h3 className="text-lg font-bold text-on-surface">{editingUser ? 'Edit User' : 'Create New User'}</h3>
+              <button onClick={resetForm} className="p-1 hover:bg-surface-container-high rounded-lg transition-colors">
+                <span className="material-symbols-outlined text-on-surface-variant">close</span>
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Full Name</label>
+                <input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                  required={!editingUser} disabled={!!editingUser} placeholder="Full Name" className={inputStyle} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Email</label>
+                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  required={!editingUser} disabled={!!editingUser} placeholder="Email" className={inputStyle} />
+              </div>
+              {!editingUser && (
+                <div>
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Password</label>
+                  <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    required placeholder="Min 8 characters" className={inputStyle} />
+                </div>
+              )}
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Role</label>
+                <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as Role })} className={inputStyle + ' appearance-none'}>
+                  <option value="user">User</option>
+                  <option value="approver">Approver</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
 
-          {/* Org assignment fields */}
-          <select value={newUser.department_id} onChange={(e) => setNewUser({ ...newUser, department_id: e.target.value })} style={inputStyle}>
-            <option value="">-- Department (optional) --</option>
-            {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-          </select>
-          <select value={newUser.division_id} onChange={(e) => setNewUser({ ...newUser, division_id: e.target.value })} style={inputStyle} disabled={!newUser.department_id}>
-            <option value="">-- Division (optional) --</option>
-            {divisions.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-          </select>
-          <select value={newUser.team_id} onChange={(e) => setNewUser({ ...newUser, team_id: e.target.value })} style={inputStyle} disabled={!newUser.division_id}>
-            <option value="">-- Team (optional) --</option>
-            {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
-          <select value={newUser.position} onChange={(e) => setNewUser({ ...newUser, position: e.target.value })} style={inputStyle}>
-            <option value="">-- Position (optional) --</option>
-            {(Object.keys(POSITION_LABELS) as Position[]).map(p => <option key={p} value={p}>{POSITION_LABELS[p]}</option>)}
-          </select>
+              <div className="pt-2 border-t border-outline-variant/20">
+                <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3">Organization Assignment</p>
+              </div>
 
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button type="submit" style={{ background: '#1e40af', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 4, cursor: 'pointer' }}>Create</button>
-            <button type="button" onClick={() => setShowForm(false)} style={{ background: '#e2e8f0', border: 'none', padding: '8px 16px', borderRadius: 4, cursor: 'pointer' }}>Cancel</button>
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Department</label>
+                <select value={form.department_id} onChange={(e) => setForm({ ...form, department_id: e.target.value, division_id: '', team_id: '' })} className={inputStyle + ' appearance-none'}>
+                  <option value="">-- None --</option>
+                  {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Division</label>
+                <select value={form.division_id} onChange={(e) => setForm({ ...form, division_id: e.target.value, team_id: '' })}
+                  disabled={!form.department_id} className={inputStyle + ' appearance-none'}>
+                  <option value="">-- None --</option>
+                  {divisions.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Team</label>
+                <select value={form.team_id} onChange={(e) => setForm({ ...form, team_id: e.target.value })}
+                  disabled={!form.division_id} className={inputStyle + ' appearance-none'}>
+                  <option value="">-- None --</option>
+                  {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Position</label>
+                <select value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} className={inputStyle + ' appearance-none'}>
+                  <option value="">-- None --</option>
+                  {(Object.keys(POSITION_LABELS) as Position[]).map(p => <option key={p} value={p}>{POSITION_LABELS[p]}</option>)}
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <button type="button" onClick={resetForm}
+                  className="px-5 py-2.5 rounded-xl font-semibold text-on-surface-variant hover:bg-surface-container-high transition-colors">Cancel</button>
+                <button type="submit"
+                  className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold hover:opacity-90 transition-all">
+                  {editingUser ? 'Save Changes' : 'Create User'}
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       )}
 
-      <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: 8 }}>
-        <thead><tr style={{ background: '#f1f5f9' }}>
-          <th style={{ padding: '10px 16px', textAlign: 'left' }}>Name</th>
-          <th style={{ padding: '10px 16px', textAlign: 'left' }}>Email</th>
-          <th style={{ padding: '10px 16px', textAlign: 'left' }}>Role</th>
-          <th style={{ padding: '10px 16px', textAlign: 'left' }}>Position</th>
-          <th style={{ padding: '10px 16px', textAlign: 'left' }}>Status</th>
-          <th style={{ padding: '10px 16px', textAlign: 'left' }}>Actions</th>
-        </tr></thead>
-        <tbody>{users.map((u) => (
-          <tr key={u.id} style={{ borderTop: '1px solid #e2e8f0' }}>
-            <td style={{ padding: '10px 16px' }}>{u.full_name}</td>
-            <td style={{ padding: '10px 16px' }}>{u.email}</td>
-            <td style={{ padding: '10px 16px' }}>{u.role}</td>
-            <td style={{ padding: '10px 16px' }}>{u.position ? POSITION_LABELS[u.position] : '—'}</td>
-            <td style={{ padding: '10px 16px' }}>
-              <span style={{ color: u.is_active ? '#10b981' : '#ef4444' }}>{u.is_active ? 'Active' : 'Inactive'}</span>
-            </td>
-            <td style={{ padding: '10px 16px' }}>
-              {u.is_active ? (
-                <button onClick={() => handleDeactivate(u.id)} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>
-                  Deactivate
-                </button>
-              ) : (
-                <button onClick={() => handleActivate(u.id)} style={{ background: '#10b981', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>
-                  Activate
-                </button>
-              )}
-            </td>
-          </tr>
-        ))}</tbody>
-      </table>
+      {/* User Table */}
+      <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-outline-variant/10">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-surface-container-low/50">
+              {['Name', 'Email', 'Role', 'Position', 'Status', 'Actions'].map(h => (
+                <th key={h} className="px-6 py-4 text-[11px] font-black uppercase tracking-widest text-on-surface-variant">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-surface-container-low">
+            {users.map((u) => (
+              <tr key={u.id} className="hover:bg-surface-container-low/30 transition-colors">
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold text-sm">
+                      {u.full_name.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="text-sm font-semibold text-on-surface">{u.full_name}</span>
+                  </div>
+                </td>
+                <td className="px-6 py-4 text-sm text-on-surface-variant">{u.email}</td>
+                <td className="px-6 py-4">
+                  <span className={`text-xs px-2 py-1 rounded font-bold capitalize ${
+                    u.role === 'admin' ? 'bg-primary-fixed text-primary' :
+                    u.role === 'approver' ? 'bg-amber-100 text-amber-700' :
+                    'bg-surface-container-high text-on-surface-variant'
+                  }`}>{u.role}</span>
+                </td>
+                <td className="px-6 py-4 text-sm text-on-surface-variant">
+                  {u.position ? POSITION_LABELS[u.position] : '—'}
+                </td>
+                <td className="px-6 py-4">
+                  <span className={`text-xs font-bold px-2 py-1 rounded ${u.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                    {u.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex gap-2">
+                    <button onClick={() => openEdit(u)}
+                      className="text-xs font-bold text-primary hover:bg-primary-fixed px-3 py-1.5 rounded-xl transition-colors">
+                      Edit
+                    </button>
+                    {u.is_active ? (
+                      <button onClick={() => handleDeactivate(u.id)}
+                        className="text-xs font-bold text-error hover:bg-error-container px-3 py-1.5 rounded-xl transition-colors">
+                        Deactivate
+                      </button>
+                    ) : (
+                      <button onClick={() => handleActivate(u.id)}
+                        className="text-xs font-bold text-emerald-700 hover:bg-emerald-100 px-3 py-1.5 rounded-xl transition-colors">
+                        Activate
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
