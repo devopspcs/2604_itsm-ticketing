@@ -49,6 +49,7 @@ func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, db interface{ Ping() err
 
 		// SSO routes (public)
 		r.Get("/auth/sso/login-url", h.SSO.GetLoginURL)
+		r.Get("/auth/sso/redirect", h.SSO.Redirect)
 		r.Get("/auth/sso/callback", h.SSO.Callback)
 
 		// Authenticated routes
