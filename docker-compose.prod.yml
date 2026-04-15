@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: itsm
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-itsm_prod_password_change_me}
+      POSTGRES_DB: itsm
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U itsm"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      DATABASE_URL: postgres://itsm:${DB_PASSWORD:-itsm_prod_password_change_me}@postgres:5432/itsm?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET}
+      PORT: "8080"
+      MIGRATION_PATH: file://migrations
+      BASE_URL: https://itsm.pcsindonesia.com
+      APP_EMAIL_SMTP_HOST: mail.privateemail.com
+      APP_EMAIL_SMTP_PORT: "587"
+      APP_EMAIL_SMTP_USER: ${EMAIL_USER}
+      APP_EMAIL_SMTP_PASS: ${EMAIL_PASS}
+      APP_EMAIL_SENDER_EMAIL: noreply@pcsindonesia.com
+      KEYCLOAK_URL: https://jupyter.pcsindonesia.com
+      KEYCLOAK_REALM: sso-internal
+      KEYCLOAK_CLIENT_ID: itsm-app
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:3000:80"
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  postgres_data:
