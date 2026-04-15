@@ -117,25 +117,13 @@ export function LoginPage() {
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-outline">Single Sign-On</span>
               <div className="h-[1px] bg-outline-variant/30 flex-grow" />
             </div>
-            <button
-              onClick={() => {
-                // Direct redirect via API
-                fetch('/api/v1/auth/sso/login-url')
-                  .then(r => r.json())
-                  .then(data => {
-                    if (data && data.login_url) {
-                      window.location.assign(data.login_url)
-                    } else {
-                      setError('SSO login URL not available')
-                    }
-                  })
-                  .catch(() => setError('Failed to initiate SSO login'))
-              }}
-              className="w-full py-3 px-4 bg-surface-container-high rounded-xl text-on-secondary-container font-semibold text-sm hover:bg-surface-container-highest transition-colors flex items-center justify-center gap-2 border border-outline-variant/10"
+            <a
+              href="/api/v1/auth/sso/redirect"
+              className="w-full py-3 px-4 bg-surface-container-high rounded-xl text-on-secondary-container font-semibold text-sm hover:bg-surface-container-highest transition-colors flex items-center justify-center gap-2 border border-outline-variant/10 no-underline"
             >
               <span className="material-symbols-outlined text-[18px]">shield_person</span>
               Login with Keycloak SSO
-            </button>
+            </a>
           </div>
         </div>
 

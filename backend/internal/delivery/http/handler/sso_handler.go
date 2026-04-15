@@ -42,6 +42,17 @@ func (h *SSOHandler) GetLoginURL(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Redirect does a server-side 302 redirect to Keycloak login page
+func (h *SSOHandler) Redirect(w http.ResponseWriter, r *http.Request) {
+	redirectURI := h.cfg.BaseURL + "/api/v1/auth/sso/callback"
+	authURL := fmt.Sprintf("%s/realms/%s/protocol/openid-connect/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=openid+email+profile",
+		h.cfg.KeycloakURL, h.cfg.KeycloakRealm,
+		url.QueryEscape(h.cfg.KeycloakClientID),
+		url.QueryEscape(redirectURI))
+
+	http.Redirect(w, r, authURL, http.StatusFound)
+}
+
 // Callback handles the OAuth2 callback from Keycloak
 func (h *SSOHandler) Callback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
@@ -108,7 +119,7 @@ type keycloakUserInfo struct {
 
 func (h *SSOHandler) exchangeCode(code string) (*keycloakTokenResponse, error) {
 	tokenURL := fmt.Sprintf("%s/realms/%s/protocol/openid-connect/token", h.cfg.KeycloakURL, h.cfg.KeycloakRealm)
-	redirectURI := h.cfg.BaseURL + "/sso/callback"
+	redirectURI := h.cfg.BaseURL + "/api/v1/auth/sso/callback"
 
 	data := url.Values{
 		"grant_type":    {"authorization_code"},
