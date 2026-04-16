@@ -313,7 +313,15 @@ func (uc *ticketUseCase) UpdateTicket(ctx context.Context, id uuid.UUID, req dom
 		ticket.Priority = *req.Priority
 	}
 	if req.Status != nil {
+		oldStatus := ticket.Status
 		ticket.Status = *req.Status
+
+		now := time.Now().UTC()
+		if *req.Status == entity.StatusDone {
+			ticket.ResolvedAt = &now
+		} else if oldStatus == entity.StatusDone {
+			ticket.ResolvedAt = nil
+		}
 	}
 	ticket.UpdatedAt = time.Now().UTC()
 

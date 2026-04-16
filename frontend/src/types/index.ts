@@ -94,6 +94,10 @@ export interface DashboardStats {
   by_type: Record<TicketType, number>
   by_priority: Record<Priority, number>
   recent_tickets: Ticket[]
+  sla_compliance_rate: number
+  avg_resolution_hours: number
+  on_time_count: number
+  breached_count: number
 }
 
 export interface PaginatedTickets {

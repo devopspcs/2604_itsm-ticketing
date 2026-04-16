@@ -9,6 +9,13 @@ import (
 	domainUC "github.com/org/itsm/internal/domain/usecase"
 )
 
+var slaTargets = map[entity.Priority]time.Duration{
+	entity.PriorityCritical: 4 * time.Hour,
+	entity.PriorityHigh:     8 * time.Hour,
+	entity.PriorityMedium:   24 * time.Hour,
+	entity.PriorityLow:      72 * time.Hour,
+}
+
 type dashboardUseCase struct {
 	ticketRepo repository.TicketRepository
 }
@@ -61,6 +68,14 @@ func (uc *dashboardUseCase) GetStats(ctx context.Context, filter domainUC.Dashbo
 			recent = recent[:10]
 		}
 		stats.RecentTickets = recent
+
+		// Calculate SLA metrics for user path
+		complianceRate, avgHours, onTime, breached := calculateSLAMetrics(allTickets)
+		stats.SLAComplianceRate = complianceRate
+		stats.AvgResolutionHours = avgHours
+		stats.OnTimeCount = onTime
+		stats.BreachedCount = breached
+
 		return stats, nil
 	}
 	if filter.DateFrom != nil {
@@ -102,5 +117,43 @@ func (uc *dashboardUseCase) GetStats(ctx context.Context, filter domainUC.Dashbo
 	}
 	stats.RecentTickets = recent
 
+	// Calculate SLA metrics for admin path
+	complianceRate, avgHours, onTime, breached := calculateSLAMetrics(result.Tickets)
+	stats.SLAComplianceRate = complianceRate
+	stats.AvgResolutionHours = avgHours
+	stats.OnTimeCount = onTime
+	stats.BreachedCount = breached
+
 	return stats, nil
+}
+
+func calculateSLAMetrics(tickets []*entity.Ticket) (complianceRate float64, avgHours float64, onTime int64, breached int64) {
+	var totalResolutionHours float64
+	var resolvedCount int64
+
+	for _, t := range tickets {
+		if t.Status != entity.StatusDone || t.ResolvedAt == nil {
+			continue
+		}
+		duration := t.ResolvedAt.Sub(t.CreatedAt)
+		totalResolutionHours += duration.Hours()
+		resolvedCount++
+
+		target, ok := slaTargets[t.Priority]
+		if !ok {
+			target = 72 * time.Hour // default to low priority
+		}
+		if duration <= target {
+			onTime++
+		} else {
+			breached++
+		}
+	}
+
+	if resolvedCount > 0 {
+		avgHours = totalResolutionHours / float64(resolvedCount)
+		complianceRate = float64(onTime) / float64(resolvedCount) * 100
+	}
+
+	return complianceRate, avgHours, onTime, breached
 }

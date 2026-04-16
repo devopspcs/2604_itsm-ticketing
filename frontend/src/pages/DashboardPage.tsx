@@ -174,17 +174,28 @@ export function DashboardPage() {
               </div>
               <div>
                 <h3 className="text-lg font-bold text-on-surface">SLA Compliance</h3>
-                <p className="text-on-surface-variant text-sm">Average resolution time is <span className="font-bold text-primary">3.2 hours</span>, 15% faster than baseline.</p>
+                <p className="text-on-surface-variant text-sm">
+                  Average resolution time is{' '}
+                  <span className="font-bold text-primary">
+                    {(stats.avg_resolution_hours ?? 0).toFixed(1)} hours
+                  </span>
+                </p>
               </div>
             </div>
             <div className="flex justify-end gap-10">
               <div className="text-center">
-                <div className="text-2xl font-black text-on-surface">98.4%</div>
-                <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Uptime</div>
+                <div className="text-2xl font-black text-on-surface">
+                  {(stats.sla_compliance_rate ?? 0).toFixed(1)}%
+                </div>
+                <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Compliance</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-black text-on-surface">4.8/5</div>
-                <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Satisfaction</div>
+                <div className="text-2xl font-black text-emerald-600">{stats.on_time_count ?? 0}</div>
+                <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">On Time</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-black text-red-600">{stats.breached_count ?? 0}</div>
+                <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Breached</div>
               </div>
             </div>
           </div>

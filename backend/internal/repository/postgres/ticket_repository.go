@@ -23,17 +23,17 @@ func NewTicketRepository(db *pgxpool.Pool) repository.TicketRepository {
 }
 
 func (r *ticketRepository) Create(ctx context.Context, ticket *entity.Ticket) error {
-	query := `INSERT INTO tickets (id, title, description, type, category, priority, status, created_by, assigned_to, created_at, updated_at)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`
+	query := `INSERT INTO tickets (id, title, description, type, category, priority, status, created_by, assigned_to, created_at, updated_at, resolved_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`
 	_, err := r.db.Exec(ctx, query,
 		ticket.ID, ticket.Title, ticket.Description, ticket.Type,
 		ticket.Category, ticket.Priority, ticket.Status,
-		ticket.CreatedBy, ticket.AssignedTo, ticket.CreatedAt, ticket.UpdatedAt)
+		ticket.CreatedBy, ticket.AssignedTo, ticket.CreatedAt, ticket.UpdatedAt, ticket.ResolvedAt)
 	return err
 }
 
 func (r *ticketRepository) FindByID(ctx context.Context, id uuid.UUID) (*entity.Ticket, error) {
-	query := `SELECT id, title, description, type, category, priority, status, created_by, assigned_to, created_at, updated_at FROM tickets WHERE id=$1`
+	query := `SELECT id, title, description, type, category, priority, status, created_by, assigned_to, created_at, updated_at, resolved_at FROM tickets WHERE id=$1`
 	row := r.db.QueryRow(ctx, query, id)
 	return scanTicket(row)
 }
@@ -107,7 +107,7 @@ func (r *ticketRepository) List(ctx context.Context, filter repository.TicketFil
 
 	listArgs := append(args, pageSize, offset)
 	listQuery := fmt.Sprintf(
-		"SELECT id, title, description, type, category, priority, status, created_by, assigned_to, created_at, updated_at FROM tickets %s ORDER BY created_at DESC LIMIT $%d OFFSET $%d",
+		"SELECT id, title, description, type, category, priority, status, created_by, assigned_to, created_at, updated_at, resolved_at FROM tickets %s ORDER BY created_at DESC LIMIT $%d OFFSET $%d",
 		where, i, i+1,
 	)
 
@@ -129,14 +129,14 @@ func (r *ticketRepository) List(ctx context.Context, filter repository.TicketFil
 }
 
 func (r *ticketRepository) Update(ctx context.Context, ticket *entity.Ticket) error {
-	query := `UPDATE tickets SET title=$1, description=$2, category=$3, priority=$4, status=$5, assigned_to=$6, updated_at=$7 WHERE id=$8`
-	_, err := r.db.Exec(ctx, query, ticket.Title, ticket.Description, ticket.Category, ticket.Priority, ticket.Status, ticket.AssignedTo, time.Now().UTC(), ticket.ID)
+	query := `UPDATE tickets SET title=$1, description=$2, category=$3, priority=$4, status=$5, assigned_to=$6, updated_at=$7, resolved_at=$8 WHERE id=$9`
+	_, err := r.db.Exec(ctx, query, ticket.Title, ticket.Description, ticket.Category, ticket.Priority, ticket.Status, ticket.AssignedTo, time.Now().UTC(), ticket.ResolvedAt, ticket.ID)
 	return err
 }
 
 func scanTicket(row pgx.Row) (*entity.Ticket, error) {
 	t := &entity.Ticket{}
-	err := row.Scan(&t.ID, &t.Title, &t.Description, &t.Type, &t.Category, &t.Priority, &t.Status, &t.CreatedBy, &t.AssignedTo, &t.CreatedAt, &t.UpdatedAt)
+	err := row.Scan(&t.ID, &t.Title, &t.Description, &t.Type, &t.Category, &t.Priority, &t.Status, &t.CreatedBy, &t.AssignedTo, &t.CreatedAt, &t.UpdatedAt, &t.ResolvedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, apperror.ErrNotFound
@@ -148,6 +148,6 @@ func scanTicket(row pgx.Row) (*entity.Ticket, error) {
 
 func scanTicketRow(rows pgx.Rows) (*entity.Ticket, error) {
 	t := &entity.Ticket{}
-	err := rows.Scan(&t.ID, &t.Title, &t.Description, &t.Type, &t.Category, &t.Priority, &t.Status, &t.CreatedBy, &t.AssignedTo, &t.CreatedAt, &t.UpdatedAt)
+	err := rows.Scan(&t.ID, &t.Title, &t.Description, &t.Type, &t.Category, &t.Priority, &t.Status, &t.CreatedBy, &t.AssignedTo, &t.CreatedAt, &t.UpdatedAt, &t.ResolvedAt)
 	return t, err
 }
