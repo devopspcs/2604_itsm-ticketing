@@ -304,7 +304,7 @@ export function TicketDetailPage() {
               {ticket.priority.toUpperCase()}
             </span>
             <span className={`text-xs font-bold px-2 py-1 rounded capitalize ${
-              ticket.status === 'open' ? 'bg-blue-100 text-blue-700' :
+              ticket.status === 'open' ? 'bg-red-100 text-red-700' :
               ticket.status === 'in_progress' ? 'bg-amber-100 text-amber-700' :
               ticket.status === 'pending_approval' ? 'bg-purple-100 text-purple-700' :
               ticket.status === 'approved' ? 'bg-emerald-100 text-emerald-700' :

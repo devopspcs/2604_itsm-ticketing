@@ -34,7 +34,7 @@ export function NotificationsPage() {
             {notifications.map((n) => (
               <div
                 key={n.id}
-                className={`flex items-start gap-4 px-6 py-5 hover:bg-slate-50 transition-colors ${!n.is_read ? 'bg-blue-50/30' : ''}`}
+                className={`flex items-start gap-4 px-6 py-5 hover:bg-slate-50 transition-colors ${!n.is_read ? 'bg-red-50/30' : ''}`}
               >
                 <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ${
                   !n.is_read ? 'bg-primary-fixed text-primary' : 'bg-surface-container-high text-on-surface-variant'
