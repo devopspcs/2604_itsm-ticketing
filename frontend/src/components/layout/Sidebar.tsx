@@ -54,7 +54,7 @@ export function Sidebar() {
   return (
     <aside className="h-screen w-64 fixed left-0 top-0 pt-16 bg-slate-50 flex flex-col gap-2 p-4 z-40 hidden md:flex">
       <div className="mb-6 px-2">
-        <h2 className="text-lg font-black text-red-900 font-headline">Service Console</h2>
+        <h2 className="text-lg font-black text-accent-900 font-headline">Service Console</h2>
         <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Enterprise Management</p>
       </div>
 
@@ -65,8 +65,8 @@ export function Sidebar() {
             to={item.to}
             className={({ isActive }) =>
               isActive
-                ? 'flex items-center gap-3 px-3 py-2.5 text-red-900 font-bold bg-white rounded-lg text-sm shadow-sm'
-                : 'flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:text-red-700 hover:translate-x-1 transition-all text-sm font-medium'
+                ? 'flex items-center gap-3 px-3 py-2.5 text-accent-900 font-bold bg-white rounded-lg text-sm shadow-sm'
+                : 'flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:text-accent-700 hover:translate-x-1 transition-all text-sm font-medium'
             }
           >
             {({ isActive }) => (

@@ -11,18 +11,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+      // Apply saved theme before render to prevent flash
+      (function() {
+        var t = localStorage.getItem('itsm-theme') || 'blue';
+        document.documentElement.setAttribute('data-theme', t);
+      })();
       tailwind.config = {
         theme: {
           extend: {
             colors: {
-              'primary': '#00307d',
-              'primary-container': '#0045ab',
-              'primary-fixed': '#dae2ff',
-              'primary-fixed-dim': '#b2c5ff',
+              'primary': 'var(--color-primary)',
+              'primary-container': 'var(--color-primary-container)',
+              'primary-fixed': 'var(--color-primary-fixed)',
+              'primary-fixed-dim': 'var(--color-primary-fixed-dim)',
               'on-primary': '#ffffff',
-              'on-primary-fixed': '#001847',
-              'on-primary-fixed-variant': '#0040a1',
-              'on-primary-container': '#a3bbff',
+              'on-primary-fixed': 'var(--color-on-primary-fixed)',
+              'on-primary-fixed-variant': 'var(--color-on-primary-fixed-variant)',
+              'on-primary-container': 'var(--color-on-primary-container)',
               'secondary': '#525f73',
               'secondary-container': '#d6e3fb',
               'on-secondary': '#ffffff',
@@ -37,7 +42,7 @@
               'surface': '#f8f9fa',
               'surface-bright': '#f8f9fa',
               'surface-dim': '#d9dadb',
-              'surface-tint': '#0056d2',
+              'surface-tint': 'var(--color-surface-tint)',
               'surface-container': '#edeeef',
               'surface-container-low': '#f3f4f5',
               'surface-container-high': '#e7e8e9',
@@ -52,7 +57,12 @@
               'error-container': '#ffdad6',
               'on-error': '#ffffff',
               'on-error-container': '#93000a',
-              'inverse-primary': '#b2c5ff',
+              'inverse-primary': 'var(--color-inverse-primary)',
+              'accent-50': 'var(--color-accent-50)',
+              'accent-100': 'var(--color-accent-100)',
+              'accent-600': 'var(--color-accent-600)',
+              'accent-700': 'var(--color-accent-700)',
+              'accent-900': 'var(--color-accent-900)',
             },
             fontFamily: {
               headline: ['Manrope', 'sans-serif'],
@@ -67,6 +77,42 @@
       }
     </script>
     <style>
+      /* Default theme (blue) */
+      :root, [data-theme="red"] {
+        --color-primary: #C41E3A; --color-primary-container: #D4354F; --color-primary-fixed: #FFDAD9;
+        --color-primary-fixed-dim: #FFB3B0; --color-on-primary-fixed: #410010; --color-on-primary-fixed-variant: #A0122C;
+        --color-on-primary-container: #FFB3B0; --color-surface-tint: #C41E3A; --color-inverse-primary: #FFB3B0;
+        --color-accent-50: #fef2f2; --color-accent-100: #fee2e2; --color-accent-600: #dc2626;
+        --color-accent-700: #b91c1c; --color-accent-900: #7f1d1d;
+      }
+      [data-theme="blue"] {
+        --color-primary: #00307d; --color-primary-container: #0045ab; --color-primary-fixed: #dae2ff;
+        --color-primary-fixed-dim: #b2c5ff; --color-on-primary-fixed: #001847; --color-on-primary-fixed-variant: #0040a1;
+        --color-on-primary-container: #a3bbff; --color-surface-tint: #0056d2; --color-inverse-primary: #b2c5ff;
+        --color-accent-50: #eff6ff; --color-accent-100: #dbeafe; --color-accent-600: #2563eb;
+        --color-accent-700: #1d4ed8; --color-accent-900: #1e3a5f;
+      }
+      [data-theme="green"] {
+        --color-primary: #15803d; --color-primary-container: #1a9d4a; --color-primary-fixed: #d1fae5;
+        --color-primary-fixed-dim: #86efac; --color-on-primary-fixed: #052e16; --color-on-primary-fixed-variant: #166534;
+        --color-on-primary-container: #86efac; --color-surface-tint: #16a34a; --color-inverse-primary: #86efac;
+        --color-accent-50: #f0fdf4; --color-accent-100: #dcfce7; --color-accent-600: #16a34a;
+        --color-accent-700: #15803d; --color-accent-900: #14532d;
+      }
+      [data-theme="yellow"] {
+        --color-primary: #a16207; --color-primary-container: #ca8a04; --color-primary-fixed: #fef9c3;
+        --color-primary-fixed-dim: #fde047; --color-on-primary-fixed: #422006; --color-on-primary-fixed-variant: #854d0e;
+        --color-on-primary-container: #fde047; --color-surface-tint: #ca8a04; --color-inverse-primary: #fde047;
+        --color-accent-50: #fefce8; --color-accent-100: #fef9c3; --color-accent-600: #ca8a04;
+        --color-accent-700: #a16207; --color-accent-900: #713f12;
+      }
+      [data-theme="purple"] {
+        --color-primary: #7c3aed; --color-primary-container: #8b5cf6; --color-primary-fixed: #ede9fe;
+        --color-primary-fixed-dim: #c4b5fd; --color-on-primary-fixed: #2e1065; --color-on-primary-fixed-variant: #6d28d9;
+        --color-on-primary-container: #c4b5fd; --color-surface-tint: #7c3aed; --color-inverse-primary: #c4b5fd;
+        --color-accent-50: #faf5ff; --color-accent-100: #f3e8ff; --color-accent-600: #9333ea;
+        --color-accent-700: #7c3aed; --color-accent-900: #581c87;
+      }
       .material-symbols-outlined {
         font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         vertical-align: middle;

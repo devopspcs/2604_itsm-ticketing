@@ -90,7 +90,7 @@ export function ApprovalsPage() {
             <span className="text-xs font-bold text-on-surface-variant uppercase tracking-tighter">{pendingCount} Pending</span>
           </div>
           <div className="bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/10 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-red-500" />
+            <span className="w-2 h-2 rounded-full bg-accent-600" />
             <span className="text-xs font-bold text-on-surface-variant uppercase tracking-tighter">{tickets.length - pendingCount} Open/In Progress</span>
           </div>
         </div>
@@ -140,7 +140,7 @@ export function ApprovalsPage() {
               <div className="col-span-2">
                 <span className={`text-xs px-2 py-1 rounded font-bold capitalize ${
                   t.status === 'pending_approval' ? 'bg-amber-100 text-amber-700' :
-                  t.status === 'in_progress' ? 'bg-red-100 text-red-700' :
+                  t.status === 'in_progress' ? 'bg-accent-100 text-accent-700' :
                   'bg-surface-container-high text-on-surface-variant'
                 }`}>{t.status.replace(/_/g, ' ')}</span>
               </div>
@@ -148,11 +148,11 @@ export function ApprovalsPage() {
                 <div className="flex items-center gap-1.5">
                   <span className={`w-1.5 h-6 rounded-full ${
                     t.priority === 'critical' || t.priority === 'high' ? 'bg-error' :
-                    t.priority === 'medium' ? 'bg-amber-500' : 'bg-red-400'
+                    t.priority === 'medium' ? 'bg-amber-500' : 'bg-accent-600'
                   }`} />
                   <span className={`text-xs font-bold uppercase ${
                     t.priority === 'critical' || t.priority === 'high' ? 'text-error' :
-                    t.priority === 'medium' ? 'text-amber-600' : 'text-red-500'
+                    t.priority === 'medium' ? 'text-amber-600' : 'text-accent-600'
                   }`}>{t.priority}</span>
                 </div>
               </div>
@@ -202,8 +202,8 @@ export function ApprovalsPage() {
         </div>
         <div className="bg-white/80 p-6 rounded-2xl shadow-sm flex flex-col justify-between h-48 border border-outline-variant/10">
           <div className="flex justify-between items-start">
-            <span className="material-symbols-outlined text-3xl text-red-600">trending_up</span>
-            <span className="text-[10px] font-bold uppercase tracking-widest bg-red-100 text-red-700 px-2 py-1 rounded">Volume</span>
+            <span className="material-symbols-outlined text-3xl text-accent-600">trending_up</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest bg-accent-100 text-accent-700 px-2 py-1 rounded">Volume</span>
           </div>
           <div>
             <p className="text-4xl font-extrabold text-on-surface mb-1">{pendingCount}</p>
