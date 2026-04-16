@@ -106,7 +106,11 @@ type DashboardStats struct {
 	ByStatus      map[entity.TicketStatus]int64 `json:"by_status"`
 	ByType        map[entity.TicketType]int64   `json:"by_type"`
 	ByPriority    map[entity.Priority]int64     `json:"by_priority"`
-	RecentTickets []*entity.Ticket              `json:"recent_tickets"`
+	RecentTickets      []*entity.Ticket              `json:"recent_tickets"`
+	SLAComplianceRate  float64                       `json:"sla_compliance_rate"`
+	AvgResolutionHours float64                       `json:"avg_resolution_hours"`
+	OnTimeCount        int64                         `json:"on_time_count"`
+	BreachedCount      int64                         `json:"breached_count"`
 }
 
 type DashboardUseCase interface {

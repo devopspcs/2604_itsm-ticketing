@@ -46,4 +46,5 @@ type Ticket struct {
 	AssignedTo  *uuid.UUID   `json:"assigned_to"`
 	CreatedAt   time.Time    `json:"created_at"`
 	UpdatedAt   time.Time    `json:"updated_at"`
+	ResolvedAt  *time.Time   `json:"resolved_at"`
 }
