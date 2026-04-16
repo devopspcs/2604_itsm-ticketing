@@ -11,7 +11,7 @@ import { NotificationsPage } from './pages/NotificationsPage'
 import { UserManagementPage } from './pages/UserManagementPage'
 import { WebhookConfigPage } from './pages/WebhookConfigPage'
 import { OrgStructurePage } from './pages/OrgStructurePage'
-
+import { ProfilePage } from './pages/ProfilePage'
 import { SSOCallbackPage } from './pages/SSOCallbackPage'
 
 export default function App() {
@@ -32,6 +32,7 @@ export default function App() {
           <Route path="/users" element={<UserManagementPage />} />
           <Route path="/webhooks" element={<WebhookConfigPage />} />
           <Route path="/org-structure" element={<OrgStructurePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<UserManagementPage />} />
         </Route>
       </Routes>

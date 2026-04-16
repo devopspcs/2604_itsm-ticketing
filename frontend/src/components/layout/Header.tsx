@@ -43,6 +43,10 @@ export function Header() {
           )}
         </Link>
 
+        <Link to="/profile" className="p-2 text-on-surface-variant hover:bg-slate-100 rounded-full active:scale-95 duration-150">
+          <span className="material-symbols-outlined">account_circle</span>
+        </Link>
+
         <button
           onClick={handleLogout}
           className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-on-surface-variant hover:bg-slate-100 rounded-xl transition-colors"
