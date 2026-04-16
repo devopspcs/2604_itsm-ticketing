@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#0052cc",
+                    "on-surface-variant": "#434654",
+                    "secondary-fixed-dim": "#b7c7e8",
+                    "surface-bright": "#f8f9fb",
+                    "on-primary": "#ffffff",
+                    "background": "#f8f9fb",
+                    "outline": "#737685",
+                    "on-primary-fixed": "#001848",
+                    "secondary-container": "#cdddff",
+                    "surface": "#f8f9fb",
+                    "surface-variant": "#e1e2e4",
+                    "on-primary-fixed-variant": "#0040a2",
+                    "on-error-container": "#93000a",
+                    "surface-container-highest": "#e1e2e4",
+                    "primary-fixed": "#dae2ff",
+                    "surface-dim": "#d9dadc",
+                    "on-secondary-fixed-variant": "#374763",
+                    "on-tertiary-container": "#ffc6b2",
+                    "inverse-primary": "#b2c5ff",
+                    "tertiary-container": "#a33500",
+                    "on-secondary-fixed": "#091c35",
+                    "secondary-fixed": "#d6e3ff",
+                    "on-secondary": "#ffffff",
+                    "surface-tint": "#0c56d0",
+                    "surface-container": "#edeef0",
+                    "on-error": "#ffffff",
+                    "on-background": "#191c1e",
+                    "on-tertiary": "#ffffff",
+                    "primary": "#003d9b",
+                    "surface-container-high": "#e7e8ea",
+                    "inverse-on-surface": "#f0f1f3",
+                    "error-container": "#ffdad6",
+                    "primary-fixed-dim": "#b2c5ff",
+                    "tertiary": "#7b2600",
+                    "on-secondary-container": "#51617e",
+                    "surface-container-low": "#f3f4f6",
+                    "tertiary-fixed-dim": "#ffb59b",
+                    "inverse-surface": "#2e3132",
+                    "outline-variant": "#c3c6d6",
+                    "on-surface": "#191c1e",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed": "#380d00",
+                    "on-primary-container": "#c4d2ff",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-fixed": "#ffdbcf",
+                    "on-tertiary-fixed-variant": "#812800",
+                    "secondary": "#4f5f7b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface">
+<!-- TopAppBar from JSON -->
+<header class="fixed top-0 w-full z-50 bg-slate-50/85 dark:bg-slate-950/85 backdrop-blur-xl flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors duration-300 ease-in-out text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-xl font-headline font-bold tracking-tight text-slate-900 dark:text-slate-50">Editorial Workspace</h1>
+</div>
+<div class="flex items-center gap-3">
+<img alt="Profile" class="w-8 h-8 rounded-full border border-outline-variant/30 object-cover" data-alt="close up portrait of a professional man in a minimalist office setting with soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOqyB4IzO2VPlLoSseD_h8AK0O25nlr_rh5WEQNWLfFKR_tGpCVnqW7clTFfy0-FvfiUiIKXQoXVVGgePz45aH0w_ykYHBi6ILd0JLVJxsE9tVWniZQ31h4GGtmDeMS27WLoF0f8LcDobEIH4-IJMTSSO5rvtjAd2IMWaHlnFYWq2dcCEumx0vwq7dZnjONug_giaV0MtieBbIMI5e3rWBjCK31gM4GRzAQ08S1_gMpsclNkx9U8sSVgs9krX76YE-3CXSBO5rUEM"/>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-7xl mx-auto">
+<!-- Dashboard Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+<div>
+<p class="font-label text-sm font-medium text-on-surface-variant uppercase tracking-widest mb-2">Workspace Overview</p>
+<h2 class="font-headline text-4xl font-extrabold tracking-tight text-on-surface">Active Boards</h2>
+</div>
+<div class="flex gap-3">
+<button class="px-6 py-3 bg-surface-container-highest text-on-surface font-semibold rounded-full hover:bg-surface-variant transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="filter_list">filter_list</span>
+                    Filter
+                </button>
+<button class="px-6 py-3 bg-gradient-to-r from-primary-container to-primary text-on-primary font-semibold rounded-full shadow-lg shadow-primary/20 flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                    New Board
+                </button>
+</div>
+</div>
+<!-- Asymmetric Bento Grid for Boards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Board Card 1: Large Featured -->
+<div class="lg:col-span-2 group relative overflow-hidden bg-surface-container-lowest rounded-xl p-8 border border-outline-variant/10 transition-all duration-300 hover:bg-surface-bright">
+<div class="flex justify-between items-start mb-12">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-xl bg-primary-fixed flex items-center justify-center text-on-primary-fixed-variant">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div>
+<h3 class="font-headline text-2xl font-bold">Marketing Q4 Campaign</h3>
+<p class="text-on-surface-variant font-medium">Updated 2 hours ago</p>
+</div>
+</div>
+<span class="px-4 py-1.5 bg-tertiary-fixed text-on-tertiary-fixed-variant text-xs font-bold rounded-full uppercase tracking-wider">High Priority</span>
+</div>
+<div class="mb-8">
+<div class="flex justify-between items-center mb-3">
+<span class="font-label text-sm font-semibold text-on-surface">18/24 tasks completed</span>
+<span class="font-label text-sm font-bold text-primary">75%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary-container rounded-full w-3/4"></div>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-3">
+<img alt="Member" class="w-10 h-10 rounded-full border-2 border-surface-container-lowest object-cover" data-alt="portrait of a smiling woman with glasses in a professional studio setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAy035kJyoyTNQ5JUqjuuR0_c3QsyNML8XSm73x7WNyZB3iuuXusqhk5WEdAfvlae4Na1VFDhYHXaw6LV1mVSxyF2fi7CcNHOM_cwRZuMtD5sWPXYW5m7gQu3kwi2GZURGODgSyFb_fa4r1NaAdzKdKbWwU2pE8BColp62MF23uz3gssEO-_4MOevfxi8QZ5xe38AqnGI5vQl2hKlGTwQt-BftGp9CncRAEFeKhP5vB8fchaKzVdsTvzbdJ2un7aGk25Im0Jh8hPO4"/>
+<img alt="Member" class="w-10 h-10 rounded-full border-2 border-surface-container-lowest object-cover" data-alt="close up headshot of a creative professional man with short hair" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_10uZtKBzmpx-gpiXMCUMM-7JmMzHXs-xMwXJ4_PYTp8hjDzcgqlHVguoN1m4FelqM4DRAmFephWLRUoOBXRkpoJzQWX5V6bLIa0bEOHtRuov01i-rECXTIUUmBx-1Cd0CVK7VBJP1WFjWBPpycDnvv5GqH0iNzLWW7Apx1czcPZmCLrDeiJD5rcVnmheYPP6MFcy4GbQssJb-yiIBzHP7khUryua9RsAoC8gz0G1TKuokAuZWLfCUzCPd6vriO32gztZfUQ36us"/>
+<img alt="Member" class="w-10 h-10 rounded-full border-2 border-surface-container-lowest object-cover" data-alt="professional woman looking at the camera with a confident expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQTbXoTpVLMMJdZIbtzuVXJQOmRDbDgNRU1Ju8ZuYLVQ6E3WNfV0D7o-Jk8JpZSFf70VsFe-YgBDAkSefuS9IJBlazaU1z83XimTkeFH8fYEVNDvcpXN_5fhIx-FCi4YzVze0j_-AKnfqiKstFlwoWb3MisRdxxd-T7Erg9QSiBHsl2L82ZX54x64WAai2qBb5QiAKQstuQGWC_khKlDm6uLpen4yElvtXALLIAXbTgCjwIMaXspPkoRJgJ3cOjqo7jZXHeV2LJ4k"/>
+<div class="w-10 h-10 rounded-full border-2 border-surface-container-lowest bg-surface-container-high flex items-center justify-center text-xs font-bold text-on-surface-variant">+5</div>
+</div>
+<button class="text-primary font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                        Open Board <span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Board Card 2 -->
+<div class="bg-surface-container-low rounded-xl p-6 transition-all duration-300 hover:bg-surface-container-high">
+<div class="flex justify-between mb-6">
+<div class="w-10 h-10 rounded-xl bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="web">web</span>
+</div>
+<button class="text-on-surface-variant"><span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span></button>
+</div>
+<h3 class="font-headline text-xl font-bold mb-1">Product UI Overhaul</h3>
+<p class="text-on-surface-variant text-sm mb-6">Design System Sync</p>
+<div class="mb-6">
+<div class="flex justify-between text-xs font-bold mb-2">
+<span class="text-on-surface-variant">4/12 tasks</span>
+<span class="text-on-surface">33%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-variant rounded-full">
+<div class="h-full bg-secondary w-1/3 rounded-full"></div>
+</div>
+</div>
+<div class="flex -space-x-2">
+<img alt="Member" class="w-8 h-8 rounded-full border-2 border-surface-container-low object-cover" data-alt="young male designer in creative studio" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDldmuD9M_gIMJVsgOYvCV0NCe1JhlyAijLpzQGAr23JtxUTr-QMZz6yhY4nhFH9wR3vWjetVjN4mBZJvJe0mvk6EnAxLzJr3VxCbfV0NiUz_-kxCgc2gfghh-obaMJOW2sfKbvUuaTL3i34mbEYDMbJLzWqoT516AtMhetrpLGQlhV8fhPB0NIYEKUjx07jJQTSmxCinEdQsiPDTeztPdHUd1g2b8aOhoEJOYZpX4ef5eSJHNXSv3S_yoZFnVtzZisLapG8KlPpVc"/>
+<img alt="Member" class="w-8 h-8 rounded-full border-2 border-surface-container-low object-cover" data-alt="female software engineer at a desk" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8Ypxtxy1wzkBG9dnTTRn5f5WtLN5ABIlWq2uEpEJR_d25GHuHEvVqNIfu6K0v3M8EWJB--Mu1HBI_vUGt4yoR2hJMWQWdPib5kiT1s0sIPkXj0OoHoBpv5IULt9-8ph4kQRz71rdWQKicU1Jlek25nxwugooRpJq_yIeOBJ5kRW0afTOM6us9w0AaG7Uc-MSCShX4hW1H1iZBeM8pRrfHaaNj6Ih0BEWsuTkH7MOsOKMBNKR7oLGWHlly8fCOiRoaLtuWT46EjnY"/>
+</div>
+</div>
+<!-- Board Card 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:shadow-slate-900/5">
+<div class="flex justify-between mb-6">
+<div class="w-10 h-10 rounded-xl bg-tertiary-fixed-dim flex items-center justify-center text-on-tertiary-fixed-variant">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+</div>
+<button class="text-on-surface-variant"><span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span></button>
+</div>
+<h3 class="font-headline text-xl font-bold mb-1">Backend Migration</h3>
+<p class="text-on-surface-variant text-sm mb-6">Infrastructure Upgrade</p>
+<div class="mb-6">
+<div class="flex justify-between text-xs font-bold mb-2">
+<span class="text-on-surface-variant">9/10 tasks</span>
+<span class="text-on-surface text-primary">90%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-variant rounded-full">
+<div class="h-full bg-primary w-[90%] rounded-full"></div>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<img alt="Member" class="w-8 h-8 rounded-full border-2 border-surface-container-lowest object-cover" data-alt="man with beard working in high tech environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJJ2I-Lt34LkcBpCURYyXV5Cc-hJkYHpylGRIfykr_Iv9JrdU1yjOXx5UDOwybtb4hDYp-diqKuzxpBLh37nl4tBksNB0OZKRc3uQ5ibvNxS4mRTy8g2hSb0-HUWjXNua9aVtsvYc2XlgnFfxI9WG7-AFEl0q-FhV_AbixLOscxH_NYVk7XM6OV8GzlX-D3RFhbRGI5OROTbTW59JcLkp8OFcv8ts9kGTB3Siej5i2M6KYkgwXRonhwJD3-oWgcEGpIvxi6dgPJLc"/>
+</div>
+<span class="text-xs font-bold px-2 py-1 bg-primary-fixed text-on-primary-fixed-variant rounded">Almost Done</span>
+</div>
+</div>
+<!-- Board Card 4 -->
+<div class="bg-surface-container-low rounded-xl p-6 transition-all duration-300 hover:bg-surface-container-high">
+<div class="flex justify-between mb-6">
+<div class="w-10 h-10 rounded-xl bg-slate-200 flex items-center justify-center text-slate-600">
+<span class="material-symbols-outlined" data-icon="event_note">event_note</span>
+</div>
+<button class="text-on-surface-variant"><span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span></button>
+</div>
+<h3 class="font-headline text-xl font-bold mb-1">Content Calendar</h3>
+<p class="text-on-surface-variant text-sm mb-6">Social Media Planning</p>
+<div class="mb-6">
+<div class="flex justify-between text-xs font-bold mb-2">
+<span class="text-on-surface-variant">0/15 tasks</span>
+<span class="text-on-surface">0%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-variant rounded-full">
+<div class="h-full bg-outline w-0 rounded-full"></div>
+</div>
+</div>
+<div class="flex -space-x-2">
+<img alt="Member" class="w-8 h-8 rounded-full border-2 border-surface-container-low object-cover" data-alt="creative woman portrait in casual clothing" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACNkECPNoaURZJNrNHaFv5hfdl8naprDYVebP59FxRQmMZl2OkV6tR_Hzkz8PqLjI15inRWcOwk79WM-wHXnmETP6dVhX4R3EzcpEEleIp6lKi7EDHGLm3CEKkFUVHNeBLRXNOo3-gywDrEPT508cc0Wy7wHQ2xGIkXYqLsUak4m3fJIq-8SL4fZ5zWywEC_jIRLVkhjMUFXoTiMTKIp7gkVTrvgcyPLLxGbqjb9_YIGQOD1sBFNh4qJpfh0k4en94-krJ5ngJb88"/>
+</div>
+</div>
+<!-- Empty State Card -->
+<div class="border-2 border-dashed border-outline-variant/30 rounded-xl p-6 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-primary/50 transition-colors">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant mb-4 group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</div>
+<h4 class="font-headline font-bold text-on-surface">Create New Board</h4>
+<p class="text-sm text-on-surface-variant">Start a new project board</p>
+</div>
+</div>
+<!-- Productivity Summary Section (Editorial Content) -->
+<section class="mt-20">
+<h3 class="font-headline text-2xl font-bold mb-8 flex items-center gap-3">
+<span class="w-1 h-8 bg-primary rounded-full"></span>
+                Weekly Productivity
+            </h3>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="bg-primary-container p-6 rounded-xl text-on-primary">
+<p class="text-xs font-bold uppercase tracking-widest opacity-80 mb-2">Total Tasks</p>
+<p class="text-4xl font-headline font-extrabold tracking-tighter">142</p>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10">
+<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Completed</p>
+<p class="text-4xl font-headline font-extrabold tracking-tighter text-on-surface">89</p>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10">
+<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">In Progress</p>
+<p class="text-4xl font-headline font-extrabold tracking-tighter text-on-surface">34</p>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10">
+<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Avg. Efficiency</p>
+<p class="text-4xl font-headline font-extrabold tracking-tighter text-on-surface">92%</p>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar from JSON -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-slate-50/85 dark:bg-slate-950/85 backdrop-blur-xl z-50 rounded-t-3xl shadow-2xl shadow-slate-900/10">
+<!-- Overview (Active) -->
+<a class="flex flex-col items-center justify-center bg-blue-100/50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-2xl px-4 py-1 scale-95 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-inter text-xs font-medium">Overview</span>
+</a>
+<!-- Boards -->
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-4 py-1 hover:text-blue-600 dark:hover:text-blue-300 scale-95 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="view_kanban">view_kanban</span>
+<span class="font-inter text-xs font-medium">Boards</span>
+</a>
+<!-- Tasks -->
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-4 py-1 hover:text-blue-600 dark:hover:text-blue-300 scale-95 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+<span class="font-inter text-xs font-medium">Tasks</span>
+</a>
+<!-- Settings -->
+<a class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 px-4 py-1 hover:text-blue-600 dark:hover:text-blue-300 scale-95 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-inter text-xs font-medium">Settings</span>
+</a>
+</nav>
+</body></html>

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/org/itsm/internal/domain/entity"
@@ -183,4 +184,81 @@ type OrgUseCase interface {
 	UpdateTeam(ctx context.Context, id uuid.UUID, req UpdateTeamRequest) (*entity.Team, error)
 	DeleteTeam(ctx context.Context, id uuid.UUID) error
 	ListTeams(ctx context.Context, divisionID *uuid.UUID) ([]*entity.Team, error)
+}
+
+// --- Project Board ---
+
+type CreateProjectRequest struct {
+	Name      string `json:"name" validate:"required"`
+	IconColor string `json:"icon_color"`
+}
+
+type UpdateProjectRequest struct {
+	Name      *string `json:"name"`
+	IconColor *string `json:"icon_color"`
+}
+
+type CreateColumnRequest struct {
+	Name string `json:"name" validate:"required"`
+}
+
+type UpdateColumnRequest struct {
+	Name string `json:"name" validate:"required"`
+}
+
+type ReorderColumnsRequest struct {
+	ColumnIDs []uuid.UUID `json:"column_ids" validate:"required"`
+}
+
+type CreateRecordRequest struct {
+	ColumnID    uuid.UUID  `json:"column_id" validate:"required"`
+	Title       string     `json:"title" validate:"required"`
+	Description string     `json:"description"`
+	AssignedTo  *uuid.UUID `json:"assigned_to"`
+	DueDate     *time.Time `json:"due_date"`
+}
+
+type UpdateRecordRequest struct {
+	Title       *string    `json:"title"`
+	Description *string    `json:"description"`
+	AssignedTo  *uuid.UUID `json:"assigned_to"`
+	DueDate     *time.Time `json:"due_date"`
+}
+
+type MoveRecordRequest struct {
+	TargetColumnID uuid.UUID `json:"target_column_id" validate:"required"`
+	Position       int       `json:"position" validate:"min=0"`
+}
+
+type ProjectHomeData struct {
+	OverdueCount     int                          `json:"overdue_count"`
+	RecentActivities []*entity.ProjectActivityLog `json:"recent_activities"`
+}
+
+type ProjectBoardUseCase interface {
+	// Project CRUD
+	CreateProject(ctx context.Context, req CreateProjectRequest, requester UserClaims) (*entity.Project, error)
+	GetProject(ctx context.Context, id uuid.UUID, requester UserClaims) (*entity.Project, error)
+	ListProjects(ctx context.Context, requester UserClaims) ([]*entity.Project, error)
+	UpdateProject(ctx context.Context, id uuid.UUID, req UpdateProjectRequest, requester UserClaims) (*entity.Project, error)
+	DeleteProject(ctx context.Context, id uuid.UUID, requester UserClaims) error
+
+	// Column CRUD
+	CreateColumn(ctx context.Context, projectID uuid.UUID, req CreateColumnRequest, requester UserClaims) (*entity.ProjectColumn, error)
+	UpdateColumn(ctx context.Context, projectID uuid.UUID, columnID uuid.UUID, req UpdateColumnRequest, requester UserClaims) (*entity.ProjectColumn, error)
+	DeleteColumn(ctx context.Context, projectID uuid.UUID, columnID uuid.UUID, requester UserClaims) error
+	ReorderColumns(ctx context.Context, projectID uuid.UUID, req ReorderColumnsRequest, requester UserClaims) error
+
+	// Record CRUD
+	CreateRecord(ctx context.Context, projectID uuid.UUID, req CreateRecordRequest, requester UserClaims) (*entity.ProjectRecord, error)
+	GetRecord(ctx context.Context, projectID uuid.UUID, recordID uuid.UUID, requester UserClaims) (*entity.ProjectRecord, error)
+	UpdateRecord(ctx context.Context, projectID uuid.UUID, recordID uuid.UUID, req UpdateRecordRequest, requester UserClaims) (*entity.ProjectRecord, error)
+	DeleteRecord(ctx context.Context, projectID uuid.UUID, recordID uuid.UUID, requester UserClaims) error
+	MoveRecord(ctx context.Context, projectID uuid.UUID, recordID uuid.UUID, req MoveRecordRequest, requester UserClaims) error
+	CompleteRecord(ctx context.Context, projectID uuid.UUID, recordID uuid.UUID, requester UserClaims) (*entity.ProjectRecord, error)
+
+	// Views
+	GetHome(ctx context.Context, requester UserClaims) (*ProjectHomeData, error)
+	GetCalendar(ctx context.Context, month int, year int, requester UserClaims) ([]*entity.ProjectRecord, error)
+	GetActivities(ctx context.Context, projectID uuid.UUID, requester UserClaims) ([]*entity.ProjectActivityLog, error)
 }

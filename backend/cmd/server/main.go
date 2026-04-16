@@ -59,6 +59,10 @@ func main() {
 	deptRepo := postgres.NewDepartmentRepository(pool)
 	divRepo := postgres.NewDivisionRepository(pool)
 	teamRepo := postgres.NewTeamRepository(pool)
+	projectRepo := postgres.NewProjectRepository(pool)
+	projectColumnRepo := postgres.NewProjectColumnRepository(pool)
+	projectRecordRepo := postgres.NewProjectRecordRepository(pool)
+	projectActivityLogRepo := postgres.NewProjectActivityLogRepository(pool)
 
 	// Infrastructure
 	dispatcher := webhook.NewDispatcher(webhookRepo, userRepo, cfg.BaseURL)
@@ -79,6 +83,7 @@ func main() {
 	dashboardUC := usecase.NewDashboardUseCase(ticketRepo)
 	notifUC := usecase.NewNotificationUseCase(notifRepo)
 	orgUC := usecase.NewOrgUseCase(deptRepo, divRepo, teamRepo)
+	projectBoardUC := usecase.NewProjectBoardUseCase(projectRepo, projectColumnRepo, projectRecordRepo, projectActivityLogRepo)
 
 	// Handlers
 	handlers := &httpdelivery.Handlers{
@@ -92,6 +97,7 @@ func main() {
 		Attachment:   handler.NewAttachmentHandler(pool),
 		Org:          handler.NewOrgHandler(orgUC),
 		SSO:          handler.NewSSOHandler(cfg, userRepo, jwtManager),
+		Project:      handler.NewProjectHandler(projectBoardUC),
 	}
 
 	// Router
