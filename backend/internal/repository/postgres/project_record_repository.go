@@ -168,3 +168,46 @@ func scanProjectRecord(row pgx.Row) (*entity.ProjectRecord, error) {
 	}
 	return rec, nil
 }
+
+func (r *projectRecordRepository) SetAssignees(ctx context.Context, recordID uuid.UUID, userIDs []uuid.UUID) error {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	// Delete existing assignees
+	if _, err := tx.Exec(ctx, "DELETE FROM project_record_assignees WHERE record_id=$1", recordID); err != nil {
+		return err
+	}
+
+	// Insert new assignees
+	for _, uid := range userIDs {
+		if _, err := tx.Exec(ctx, "INSERT INTO project_record_assignees (record_id, user_id) VALUES ($1, $2)", recordID, uid); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit(ctx)
+}
+
+func (r *projectRecordRepository) GetAssignees(ctx context.Context, recordID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := r.db.Query(ctx, "SELECT user_id FROM project_record_assignees WHERE record_id=$1 ORDER BY created_at ASC", recordID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ids []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	if ids == nil {
+		ids = []uuid.UUID{}
+	}
+	return ids, nil
+}

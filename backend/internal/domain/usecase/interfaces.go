@@ -219,10 +219,11 @@ type CreateRecordRequest struct {
 }
 
 type UpdateRecordRequest struct {
-	Title       *string    `json:"title"`
-	Description *string    `json:"description"`
-	AssignedTo  *uuid.UUID `json:"assigned_to"`
-	DueDate     *time.Time `json:"due_date"`
+	Title       *string      `json:"title"`
+	Description *string      `json:"description"`
+	AssignedTo  *uuid.UUID   `json:"assigned_to"`
+	Assignees   []uuid.UUID  `json:"assignees"`
+	DueDate     *time.Time   `json:"due_date"`
 }
 
 type MoveRecordRequest struct {
@@ -235,10 +236,20 @@ type ProjectHomeData struct {
 	RecentActivities []*entity.ProjectActivityLog `json:"recent_activities"`
 }
 
+type ProjectColumnWithRecords struct {
+	entity.ProjectColumn
+	Records []*entity.ProjectRecord `json:"records"`
+}
+
+type ProjectDetailResponse struct {
+	entity.Project
+	Columns []ProjectColumnWithRecords `json:"columns"`
+}
+
 type ProjectBoardUseCase interface {
 	// Project CRUD
 	CreateProject(ctx context.Context, req CreateProjectRequest, requester UserClaims) (*entity.Project, error)
-	GetProject(ctx context.Context, id uuid.UUID, requester UserClaims) (*entity.Project, error)
+	GetProject(ctx context.Context, id uuid.UUID, requester UserClaims) (*ProjectDetailResponse, error)
 	ListProjects(ctx context.Context, requester UserClaims) ([]*entity.Project, error)
 	UpdateProject(ctx context.Context, id uuid.UUID, req UpdateProjectRequest, requester UserClaims) (*entity.Project, error)
 	DeleteProject(ctx context.Context, id uuid.UUID, requester UserClaims) error
@@ -261,4 +272,12 @@ type ProjectBoardUseCase interface {
 	GetHome(ctx context.Context, requester UserClaims) (*ProjectHomeData, error)
 	GetCalendar(ctx context.Context, month int, year int, requester UserClaims) ([]*entity.ProjectRecord, error)
 	GetActivities(ctx context.Context, projectID uuid.UUID, requester UserClaims) ([]*entity.ProjectActivityLog, error)
+
+	// Members
+	InviteMember(ctx context.Context, projectID uuid.UUID, userID uuid.UUID, requester UserClaims) error
+	RemoveMember(ctx context.Context, projectID uuid.UUID, userID uuid.UUID, requester UserClaims) error
+	ListMembers(ctx context.Context, projectID uuid.UUID, requester UserClaims) ([]*entity.ProjectMember, error)
+
+	// Comments
+	AddComment(ctx context.Context, projectID uuid.UUID, recordID uuid.UUID, text string, requester UserClaims) error
 }

@@ -63,6 +63,7 @@ func main() {
 	projectColumnRepo := postgres.NewProjectColumnRepository(pool)
 	projectRecordRepo := postgres.NewProjectRecordRepository(pool)
 	projectActivityLogRepo := postgres.NewProjectActivityLogRepository(pool)
+	projectMemberRepo := postgres.NewProjectMemberRepository(pool)
 
 	// Infrastructure
 	dispatcher := webhook.NewDispatcher(webhookRepo, userRepo, cfg.BaseURL)
@@ -83,7 +84,7 @@ func main() {
 	dashboardUC := usecase.NewDashboardUseCase(ticketRepo)
 	notifUC := usecase.NewNotificationUseCase(notifRepo)
 	orgUC := usecase.NewOrgUseCase(deptRepo, divRepo, teamRepo)
-	projectBoardUC := usecase.NewProjectBoardUseCase(projectRepo, projectColumnRepo, projectRecordRepo, projectActivityLogRepo)
+	projectBoardUC := usecase.NewProjectBoardUseCase(projectRepo, projectColumnRepo, projectRecordRepo, projectActivityLogRepo, projectMemberRepo)
 
 	// Handlers
 	handlers := &httpdelivery.Handlers{

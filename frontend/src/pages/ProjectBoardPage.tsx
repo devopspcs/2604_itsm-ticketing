@@ -6,6 +6,7 @@ import { ProjectBoardColumn } from '../components/project/ProjectBoardColumn'
 import { ProjectRecordCard } from '../components/project/ProjectRecordCard'
 import { ProjectFilterBar } from '../components/project/ProjectFilterBar'
 import { RecordDetailModal } from '../components/project/RecordDetailModal'
+import { MemberManagement } from '../components/project/MemberManagement'
 import type { ProjectRecord } from '../types/project'
 
 export function ProjectBoardPage() {
@@ -13,6 +14,7 @@ export function ProjectBoardPage() {
   const board = useProjectBoard(id)
   const [selectedRecord, setSelectedRecord] = useState<ProjectRecord | null>(null)
   const [showAddColumn, setShowAddColumn] = useState(false)
+  const [showMembers, setShowMembers] = useState(false)
   const [newColumnName, setNewColumnName] = useState('')
 
   const sensors = useSensors(
@@ -63,7 +65,14 @@ export function ProjectBoardPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-64px)]">
       <div className="px-8 pt-8 pb-4">
-        <h1 className="text-2xl font-extrabold text-on-surface tracking-tight font-headline">{board.project.name}</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-extrabold text-on-surface tracking-tight font-headline">{board.project.name}</h1>
+          <button onClick={() => setShowMembers(true)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-on-surface-variant bg-surface-container-high rounded-xl hover:bg-surface-container-highest transition-colors">
+            <span className="material-symbols-outlined text-[18px]">group</span>
+            Members
+          </button>
+        </div>
         <div className="mt-3">
           <ProjectFilterBar filters={board.filters} onChange={board.setFilters} />
         </div>
@@ -142,6 +151,10 @@ export function ProjectBoardPage() {
           onClose={() => setSelectedRecord(null)}
           onUpdate={() => { setSelectedRecord(null); board.refresh() }}
         />
+      )}
+
+      {showMembers && id && (
+        <MemberManagement projectId={id} onClose={() => setShowMembers(false)} />
       )}
     </div>
   )

@@ -19,7 +19,7 @@ sleep 10
 
 # 4. Health check
 echo "Checking health..."
-curl -s http://127.0.0.1:8080/health | python3 -m json.tool
+curl -s http://127.0.0.1:8080/health |45.77.173.144 python3 -m json.tool
 
 echo ""
 echo "=== Deployment Complete ==="

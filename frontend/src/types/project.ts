@@ -22,6 +22,7 @@ export interface ProjectRecord {
   title: string
   description: string
   assigned_to?: string
+  assignees: string[]
   due_date?: string
   position: number
   is_completed: boolean

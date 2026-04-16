@@ -47,12 +47,23 @@ type ProjectRecordRepository interface {
 	BulkUpdatePositions(ctx context.Context, columnID uuid.UUID, positions map[uuid.UUID]int) error
 	ListByDueDateRange(ctx context.Context, createdBy uuid.UUID, from time.Time, to time.Time) ([]*entity.ProjectRecord, error)
 	CountOverdue(ctx context.Context, createdBy uuid.UUID) (int, error)
+	SetAssignees(ctx context.Context, recordID uuid.UUID, userIDs []uuid.UUID) error
+	GetAssignees(ctx context.Context, recordID uuid.UUID) ([]uuid.UUID, error)
 }
 
 type ProjectActivityLogRepository interface {
 	Append(ctx context.Context, log *entity.ProjectActivityLog) error
 	ListByProject(ctx context.Context, projectID uuid.UUID, limit int) ([]*entity.ProjectActivityLog, error)
 	ListByUser(ctx context.Context, userID uuid.UUID, limit int) ([]*entity.ProjectActivityLog, error)
+}
+
+type ProjectMemberRepository interface {
+	Add(ctx context.Context, member *entity.ProjectMember) error
+	Remove(ctx context.Context, projectID uuid.UUID, userID uuid.UUID) error
+	ListByProject(ctx context.Context, projectID uuid.UUID) ([]*entity.ProjectMember, error)
+	ListProjectsByUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	IsMember(ctx context.Context, projectID uuid.UUID, userID uuid.UUID) (bool, error)
+	GetRole(ctx context.Context, projectID uuid.UUID, userID uuid.UUID) (entity.ProjectMemberRole, error)
 }
 
 type UserFilter struct {

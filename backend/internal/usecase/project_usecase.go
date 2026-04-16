@@ -17,6 +17,7 @@ type projectBoardUseCase struct {
 	columnRepo      repository.ProjectColumnRepository
 	recordRepo      repository.ProjectRecordRepository
 	activityLogRepo repository.ProjectActivityLogRepository
+	memberRepo      repository.ProjectMemberRepository
 }
 
 func NewProjectBoardUseCase(
@@ -24,12 +25,14 @@ func NewProjectBoardUseCase(
 	columnRepo repository.ProjectColumnRepository,
 	recordRepo repository.ProjectRecordRepository,
 	activityLogRepo repository.ProjectActivityLogRepository,
+	memberRepo repository.ProjectMemberRepository,
 ) domainUC.ProjectBoardUseCase {
 	return &projectBoardUseCase{
 		projectRepo:     projectRepo,
 		columnRepo:      columnRepo,
 		recordRepo:      recordRepo,
 		activityLogRepo: activityLogRepo,
+		memberRepo:      memberRepo,
 	}
 }
 
@@ -55,23 +58,83 @@ func (uc *projectBoardUseCase) CreateProject(ctx context.Context, req domainUC.C
 	if err := uc.projectRepo.Create(ctx, project); err != nil {
 		return nil, err
 	}
+	// Auto-add creator as owner
+	_ = uc.memberRepo.Add(ctx, &entity.ProjectMember{
+		ProjectID: project.ID,
+		UserID:    requester.UserID,
+		Role:      entity.ProjectRoleOwner,
+		CreatedAt: now,
+	})
 	uc.logActivity(ctx, project.ID, nil, requester.UserID, "project_created", "Project created: "+project.Name)
 	return project, nil
 }
 
-func (uc *projectBoardUseCase) GetProject(ctx context.Context, id uuid.UUID, requester domainUC.UserClaims) (*entity.Project, error) {
+func (uc *projectBoardUseCase) GetProject(ctx context.Context, id uuid.UUID, requester domainUC.UserClaims) (*domainUC.ProjectDetailResponse, error) {
 	project, err := uc.projectRepo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	if project.CreatedBy != requester.UserID {
+	isMember, _ := uc.memberRepo.IsMember(ctx, id, requester.UserID)
+	if !isMember {
 		return nil, apperror.ErrForbidden
 	}
-	return project, nil
+
+	cols, err := uc.columnRepo.ListByProject(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var columnsWithRecords []domainUC.ProjectColumnWithRecords
+	for _, col := range cols {
+		records, err := uc.recordRepo.ListByColumn(ctx, col.ID)
+		if err != nil {
+			return nil, err
+		}
+		if records == nil {
+			records = []*entity.ProjectRecord{}
+		}
+		// Load assignees for each record
+		for _, rec := range records {
+			assignees, err := uc.recordRepo.GetAssignees(ctx, rec.ID)
+			if err == nil {
+				rec.Assignees = assignees
+			}
+			if rec.Assignees == nil {
+				rec.Assignees = []uuid.UUID{}
+			}
+		}
+		columnsWithRecords = append(columnsWithRecords, domainUC.ProjectColumnWithRecords{
+			ProjectColumn: *col,
+			Records:       records,
+		})
+	}
+	if columnsWithRecords == nil {
+		columnsWithRecords = []domainUC.ProjectColumnWithRecords{}
+	}
+
+	return &domainUC.ProjectDetailResponse{
+		Project: *project,
+		Columns: columnsWithRecords,
+	}, nil
 }
 
 func (uc *projectBoardUseCase) ListProjects(ctx context.Context, requester domainUC.UserClaims) ([]*entity.Project, error) {
-	return uc.projectRepo.List(ctx, requester.UserID)
+	projectIDs, err := uc.memberRepo.ListProjectsByUser(ctx, requester.UserID)
+	if err != nil {
+		return nil, err
+	}
+	var projects []*entity.Project
+	for _, pid := range projectIDs {
+		p, err := uc.projectRepo.FindByID(ctx, pid)
+		if err != nil {
+			continue
+		}
+		projects = append(projects, p)
+	}
+	if projects == nil {
+		projects = []*entity.Project{}
+	}
+	return projects, nil
 }
 
 func (uc *projectBoardUseCase) UpdateProject(ctx context.Context, id uuid.UUID, req domainUC.UpdateProjectRequest, requester domainUC.UserClaims) (*entity.Project, error) {
@@ -294,6 +357,13 @@ func (uc *projectBoardUseCase) UpdateRecord(ctx context.Context, projectID uuid.
 	if err := uc.recordRepo.Update(ctx, record); err != nil {
 		return nil, err
 	}
+	// Handle multi-assign
+	if req.Assignees != nil {
+		if err := uc.recordRepo.SetAssignees(ctx, recordID, req.Assignees); err != nil {
+			return nil, err
+		}
+		record.Assignees = req.Assignees
+	}
 	uc.logActivity(ctx, projectID, &recordID, requester.UserID, "record_updated", "Record updated: "+record.Title)
 	return record, nil
 }
@@ -482,6 +552,67 @@ func (uc *projectBoardUseCase) GetActivities(ctx context.Context, projectID uuid
 		return nil, apperror.ErrForbidden
 	}
 	return uc.activityLogRepo.ListByProject(ctx, projectID, 50)
+}
+
+// --- Members ---
+
+func (uc *projectBoardUseCase) AddComment(ctx context.Context, projectID uuid.UUID, recordID uuid.UUID, text string, requester domainUC.UserClaims) error {
+	isMember, _ := uc.memberRepo.IsMember(ctx, projectID, requester.UserID)
+	if !isMember {
+		return apperror.ErrForbidden
+	}
+	uc.logActivity(ctx, projectID, &recordID, requester.UserID, "comment", text)
+	return nil
+}
+
+func (uc *projectBoardUseCase) InviteMember(ctx context.Context, projectID uuid.UUID, userID uuid.UUID, requester domainUC.UserClaims) error {
+	// Only owner can invite
+	role, err := uc.memberRepo.GetRole(ctx, projectID, requester.UserID)
+	if err != nil {
+		return apperror.ErrForbidden
+	}
+	if role != entity.ProjectRoleOwner {
+		return apperror.ErrForbidden
+	}
+	member := &entity.ProjectMember{
+		ProjectID: projectID,
+		UserID:    userID,
+		Role:      entity.ProjectRoleMember,
+		CreatedAt: time.Now().UTC(),
+	}
+	if err := uc.memberRepo.Add(ctx, member); err != nil {
+		return err
+	}
+	uc.logActivity(ctx, projectID, nil, requester.UserID, "member_invited", "Member invited")
+	return nil
+}
+
+func (uc *projectBoardUseCase) RemoveMember(ctx context.Context, projectID uuid.UUID, userID uuid.UUID, requester domainUC.UserClaims) error {
+	role, err := uc.memberRepo.GetRole(ctx, projectID, requester.UserID)
+	if err != nil {
+		return apperror.ErrForbidden
+	}
+	if role != entity.ProjectRoleOwner {
+		return apperror.ErrForbidden
+	}
+	// Cannot remove owner
+	targetRole, _ := uc.memberRepo.GetRole(ctx, projectID, userID)
+	if targetRole == entity.ProjectRoleOwner {
+		return apperror.New("CANNOT_REMOVE_OWNER", "Cannot remove project owner", 400)
+	}
+	if err := uc.memberRepo.Remove(ctx, projectID, userID); err != nil {
+		return err
+	}
+	uc.logActivity(ctx, projectID, nil, requester.UserID, "member_removed", "Member removed")
+	return nil
+}
+
+func (uc *projectBoardUseCase) ListMembers(ctx context.Context, projectID uuid.UUID, requester domainUC.UserClaims) ([]*entity.ProjectMember, error) {
+	isMember, _ := uc.memberRepo.IsMember(ctx, projectID, requester.UserID)
+	if !isMember {
+		return nil, apperror.ErrForbidden
+	}
+	return uc.memberRepo.ListByProject(ctx, projectID)
 }
 
 // --- Helpers ---

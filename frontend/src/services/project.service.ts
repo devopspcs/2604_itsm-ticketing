@@ -39,4 +39,16 @@ export const projectService = {
     api.get<ProjectRecord[]>('/projects/calendar', { params: { month, year } }),
   getActivities: (projectId: string) =>
     api.get<ProjectActivityLog[]>(`/projects/${projectId}/activities`),
+
+  // Members
+  listMembers: (projectId: string) =>
+    api.get<{ project_id: string; user_id: string; role: string; created_at: string }[]>(`/projects/${projectId}/members`),
+  inviteMember: (projectId: string, userId: string) =>
+    api.post(`/projects/${projectId}/members`, { user_id: userId }),
+  removeMember: (projectId: string, userId: string) =>
+    api.delete(`/projects/${projectId}/members/${userId}`),
+
+  // Comments
+  addComment: (projectId: string, recordId: string, text: string) =>
+    api.post(`/projects/${projectId}/records/${recordId}/comments`, { text }),
 }
