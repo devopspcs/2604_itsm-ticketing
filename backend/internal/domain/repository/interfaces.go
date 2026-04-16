@@ -8,6 +8,53 @@ import (
 	"github.com/org/itsm/internal/domain/entity"
 )
 
+type ProjectRecordFilter struct {
+	ColumnID    *uuid.UUID
+	ProjectID   *uuid.UUID
+	AssignedTo  *uuid.UUID
+	Search      *string
+	DueDateFrom *time.Time
+	DueDateTo   *time.Time
+}
+
+type ProjectRepository interface {
+	Create(ctx context.Context, project *entity.Project) error
+	FindByID(ctx context.Context, id uuid.UUID) (*entity.Project, error)
+	List(ctx context.Context, createdBy uuid.UUID) ([]*entity.Project, error)
+	Update(ctx context.Context, project *entity.Project) error
+	Delete(ctx context.Context, id uuid.UUID) error
+}
+
+type ProjectColumnRepository interface {
+	Create(ctx context.Context, col *entity.ProjectColumn) error
+	FindByID(ctx context.Context, id uuid.UUID) (*entity.ProjectColumn, error)
+	ListByProject(ctx context.Context, projectID uuid.UUID) ([]*entity.ProjectColumn, error)
+	Update(ctx context.Context, col *entity.ProjectColumn) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	HasRecords(ctx context.Context, id uuid.UUID) (bool, error)
+	GetMaxPosition(ctx context.Context, projectID uuid.UUID) (int, error)
+	BulkUpdatePositions(ctx context.Context, projectID uuid.UUID, positions map[uuid.UUID]int) error
+}
+
+type ProjectRecordRepository interface {
+	Create(ctx context.Context, record *entity.ProjectRecord) error
+	FindByID(ctx context.Context, id uuid.UUID) (*entity.ProjectRecord, error)
+	ListByColumn(ctx context.Context, columnID uuid.UUID) ([]*entity.ProjectRecord, error)
+	ListByProject(ctx context.Context, projectID uuid.UUID, filter ProjectRecordFilter) ([]*entity.ProjectRecord, error)
+	Update(ctx context.Context, record *entity.ProjectRecord) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	GetMaxPosition(ctx context.Context, columnID uuid.UUID) (int, error)
+	BulkUpdatePositions(ctx context.Context, columnID uuid.UUID, positions map[uuid.UUID]int) error
+	ListByDueDateRange(ctx context.Context, createdBy uuid.UUID, from time.Time, to time.Time) ([]*entity.ProjectRecord, error)
+	CountOverdue(ctx context.Context, createdBy uuid.UUID) (int, error)
+}
+
+type ProjectActivityLogRepository interface {
+	Append(ctx context.Context, log *entity.ProjectActivityLog) error
+	ListByProject(ctx context.Context, projectID uuid.UUID, limit int) ([]*entity.ProjectActivityLog, error)
+	ListByUser(ctx context.Context, userID uuid.UUID, limit int) ([]*entity.ProjectActivityLog, error)
+}
+
 type UserFilter struct {
 	Role     *entity.Role
 	IsActive *bool

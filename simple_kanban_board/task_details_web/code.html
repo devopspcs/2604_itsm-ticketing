@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Task Details - Project Alpha</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#191c1e",
+                        "on-secondary-container": "#51617e",
+                        "on-secondary-fixed-variant": "#374763",
+                        "on-primary-container": "#c4d2ff",
+                        "inverse-primary": "#b2c5ff",
+                        "surface-container": "#edeef0",
+                        "surface-container-highest": "#e1e2e4",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#f0f1f3",
+                        "inverse-surface": "#2e3132",
+                        "on-surface-variant": "#434654",
+                        "on-tertiary-fixed": "#380d00",
+                        "tertiary-container": "#a33500",
+                        "tertiary": "#7b2600",
+                        "primary-container": "#0052cc",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb59b",
+                        "primary-fixed": "#dae2ff",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed": "#001848",
+                        "secondary-container": "#cdddff",
+                        "surface-dim": "#d9dadc",
+                        "tertiary-fixed": "#ffdbcf",
+                        "surface": "#f8f9fb",
+                        "outline": "#737685",
+                        "on-primary": "#ffffff",
+                        "background": "#f8f9fb",
+                        "secondary-fixed": "#d6e3ff",
+                        "on-tertiary-container": "#ffc6b2",
+                        "secondary": "#4f5f7b",
+                        "on-secondary-fixed": "#091c35",
+                        "outline-variant": "#c3c6d6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#0040a2",
+                        "surface-bright": "#f8f9fb",
+                        "primary": "#003d9b",
+                        "on-surface": "#191c1e",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#e7e8ea",
+                        "surface-tint": "#0c56d0",
+                        "secondary-fixed-dim": "#b7c7e8",
+                        "primary-fixed-dim": "#b2c5ff",
+                        "surface-container-low": "#f3f4f6",
+                        "on-tertiary-fixed-variant": "#812800",
+                        "surface-variant": "#e1e2e4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface flex h-screen overflow-hidden">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col h-full py-6 px-4 bg-slate-50 dark:bg-slate-900 h-screen w-64 border-r-0 font-manrope font-semibold tracking-tight">
+<div class="flex items-center gap-3 mb-8 px-2">
+<div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-sm">account_tree</span>
+</div>
+<div>
+<div class="text-lg font-bold text-slate-900 dark:text-white">Editorial Engine</div>
+<div class="text-[10px] uppercase tracking-widest text-slate-500">Enterprise Workspace</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors rounded-xl Active: scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 text-blue-700 dark:text-blue-400 font-bold border-r-2 border-blue-700 dark:border-blue-400 bg-slate-100 dark:bg-slate-800 rounded-xl Active: scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+                Projects
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors rounded-xl Active: scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined">group</span>
+                Team
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors rounded-xl Active: scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+                Analytics
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors rounded-xl Active: scale-[0.98] duration-150" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="mt-auto">
+<button class="w-full py-3 px-4 bg-primary text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add</span>
+                New Project
+            </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0 bg-surface">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-8 h-16 sticky top-0 z-40 bg-white/85 dark:bg-slate-950/85 backdrop-blur-xl font-inter text-sm">
+<div class="flex items-center gap-6">
+<div class="text-xl font-manrope font-bold text-slate-900 dark:text-white">Project Alpha</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-surface-container-low border-none rounded-full w-64 focus:ring-2 focus:ring-primary/20" placeholder="Search tasks..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:text-blue-600 transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-blue-600 transition-all">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<button class="bg-primary text-white px-4 py-1.5 rounded-full font-semibold click:opacity-80 transition-opacity">
+                    Share
+                </button>
+<div class="w-8 h-8 rounded-full overflow-hidden border-2 border-surface-container-highest">
+<img alt="User Profile" data-alt="professional headshot of a product manager in a minimalist studio setting with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzZb3BLzsBMq1H7xQLZLj4IzMPzk90NUe8Qcyts-ta1LLN-XCWslWxH2ws0OQ0zFx3CmjFiWKLsdwcyrR8eV91YVxnVupQPcWQwYTRbhtVbVFTCp8JIGOZz-6uOQ96BMhNvVoN7oYrIKlT-8v45Zv-YayVtIcdBhA-6pyellowygp7pjLq4OtWsLCcsMgy0wCIc6Rc1cTEsE7cTdRqpUa_Ehgy1IjHoPWMpLsn5fjjTNUKiOiMJ0I_4G18WWoZq_7dd2r9IvijsEY"/>
+</div>
+</div>
+</header>
+<!-- Task Content Scrollable Area -->
+<div class="flex-1 overflow-hidden flex">
+<!-- Left Side: Task Content -->
+<div class="flex-1 overflow-y-auto p-8 lg:p-12 space-y-10">
+<!-- Task Header -->
+<section class="space-y-4">
+<div class="flex items-center gap-2 text-sm font-medium text-on-surface-variant">
+<span class="text-primary">Projects</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-primary">Alpha Phase 1</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span>TASK-104</span>
+</div>
+<div class="flex items-start justify-between gap-4">
+<h1 class="text-3xl font-extrabold tracking-tight text-on-background">Modernize the Editorial Dashboard Interface</h1>
+<button class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-highest rounded-full text-sm font-semibold text-on-surface">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+</button>
+</div>
+</section>
+<!-- Description -->
+<section class="space-y-4">
+<div class="flex items-center gap-2 border-l-4 border-primary pl-4">
+<h2 class="text-xl font-bold font-headline">Description</h2>
+</div>
+<div class="text-on-surface-variant leading-relaxed max-w-3xl space-y-4">
+<p>We need to overhaul the core dashboard view to align with our new Architectural Workspace philosophy. This involves moving away from heavy border-based grids towards a more fluid, tonal-based layout that prioritizes content legibility.</p>
+<p>Key goals include reducing the cognitive load for high-density information displays and implementing the new Glassmorphic navigation components. The final implementation must support both light and dark modes natively.</p>
+</div>
+</section>
+<!-- Checklist/Subtasks -->
+<section class="space-y-6">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2 border-l-4 border-primary pl-4">
+<h2 class="text-xl font-bold font-headline">Subtasks</h2>
+</div>
+<span class="text-sm font-medium text-on-surface-variant">3 / 5 Completed</span>
+</div>
+<div class="grid gap-3">
+<div class="flex items-center gap-4 p-4 bg-surface-container-lowest rounded-xl group hover:bg-surface-bright transition-colors">
+<input checked="" class="w-5 h-5 rounded text-primary border-outline-variant focus:ring-primary/20" type="checkbox"/>
+<span class="flex-1 font-medium text-on-surface line-through opacity-50">Audit current dashboard component inventory</span>
+<span class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 cursor-pointer">drag_indicator</span>
+</div>
+<div class="flex items-center gap-4 p-4 bg-surface-container-lowest rounded-xl group hover:bg-surface-bright transition-colors">
+<input checked="" class="w-5 h-5 rounded text-primary border-outline-variant focus:ring-primary/20" type="checkbox"/>
+<span class="flex-1 font-medium text-on-surface line-through opacity-50">Define tonal hierarchy for surface tiers</span>
+<span class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 cursor-pointer">drag_indicator</span>
+</div>
+<div class="flex items-center gap-4 p-4 bg-surface-container-lowest rounded-xl group hover:bg-surface-bright transition-colors">
+<input checked="" class="w-5 h-5 rounded text-primary border-outline-variant focus:ring-primary/20" type="checkbox"/>
+<span class="flex-1 font-medium text-on-surface line-through opacity-50">Implement base surface container classes</span>
+<span class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 cursor-pointer">drag_indicator</span>
+</div>
+<div class="flex items-center gap-4 p-4 bg-surface-container-lowest border border-outline-variant/20 rounded-xl group hover:bg-surface-bright transition-colors">
+<input class="w-5 h-5 rounded text-primary border-outline-variant focus:ring-primary/20" type="checkbox"/>
+<span class="flex-1 font-medium text-on-surface">Design Glassmorphic effect for sidebar overlay</span>
+<span class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 cursor-pointer">drag_indicator</span>
+</div>
+<div class="flex items-center gap-4 p-4 bg-surface-container-lowest border border-outline-variant/20 rounded-xl group hover:bg-surface-bright transition-colors">
+<input class="w-5 h-5 rounded text-primary border-outline-variant focus:ring-primary/20" type="checkbox"/>
+<span class="flex-1 font-medium text-on-surface">Test accessibility contrast ratios for dark mode</span>
+<span class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 cursor-pointer">drag_indicator</span>
+</div>
+<button class="flex items-center gap-2 text-primary font-bold text-sm mt-2 px-4">
+<span class="material-symbols-outlined">add</span>
+                            Add Subtask
+                        </button>
+</div>
+</section>
+<!-- Activity Log / Comments -->
+<section class="space-y-6 pb-20">
+<div class="flex items-center gap-2 border-l-4 border-primary pl-4">
+<h2 class="text-xl font-bold font-headline">Activity</h2>
+</div>
+<div class="space-y-6">
+<!-- Comment Item -->
+<div class="flex gap-4">
+<img alt="Sarah J." class="w-10 h-10 rounded-full flex-shrink-0" data-alt="portrait of a female creative director with professional glasses and a thoughtful expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvOyxro0QPnIiLexeaglBFEBFK9R88r9iZ4QnndPWP_hoF-rIpAwm9g0_ett49kTLDFGISJbnE40GBH-ND5sYFJf2j4h5KKebyOtpX90hk22eXq39BN60RAolzow6uouii5peU0yKoxfRvJZNXzMGGFEsONim_TENKaAEj4CsCFvxr9x92H7ZgTusRkzmkjkYRwqvJURmaNY6GUKCKqGU_WPJJP9p0CQF8ntYh_kWDFkFOdZQHnc_F0NBuu99gyr8IBBGaYl6gPC8"/>
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="font-bold text-on-background">Sarah Jenkins</span>
+<span class="text-xs text-on-surface-variant">2 hours ago</span>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl rounded-tl-none">
+<p class="text-on-surface">I've attached the latest typography scale references. Let's make sure we stick to the jump-two-levels rule for the headers.</p>
+</div>
+</div>
+</div>
+<!-- System Log Item -->
+<div class="flex items-center gap-4 pl-14">
+<div class="w-2 h-2 rounded-full bg-outline-variant"></div>
+<span class="text-sm text-on-surface-variant"><strong>Alex Rivera</strong> changed status to <strong>In Progress</strong> • 4 hours ago</span>
+</div>
+<!-- Comment Item -->
+<div class="flex gap-4">
+<img alt="Alex R." class="w-10 h-10 rounded-full flex-shrink-0" data-alt="headshot of a smiling young male developer in a bright office environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtiZVLgIXx2CwCVMti36aupUgwL3pB1Zyq_IvM9JK2faLmPy4XsWDHSxVnz3GMpyZmsjUvJZNXHqJu5HliRUt8ke9xa-7zTt_4mPSoOLdT-CoxCIQ1MVe_lUNI2O-7MOb5r5DE7R213tcoO5OgIeD9H5O30RzxkqS2gfCZEgV2aDCTjm9CXh7JmVVKc1d-_eSnYCrwqcEGXDmON-SIXi0FCTYWH9tmtcSrSIxVHMmWvzzTdU0x5VM8e3t1ZjP0DH8a7Dhx2rwWAqo"/>
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="font-bold text-on-background">Alex Rivera</span>
+<span class="text-xs text-on-surface-variant">5 hours ago</span>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl rounded-tl-none">
+<p class="text-on-surface">Starting on the base layer tonal hierarchy today. Will update as soon as the first draft is ready in Figma.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Comment Input -->
+<div class="flex gap-4 pt-4 border-t border-surface-container-highest">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs">UA</div>
+<div class="flex-1 relative">
+<textarea class="w-full bg-surface-container-low border-none rounded-2xl p-4 pr-12 focus:ring-primary/20 resize-none min-h-[100px]" placeholder="Write a comment..."></textarea>
+<button class="absolute right-4 bottom-4 p-2 bg-primary text-white rounded-xl shadow-lg hover:shadow-primary/20 transition-all">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Sidebar: Task Metadata -->
+<aside class="w-80 border-l border-surface-container-highest bg-white flex flex-col overflow-y-auto">
+<div class="p-8 space-y-8">
+<!-- Status Section -->
+<div class="space-y-4">
+<label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Task Status</label>
+<div class="relative">
+<button class="w-full flex items-center justify-between px-4 py-3 bg-secondary-container text-on-secondary-fixed-variant rounded-xl font-bold">
+<span class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+                                    In Progress
+                                </span>
+<span class="material-symbols-outlined">expand_more</span>
+</button>
+</div>
+</div>
+<!-- Metadata Grid -->
+<div class="space-y-6">
+<div class="space-y-2">
+<label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Assignee</label>
+<div class="flex items-center gap-3 p-1 rounded-full border border-outline-variant/30 pr-4">
+<img alt="Alex Rivera" class="w-8 h-8 rounded-full" data-alt="professional male portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1xchBePN1zZvllgm1PScwE3lPxabIAxX5ycvOdzA9aT0N_lL2WKc3v8Gj9bdbp3Bub2NFci7_mZIxvFk4ts6HPS370kXC7R-hIGJtkRcaCgqJUNfiA54X8PDflWjzeF0x-uQ5EY6FcnjgS3kQ2kVhHBGxv406fBzKz75WLRpld_DOgavQORL2XSYJzEA6atH9KPDK-HvkQLSbQ6DQ6_aTV2lyigXeZErWe0U3r31vZ8vuLukrip81Erv33-Mh8GnxKFytckQKQJs"/>
+<span class="text-sm font-semibold text-on-surface">Alex Rivera</span>
+<button class="ml-auto material-symbols-outlined text-sm text-on-surface-variant">close</button>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Priority</label>
+<div class="flex items-center gap-2">
+<div class="px-3 py-1 bg-tertiary-container text-on-tertiary-fixed-variant rounded-full text-xs font-bold uppercase tracking-tight flex items-center gap-1.5 backdrop-blur-sm bg-opacity-80">
+<span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'FILL' 1;">priority_high</span>
+                                    High Priority
+                                </div>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Due Date</label>
+<div class="flex items-center gap-2 text-on-surface">
+<span class="material-symbols-outlined text-on-surface-variant">calendar_month</span>
+<span class="text-sm font-semibold">Oct 24, 2023</span>
+<span class="text-xs text-error font-bold">(In 2 days)</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Estimate</label>
+<div class="flex items-center gap-2 text-on-surface">
+<span class="material-symbols-outlined text-on-surface-variant">timer</span>
+<span class="text-sm font-semibold">12 Hours</span>
+</div>
+</div>
+</div>
+<!-- Tags -->
+<div class="space-y-3">
+<label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Tags</label>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-surface-container-low text-on-surface-variant rounded-lg text-xs font-semibold">Design</span>
+<span class="px-3 py-1 bg-surface-container-low text-on-surface-variant rounded-lg text-xs font-semibold">UI/UX</span>
+<span class="px-3 py-1 bg-surface-container-low text-on-surface-variant rounded-lg text-xs font-semibold">Frontend</span>
+<button class="w-7 h-7 flex items-center justify-center bg-surface-container-low text-on-surface-variant rounded-lg hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+<!-- Attachments -->
+<div class="space-y-4 pt-6 border-t border-surface-container-highest">
+<div class="flex items-center justify-between">
+<label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Attachments</label>
+<button class="text-primary text-xs font-bold">Add</button>
+</div>
+<div class="space-y-3">
+<div class="flex items-center gap-3 p-3 bg-surface-container-low rounded-xl group cursor-pointer hover:bg-primary-container hover:bg-opacity-10">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined">image</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="text-sm font-bold text-on-surface truncate">dashboard-mockup-v2.png</div>
+<div class="text-[10px] text-on-surface-variant">2.4 MB • Oct 21</div>
+</div>
+</div>
+<div class="flex items-center gap-3 p-3 bg-surface-container-low rounded-xl group cursor-pointer hover:bg-primary-container hover:bg-opacity-10">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="text-sm font-bold text-on-surface truncate">specs-sheet.pdf</div>
+<div class="text-[10px] text-on-surface-variant">540 KB • Oct 20</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sticky Sidebar Bottom Actions -->
+<div class="mt-auto p-6 bg-surface-container-lowest border-t border-surface-container-highest flex gap-2">
+<button class="flex-1 py-2 text-sm font-bold bg-surface-container-highest text-on-surface rounded-xl hover:opacity-80 transition-opacity">
+                        Delete
+                    </button>
+<button class="flex-1 py-2 text-sm font-bold bg-primary text-white rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity">
+                        Save
+                    </button>
+</div>
+</aside>
+</div>
+</main>
+<!-- FAB Overlay (Suppressed on Details view but kept for system consistency if needed) -->
+<!-- Suppressed: Task-Focused screens should hide the global FAB to avoid distraction -->
+</body></html>

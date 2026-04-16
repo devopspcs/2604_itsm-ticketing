@@ -22,6 +22,7 @@ type Handlers struct {
 	Attachment   *handler.AttachmentHandler
 	Org          *handler.OrgHandler
 	SSO          *handler.SSOHandler
+	Project      *handler.ProjectHandler
 }
 
 func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, db interface{ Ping() error }) http.Handler {
@@ -95,6 +96,35 @@ func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, db interface{ Ping() err
 			r.Get("/departments", h.Org.ListDepartments)
 			r.Get("/divisions", h.Org.ListDivisions)
 			r.Get("/teams", h.Org.ListTeams)
+
+			// Project Board
+			r.Route("/projects", func(r chi.Router) {
+				r.Post("/", h.Project.Create)
+				r.Get("/", h.Project.List)
+				r.Get("/home", h.Project.GetHome)
+				r.Get("/calendar", h.Project.GetCalendar)
+
+				r.Route("/{id}", func(r chi.Router) {
+					r.Get("/", h.Project.Get)
+					r.Patch("/", h.Project.Update)
+					r.Delete("/", h.Project.Delete)
+					r.Get("/activities", h.Project.GetActivities)
+
+					// Columns
+					r.Post("/columns", h.Project.CreateColumn)
+					r.Patch("/columns/{columnId}", h.Project.UpdateColumn)
+					r.Delete("/columns/{columnId}", h.Project.DeleteColumn)
+					r.Patch("/columns/reorder", h.Project.ReorderColumns)
+
+					// Records
+					r.Post("/records", h.Project.CreateRecord)
+					r.Get("/records/{recordId}", h.Project.GetRecord)
+					r.Patch("/records/{recordId}", h.Project.UpdateRecord)
+					r.Delete("/records/{recordId}", h.Project.DeleteRecord)
+					r.Patch("/records/{recordId}/move", h.Project.MoveRecord)
+					r.Patch("/records/{recordId}/complete", h.Project.CompleteRecord)
+				})
+			})
 
 			// Admin-only routes
 			r.Group(func(r chi.Router) {
