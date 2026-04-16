@@ -123,6 +123,12 @@ func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, db interface{ Ping() err
 					r.Delete("/records/{recordId}", h.Project.DeleteRecord)
 					r.Patch("/records/{recordId}/move", h.Project.MoveRecord)
 					r.Patch("/records/{recordId}/complete", h.Project.CompleteRecord)
+					r.Post("/records/{recordId}/comments", h.Project.AddComment)
+
+					// Members
+					r.Get("/members", h.Project.ListMembers)
+					r.Post("/members", h.Project.InviteMember)
+					r.Delete("/members/{memberId}", h.Project.RemoveMember)
 				})
 			})
 

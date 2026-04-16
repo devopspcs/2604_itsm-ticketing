@@ -354,3 +354,86 @@ func (h *ProjectHandler) CompleteRecord(w http.ResponseWriter, r *http.Request) 
 	}
 	apperror.WriteJSON(w, http.StatusOK, record)
 }
+
+// --- Members ---
+
+func (h *ProjectHandler) ListMembers(w http.ResponseWriter, r *http.Request) {
+	claims, _ := middleware.GetClaims(r)
+	projectID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		apperror.WriteError(w, apperror.ErrValidation)
+		return
+	}
+	members, err := h.projectUC.ListMembers(r.Context(), projectID, claims)
+	if err != nil {
+		apperror.WriteError(w, err)
+		return
+	}
+	apperror.WriteJSON(w, http.StatusOK, members)
+}
+
+func (h *ProjectHandler) InviteMember(w http.ResponseWriter, r *http.Request) {
+	claims, _ := middleware.GetClaims(r)
+	projectID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		apperror.WriteError(w, apperror.ErrValidation)
+		return
+	}
+	var body struct {
+		UserID uuid.UUID `json:"user_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		apperror.WriteError(w, apperror.ErrValidation)
+		return
+	}
+	if err := h.projectUC.InviteMember(r.Context(), projectID, body.UserID, claims); err != nil {
+		apperror.WriteError(w, err)
+		return
+	}
+	apperror.WriteJSON(w, http.StatusOK, map[string]string{"message": "member invited"})
+}
+
+func (h *ProjectHandler) RemoveMember(w http.ResponseWriter, r *http.Request) {
+	claims, _ := middleware.GetClaims(r)
+	projectID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		apperror.WriteError(w, apperror.ErrValidation)
+		return
+	}
+	memberID, err := uuid.Parse(chi.URLParam(r, "memberId"))
+	if err != nil {
+		apperror.WriteError(w, apperror.ErrValidation)
+		return
+	}
+	if err := h.projectUC.RemoveMember(r.Context(), projectID, memberID, claims); err != nil {
+		apperror.WriteError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *ProjectHandler) AddComment(w http.ResponseWriter, r *http.Request) {
+	claims, _ := middleware.GetClaims(r)
+	projectID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		apperror.WriteError(w, apperror.ErrValidation)
+		return
+	}
+	recordID, err := uuid.Parse(chi.URLParam(r, "recordId"))
+	if err != nil {
+		apperror.WriteError(w, apperror.ErrValidation)
+		return
+	}
+	var body struct {
+		Text string `json:"text"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Text == "" {
+		apperror.WriteError(w, apperror.ErrValidation)
+		return
+	}
+	if err := h.projectUC.AddComment(r.Context(), projectID, recordID, body.Text, claims); err != nil {
+		apperror.WriteError(w, err)
+		return
+	}
+	apperror.WriteJSON(w, http.StatusCreated, map[string]string{"message": "comment added"})
+}

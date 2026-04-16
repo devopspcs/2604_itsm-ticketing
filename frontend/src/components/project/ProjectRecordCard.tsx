@@ -52,9 +52,23 @@ export function ProjectRecordCard({ record, onClick }: ProjectRecordCardProps) {
             </span>
           )}
         </div>
-        {record.assigned_to && (
+        {record.assigned_to && !record.assignees?.length && (
           <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
             <span className="material-symbols-outlined text-primary text-[14px]">person</span>
+          </div>
+        )}
+        {record.assignees?.length > 0 && (
+          <div className="flex -space-x-1.5">
+            {record.assignees.slice(0, 3).map((_, i) => (
+              <div key={i} className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center ring-2 ring-surface-container-lowest">
+                <span className="material-symbols-outlined text-primary text-[12px]">person</span>
+              </div>
+            ))}
+            {record.assignees.length > 3 && (
+              <div className="w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center ring-2 ring-surface-container-lowest">
+                <span className="text-[9px] font-bold text-on-surface-variant">+{record.assignees.length - 3}</span>
+              </div>
+            )}
           </div>
         )}
       </div>
