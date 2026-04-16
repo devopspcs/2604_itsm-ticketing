@@ -232,8 +232,8 @@ export function UserManagementPage() {
       )}
 
       {/* User Table */}
-      <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-outline-variant/10 overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+      <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/10 overflow-x-auto">
+        <table className="w-full min-w-[900px] text-left border-collapse">
           <thead>
             <tr className="bg-surface-container-low/50">
               {['Name', 'Email', 'Role', 'Position', 'Status', 'Actions'].map(h => (
