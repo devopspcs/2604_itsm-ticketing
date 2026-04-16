@@ -195,7 +195,7 @@ export function TicketListPage() {
 
       {/* Bottom Stats */}
       <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-red-900 to-primary-container p-6 rounded-2xl text-white shadow-xl flex flex-col justify-between">
+        <div className="bg-gradient-to-br from-accent-900 to-primary-container p-6 rounded-2xl text-white shadow-xl flex flex-col justify-between">
           <div>
             <h3 className="font-headline text-lg font-bold mb-1">Queue Health</h3>
             <p className="text-xs text-primary-fixed opacity-80 mb-6">Current throughput vs. weekly average</p>

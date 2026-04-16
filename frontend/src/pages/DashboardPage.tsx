@@ -91,7 +91,7 @@ export function DashboardPage() {
               </div>
               <div className="relative flex items-end justify-around gap-8 px-8" style={{ height: '280px' }}>
                 {[
-                  { label: 'Helpdesk', value: (stats.by_type as Record<string,number>)?.['helpdesk_request'] ?? 0, color: '#C41E3A', light: '#FFDAD9' },
+                  { label: 'Helpdesk', value: (stats.by_type as Record<string,number>)?.['helpdesk_request'] ?? 0, color: 'var(--color-primary)', light: 'var(--color-primary-fixed)' },
                   { label: 'Incident', value: (stats.by_type as Record<string,number>)?.['incident'] ?? 0, color: '#ba1a1a', light: '#ffdad6' },
                   { label: 'Change', value: (stats.by_type as Record<string,number>)?.['change_request'] ?? 0, color: '#f59e0b', light: '#fef3c7' },
                 ].map((bar) => {
@@ -134,7 +134,7 @@ export function DashboardPage() {
                 ) : (
                   (stats.recent_tickets ?? []).filter(Boolean).map((t) => (
                     <Link to={`/tickets/${t.id}`} key={t.id} className="flex gap-3 group hover:bg-surface-container-low p-2 rounded-xl transition-colors">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-accent-50 flex items-center justify-center text-accent-600 group-hover:bg-accent-600 group-hover:text-white transition-colors">
                         <span className="material-symbols-outlined text-lg">
                           {(t.type ?? '') === 'incident' ? 'report' : (t.type ?? '') === 'change_request' ? 'published_with_changes' : 'contact_support'}
                         </span>

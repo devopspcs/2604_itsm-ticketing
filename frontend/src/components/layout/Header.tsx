@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { useAuth } from '../../hooks/useAuth'
 import { useNotifications } from '../../hooks/useNotifications'
+import { useTheme, THEMES } from '../../hooks/useTheme'
 import type { RootState } from '../../store'
 import type { User } from '../../types'
 import api from '../../services/api'
@@ -10,6 +11,7 @@ import api from '../../services/api'
 export function Header() {
   const { logout } = useAuth()
   const { unreadCount } = useNotifications()
+  const { theme, setTheme } = useTheme()
   const navigate = useNavigate()
   const userId = useSelector((s: RootState) => s.auth.userId)
   const role = useSelector((s: RootState) => s.auth.role)
@@ -51,7 +53,7 @@ export function Header() {
   return (
     <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md shadow-sm flex justify-between items-center px-6 py-3">
       <div className="flex items-center gap-8">
-        <Link to="/dashboard" className="text-xl font-bold text-red-900 font-headline">
+        <Link to="/dashboard" className="text-xl font-bold text-accent-900 font-headline">
           PCS Ticketing System
         </Link>
         <nav className="hidden md:flex items-center gap-4">
@@ -142,6 +144,24 @@ export function Header() {
                     <span className="ml-auto text-[10px] font-bold bg-error text-white px-1.5 py-0.5 rounded-full">{unreadCount}</span>
                   )}
                 </Link>
+              </div>
+
+              {/* Theme Picker */}
+              <div className="border-t border-outline-variant/10 px-5 py-3">
+                <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Theme</p>
+                <div className="flex items-center gap-2">
+                  {THEMES.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setTheme(t.id)}
+                      title={t.label}
+                      className={`w-7 h-7 rounded-full transition-all hover:scale-110 active:scale-95 ${
+                        theme === t.id ? 'ring-2 ring-offset-2 ring-on-surface scale-110' : ''
+                      }`}
+                      style={{ backgroundColor: t.color }}
+                    />
+                  ))}
+                </div>
               </div>
 
               <div className="border-t border-outline-variant/10">
