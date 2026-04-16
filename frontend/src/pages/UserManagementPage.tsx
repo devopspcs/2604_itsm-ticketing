@@ -124,7 +124,7 @@ export function UserManagementPage() {
   if (loading) return <LoadingSpinner />
 
   return (
-    <div className="max-w-5xl mx-auto p-8">
+    <div className="max-w-7xl mx-auto p-6">
       {actionMsg && (
         <div className="fixed top-20 right-6 z-50 px-5 py-3 rounded-xl shadow-lg font-semibold text-sm bg-emerald-100 text-emerald-800 flex items-center gap-2">
           <span className="material-symbols-outlined text-sm">check_circle</span>
@@ -232,7 +232,7 @@ export function UserManagementPage() {
       )}
 
       {/* User Table */}
-      <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-outline-variant/10">
+      <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-outline-variant/10 overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-surface-container-low/50">
