@@ -51,7 +51,7 @@ export function Header() {
   return (
     <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md shadow-sm flex justify-between items-center px-6 py-3">
       <div className="flex items-center gap-8">
-        <Link to="/dashboard" className="text-xl font-bold text-blue-900 font-headline">
+        <Link to="/dashboard" className="text-xl font-bold text-red-900 font-headline">
           PCS Ticketing System
         </Link>
         <nav className="hidden md:flex items-center gap-4">

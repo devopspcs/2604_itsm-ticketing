@@ -9,12 +9,12 @@ const actionIcon: Record<string, string> = {
 }
 const statusChip: Record<string, string> = {
   ticket_created: 'border-slate-500 bg-slate-500/10 text-slate-700',
-  status_changed: 'border-blue-600 bg-blue-600/10 text-blue-700',
+  status_changed: 'border-red-600 bg-red-600/10 text-red-700',
   assigned: 'border-green-600 bg-green-600/10 text-green-700',
   reassigned: 'border-green-600 bg-green-600/10 text-green-700',
   approval_requested: 'border-amber-500 bg-amber-500/10 text-amber-700',
   approval_decided: 'border-tertiary bg-tertiary/10 text-tertiary',
-  field_updated: 'border-blue-600 bg-blue-600/10 text-blue-700',
+  field_updated: 'border-red-600 bg-red-600/10 text-red-700',
 }
 
 export function ActivityLogsPage() {
@@ -113,7 +113,7 @@ export function ActivityLogsPage() {
         {[
           { label: 'Total Actions (24h)', value: logs.length, delta: '+12%', border: 'border-primary' },
           { label: 'Critical Alerts', value: 0, delta: 'Priority Red', border: 'border-error', deltaClass: 'text-error' },
-          { label: 'System Changes', value: logs.filter(l => l.action === 'status_changed').length, delta: 'Config updates', border: 'border-blue-400' },
+          { label: 'System Changes', value: logs.filter(l => l.action === 'status_changed').length, delta: 'Config updates', border: 'border-red-400' },
           { label: 'Active Operators', value: 1, delta: 'Online now', border: 'border-tertiary' },
         ].map((s) => (
           <div key={s.label} className={`bg-surface-container-low p-6 rounded-xl border-l-4 ${s.border}`}>
