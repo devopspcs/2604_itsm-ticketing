@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -53,4 +54,50 @@ func (r *projectActivityLogRepository) queryLogs(ctx context.Context, query stri
 		logs = append(logs, l)
 	}
 	return logs, nil
+}
+
+func (r *projectActivityLogRepository) ListByProjectPaginated(ctx context.Context, projectID uuid.UUID, filter repository.ActivityLogFilter) (*repository.PaginatedActivityLogs, error) {
+	args := []interface{}{projectID}
+	where := "WHERE project_id=$1"
+	i := 2
+
+	if filter.ActionType != nil && *filter.ActionType != "" {
+		where += fmt.Sprintf(" AND action=$%d", i)
+		args = append(args, *filter.ActionType)
+		i++
+	}
+
+	// Count total
+	countQuery := "SELECT COUNT(*) FROM project_activity_logs " + where
+	var total int64
+	if err := r.db.QueryRow(ctx, countQuery, args...).Scan(&total); err != nil {
+		return nil, err
+	}
+
+	// Paginated query
+	offset := (filter.Page - 1) * filter.PageSize
+	dataQuery := fmt.Sprintf("SELECT id, project_id, record_id, actor_id, action, detail, created_at FROM project_activity_logs %s ORDER BY created_at DESC LIMIT $%d OFFSET $%d", where, i, i+1)
+	args = append(args, filter.PageSize, offset)
+
+	rows, err := r.db.Query(ctx, dataQuery, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var logs []*entity.ProjectActivityLog
+	for rows.Next() {
+		l := &entity.ProjectActivityLog{}
+		if err := rows.Scan(&l.ID, &l.ProjectID, &l.RecordID, &l.ActorID, &l.Action, &l.Detail, &l.CreatedAt); err != nil {
+			return nil, err
+		}
+		logs = append(logs, l)
+	}
+
+	return &repository.PaginatedActivityLogs{
+		Logs:     logs,
+		Total:    total,
+		Page:     filter.Page,
+		PageSize: filter.PageSize,
+	}, nil
 }

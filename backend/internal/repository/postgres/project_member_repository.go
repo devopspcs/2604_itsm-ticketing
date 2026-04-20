@@ -85,3 +85,17 @@ func (r *projectMemberRepository) GetRole(ctx context.Context, projectID uuid.UU
 	}
 	return role, nil
 }
+
+func (r *projectMemberRepository) GetMember(ctx context.Context, projectID uuid.UUID, userID uuid.UUID) (*entity.ProjectMember, error) {
+	query := `SELECT project_id, user_id, role, created_at FROM project_members WHERE project_id=$1 AND user_id=$2`
+	row := r.db.QueryRow(ctx, query, projectID, userID)
+	member := &entity.ProjectMember{}
+	err := row.Scan(&member.ProjectID, &member.UserID, &member.Role, &member.CreatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperror.ErrNotFound
+		}
+		return nil, err
+	}
+	return member, nil
+}

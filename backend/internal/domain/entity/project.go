@@ -24,20 +24,24 @@ type ProjectColumn struct {
 }
 
 type ProjectRecord struct {
-	ID          uuid.UUID    `json:"id"`
-	ColumnID    uuid.UUID    `json:"column_id"`
-	ProjectID   uuid.UUID    `json:"project_id"`
-	Title       string       `json:"title"`
-	Description string       `json:"description"`
-	AssignedTo  *uuid.UUID   `json:"assigned_to"`
-	Assignees   []uuid.UUID  `json:"assignees"`
-	DueDate     *time.Time   `json:"due_date"`
-	Position    int          `json:"position"`
-	IsCompleted bool         `json:"is_completed"`
-	CompletedAt *time.Time   `json:"completed_at"`
-	CreatedBy   uuid.UUID    `json:"created_by"`
-	CreatedAt   time.Time    `json:"created_at"`
-	UpdatedAt   time.Time    `json:"updated_at"`
+	ID            uuid.UUID    `json:"id"`
+	ColumnID      uuid.UUID    `json:"column_id"`
+	ProjectID     uuid.UUID    `json:"project_id"`
+	Title         string       `json:"title"`
+	Description   string       `json:"description"`
+	AssignedTo    *uuid.UUID   `json:"assigned_to"`
+	Assignees     []uuid.UUID  `json:"assignees"`
+	DueDate       *time.Time   `json:"due_date"`
+	Position      int          `json:"position"`
+	IsCompleted   bool         `json:"is_completed"`
+	CompletedAt   *time.Time   `json:"completed_at"`
+	CreatedBy     uuid.UUID    `json:"created_by"`
+	CreatedAt     time.Time    `json:"created_at"`
+	UpdatedAt     time.Time    `json:"updated_at"`
+	IssueTypeID   *uuid.UUID   `json:"issue_type_id"`
+	Status        *string      `json:"status"`
+	ParentRecordID *uuid.UUID  `json:"parent_record_id"`
+	ComponentID    *uuid.UUID  `json:"component_id"`
 }
 
 type ProjectActivityLog struct {
