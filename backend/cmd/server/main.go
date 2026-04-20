@@ -86,19 +86,58 @@ func main() {
 	orgUC := usecase.NewOrgUseCase(deptRepo, divRepo, teamRepo)
 	projectBoardUC := usecase.NewProjectBoardUseCase(projectRepo, projectColumnRepo, projectRecordRepo, projectActivityLogRepo, projectMemberRepo)
 
+	// Jira-like features repositories
+	issueTypeRepo := postgres.NewIssueTypeRepository(pool)
+	issueTypeSchemeRepo := postgres.NewIssueTypeSchemeRepository(pool)
+	customFieldRepo := postgres.NewCustomFieldRepository(pool)
+	customFieldOptionRepo := postgres.NewCustomFieldOptionRepository(pool)
+	customFieldValueRepo := postgres.NewCustomFieldValueRepository(pool)
+	workflowRepo := postgres.NewWorkflowRepository(pool)
+	workflowStatusRepo := postgres.NewWorkflowStatusRepository(pool)
+	workflowTransitionRepo := postgres.NewWorkflowTransitionRepository(pool)
+	sprintRepo := postgres.NewSprintRepository(pool)
+	sprintRecordRepo := postgres.NewSprintRecordRepository(pool)
+	commentRepo := postgres.NewCommentRepository(pool)
+	commentMentionRepo := postgres.NewCommentMentionRepository(pool)
+	attachmentRepo := postgres.NewAttachmentRepository(pool)
+	labelRepo := postgres.NewLabelRepository(pool)
+	recordLabelRepo := postgres.NewRecordLabelRepository(pool)
+
+	// Jira-like features use cases
+	issueTypeUC := usecase.NewIssueTypeUseCase(issueTypeRepo, issueTypeSchemeRepo, projectRepo, projectActivityLogRepo, projectMemberRepo)
+	customFieldUC := usecase.NewCustomFieldUseCase(customFieldRepo, customFieldOptionRepo, customFieldValueRepo, projectRepo, projectRecordRepo, projectActivityLogRepo, projectMemberRepo)
+	workflowUC := usecase.NewWorkflowUseCase(workflowRepo, workflowStatusRepo, workflowTransitionRepo, projectRepo, projectRecordRepo, projectActivityLogRepo, projectMemberRepo)
+	sprintUC := usecase.NewSprintUseCase(sprintRepo, sprintRecordRepo, projectRepo, projectRecordRepo, projectActivityLogRepo, projectMemberRepo)
+	backlogUC := usecase.NewBacklogUseCase(sprintRecordRepo, projectRepo, projectRecordRepo, projectActivityLogRepo, projectMemberRepo)
+	commentUC := usecase.NewCommentUseCase(commentRepo, commentMentionRepo, projectRecordRepo, userRepo, projectActivityLogRepo, projectMemberRepo)
+	attachmentUC := usecase.NewAttachmentUseCase(attachmentRepo, projectRecordRepo, projectActivityLogRepo, projectMemberRepo)
+	labelUC := usecase.NewLabelUseCase(labelRepo, recordLabelRepo, projectRepo, projectRecordRepo, projectActivityLogRepo, projectMemberRepo)
+	bulkOpUC := usecase.NewBulkOperationUseCase(projectRecordRepo, workflowStatusRepo, labelRepo, recordLabelRepo, projectRepo, projectActivityLogRepo, projectMemberRepo)
+	searchUC := usecase.NewSearchUseCase(projectRecordRepo, projectRepo, projectMemberRepo)
+
+	// Project Board Features repositories and use cases
+	releaseRepo := postgres.NewReleaseRepository(pool)
+	releaseRecordRepo := postgres.NewReleaseRecordRepository(pool)
+	componentRepo := postgres.NewComponentRepository(pool)
+	reportsUC := usecase.NewReportsUseCase(projectRecordRepo, projectMemberRepo, sprintRepo, sprintRecordRepo)
+	releaseUC := usecase.NewReleaseUseCase(releaseRepo, releaseRecordRepo, projectMemberRepo)
+	componentUC := usecase.NewComponentUseCase(componentRepo, projectRecordRepo, projectMemberRepo)
+
 	// Handlers
 	handlers := &httpdelivery.Handlers{
-		Auth:         handler.NewAuthHandler(authUC),
-		User:         handler.NewUserHandler(userUC),
-		Ticket:       handler.NewTicketHandler(ticketUC, approvalUC, assignmentUC, activityRepo),
-		Approval:     handler.NewApprovalHandler(approvalUC),
-		Dashboard:    handler.NewDashboardHandler(dashboardUC),
-		Notification: handler.NewNotificationHandler(notifUC),
-		Webhook:      handler.NewWebhookHandler(webhookUC),
-		Attachment:   handler.NewAttachmentHandler(pool),
-		Org:          handler.NewOrgHandler(orgUC),
-		SSO:          handler.NewSSOHandler(cfg, userRepo, jwtManager),
-		Project:      handler.NewProjectHandler(projectBoardUC),
+		Auth:                 handler.NewAuthHandler(authUC),
+		User:                 handler.NewUserHandler(userUC),
+		Ticket:               handler.NewTicketHandler(ticketUC, approvalUC, assignmentUC, activityRepo),
+		Approval:             handler.NewApprovalHandler(approvalUC),
+		Dashboard:            handler.NewDashboardHandler(dashboardUC),
+		Notification:         handler.NewNotificationHandler(notifUC),
+		Webhook:              handler.NewWebhookHandler(webhookUC),
+		Attachment:           handler.NewAttachmentHandler(pool),
+		Org:                  handler.NewOrgHandler(orgUC),
+		SSO:                  handler.NewSSOHandler(cfg, userRepo, jwtManager),
+		Project:              handler.NewProjectHandler(projectBoardUC),
+		Jira:                 handler.NewJiraHandler(issueTypeUC, customFieldUC, workflowUC, sprintUC, backlogUC, commentUC, attachmentUC, labelUC, bulkOpUC, searchUC),
+		ProjectBoardFeatures: handler.NewProjectBoardFeaturesHandler(reportsUC, releaseUC, componentUC, projectRecordRepo, projectActivityLogRepo, projectMemberRepo),
 	}
 
 	// Router

@@ -280,25 +280,56 @@ func (uc *projectBoardUseCase) CreateRecord(ctx context.Context, projectID uuid.
 	if err != nil {
 		return nil, err
 	}
-	if project.CreatedBy != requester.UserID {
+	// Check membership instead of just creator
+	isMember, _ := uc.memberRepo.IsMember(ctx, projectID, requester.UserID)
+	if !isMember {
 		return nil, apperror.ErrForbidden
 	}
 	if strings.TrimSpace(req.Title) == "" {
 		return nil, apperror.ErrValidation
 	}
-	// Verify column exists
-	_, err = uc.columnRepo.FindByID(ctx, req.ColumnID)
-	if err != nil {
-		return nil, err
+
+	columnID := req.ColumnID
+	// If no column specified, use first column or create default
+	if columnID == uuid.Nil {
+		cols, err := uc.columnRepo.ListByProject(ctx, projectID)
+		if err != nil {
+			return nil, err
+		}
+		if len(cols) > 0 {
+			columnID = cols[0].ID
+		} else {
+			// Create default column
+			now := time.Now().UTC()
+			col := &entity.ProjectColumn{
+				ID:        uuid.New(),
+				ProjectID: projectID,
+				Name:      "Backlog",
+				Position:  0,
+				CreatedAt: now,
+			}
+			if err := uc.columnRepo.Create(ctx, col); err != nil {
+				return nil, err
+			}
+			columnID = col.ID
+		}
+	} else {
+		// Verify column exists
+		_, err = uc.columnRepo.FindByID(ctx, columnID)
+		if err != nil {
+			return nil, err
+		}
 	}
-	maxPos, err := uc.recordRepo.GetMaxPosition(ctx, req.ColumnID)
+
+	_ = project // used for validation above
+	maxPos, err := uc.recordRepo.GetMaxPosition(ctx, columnID)
 	if err != nil {
 		return nil, err
 	}
 	now := time.Now().UTC()
 	record := &entity.ProjectRecord{
 		ID:          uuid.New(),
-		ColumnID:    req.ColumnID,
+		ColumnID:    columnID,
 		ProjectID:   projectID,
 		Title:       req.Title,
 		Description: req.Description,
@@ -330,11 +361,8 @@ func (uc *projectBoardUseCase) GetRecord(ctx context.Context, projectID uuid.UUI
 }
 
 func (uc *projectBoardUseCase) UpdateRecord(ctx context.Context, projectID uuid.UUID, recordID uuid.UUID, req domainUC.UpdateRecordRequest, requester domainUC.UserClaims) (*entity.ProjectRecord, error) {
-	project, err := uc.projectRepo.FindByID(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-	if project.CreatedBy != requester.UserID {
+	isMember, _ := uc.memberRepo.IsMember(ctx, projectID, requester.UserID)
+	if !isMember {
 		return nil, apperror.ErrForbidden
 	}
 	record, err := uc.recordRepo.FindByID(ctx, recordID)

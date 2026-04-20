@@ -18,6 +18,14 @@ import { ProjectBoardLayout } from './components/layout/ProjectBoardLayout'
 import { ProjectHomePage } from './pages/ProjectHomePage'
 import { ProjectBoardPage } from './pages/ProjectBoardPage'
 import { ProjectCalendarPage } from './pages/ProjectCalendarPage'
+import { SprintBoardPage } from './pages/SprintBoardPage'
+import { BacklogPage } from './pages/BacklogPage'
+import { ProjectSettingsPage } from './pages/ProjectSettingsPage'
+import { ReportsPage } from './pages/ReportsPage'
+import { ReleasesPage } from './pages/ReleasesPage'
+import { ComponentsPage } from './pages/ComponentsPage'
+import { IssuesPage } from './pages/IssuesPage'
+import { RepositoryPage } from './pages/RepositoryPage'
 
 export default function App() {
   return (
@@ -45,6 +53,14 @@ export default function App() {
           <Route path="/projects" element={<ProjectHomePage />} />
           <Route path="/projects/calendar" element={<ProjectCalendarPage />} />
           <Route path="/projects/:id" element={<ProjectBoardPage />} />
+          <Route path="/projects/:id/sprint" element={<SprintBoardPage />} />
+          <Route path="/projects/:id/backlog" element={<BacklogPage />} />
+          <Route path="/projects/:id/settings" element={<ProjectSettingsPage />} />
+          <Route path="/projects/:id/reports" element={<ReportsPage />} />
+          <Route path="/projects/:id/releases" element={<ReleasesPage />} />
+          <Route path="/projects/:id/components" element={<ComponentsPage />} />
+          <Route path="/projects/:id/issues" element={<IssuesPage />} />
+          <Route path="/projects/:id/repository" element={<RepositoryPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
