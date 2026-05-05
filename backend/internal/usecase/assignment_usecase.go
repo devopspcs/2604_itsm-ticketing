@@ -15,6 +15,7 @@ import (
 type assignmentUseCase struct {
 	ticketRepo       repository.TicketRepository
 	userRepo         repository.UserRepository
+	teamRepo         repository.TeamRepository
 	activityRepo     repository.ActivityLogRepository
 	notificationRepo repository.NotificationRepository
 	webhookUC        domainUC.WebhookUseCase
@@ -24,6 +25,7 @@ type assignmentUseCase struct {
 func NewAssignmentUseCase(
 	ticketRepo repository.TicketRepository,
 	userRepo repository.UserRepository,
+	teamRepo repository.TeamRepository,
 	activityRepo repository.ActivityLogRepository,
 	notificationRepo repository.NotificationRepository,
 	webhookUC domainUC.WebhookUseCase,
@@ -32,6 +34,7 @@ func NewAssignmentUseCase(
 	return &assignmentUseCase{
 		ticketRepo:       ticketRepo,
 		userRepo:         userRepo,
+		teamRepo:         teamRepo,
 		activityRepo:     activityRepo,
 		notificationRepo: notificationRepo,
 		webhookUC:        webhookUC,
@@ -164,4 +167,90 @@ func (uc *assignmentUseCase) checkAssignmentACL(ctx context.Context, requester d
 	default:
 		return nil
 	}
+}
+
+// AssignTicketToTeam assigns a ticket to a team and sends email notification to the team email.
+func (uc *assignmentUseCase) AssignTicketToTeam(ctx context.Context, ticketID uuid.UUID, teamID uuid.UUID, requester domainUC.UserClaims) error {
+	// Verify team exists
+	team, err := uc.teamRepo.FindByID(ctx, teamID)
+	if err != nil {
+		return apperror.ErrNotFound.WithDetails(map[string]interface{}{"team": "team not found"})
+	}
+
+	// Check ACL: only admin, manager, division_manager, or leader can assign to team
+	if requester.Role != entity.RoleAdmin {
+		reqUser, err := uc.userRepo.FindByID(ctx, requester.UserID)
+		if err != nil {
+			return nil // backward compat
+		}
+		if reqUser.Position != nil && *reqUser.Position == entity.PositionStaff {
+			return apperror.ErrForbidden
+		}
+	}
+
+	// Get ticket
+	ticket, err := uc.ticketRepo.FindByID(ctx, ticketID)
+	if err != nil {
+		return err
+	}
+
+	// Set team assignment
+	ticket.AssignedTeamID = &teamID
+	ticket.UpdatedAt = time.Now().UTC()
+
+	// If ticket is still open, move to in_progress
+	if ticket.Status == entity.StatusOpen {
+		ticket.Status = entity.StatusInProgress
+	}
+
+	if err := uc.ticketRepo.Update(ctx, ticket); err != nil {
+		return err
+	}
+
+	// Log activity
+	_ = uc.activityRepo.Append(ctx, &entity.ActivityLog{
+		ID:        uuid.New(),
+		TicketID:  ticket.ID,
+		ActorID:   requester.UserID,
+		Action:    entity.ActionAssignedToTeam,
+		NewValue:  strPtr(teamID.String()),
+		CreatedAt: time.Now().UTC(),
+	})
+
+	// Notify all team members via in-app notification
+	allUsers, _ := uc.userRepo.List(ctx, repository.UserFilter{})
+	for _, u := range allUsers {
+		if u.TeamID != nil && *u.TeamID == teamID {
+			_ = uc.notificationRepo.Create(ctx, &entity.Notification{
+				ID:        uuid.New(),
+				UserID:    u.ID,
+				TicketID:  ticket.ID,
+				Message:   "Ticket assigned to your team: " + ticket.Title,
+				IsRead:    false,
+				CreatedAt: time.Now().UTC(),
+			})
+		}
+	}
+
+	// Dispatch webhook
+	if uc.webhookUC != nil {
+		go uc.webhookUC.Dispatch(context.Background(), entity.EventTicketAssigned, ticket)
+	}
+
+	// Send email to team email
+	if uc.emailSvc != nil && uc.emailSvc.IsConfigured() && team.Email != nil && *team.Email != "" {
+		reqUser, _ := uc.userRepo.FindByID(ctx, requester.UserID)
+		assignerName := "System"
+		if reqUser != nil {
+			assignerName = reqUser.FullName
+		}
+		uc.emailSvc.SendTicketAssignedToTeam(
+			*team.Email, team.Name,
+			ticket.Title, ticket.ID.String(),
+			string(ticket.Type), string(ticket.Priority), ticket.Category,
+			assignerName,
+		)
+	}
+
+	return nil
 }

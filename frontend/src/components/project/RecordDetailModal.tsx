@@ -34,16 +34,23 @@ export function RecordDetailModal({
   const [selectedLabels, setSelectedLabels] = useState<Label[]>((record as any).labels || [])
   const [isEditingStatus, setIsEditingStatus] = useState(false)
   const [statusLoading, setStatusLoading] = useState(false)
-  const [users, setUsers] = useState<UserInfo[]>([])
+  const [members, setMembers] = useState<UserInfo[]>([])
   const [editingAssignee, setEditingAssignee] = useState(false)
+  const [selectedAssignees, setSelectedAssignees] = useState<string[]>((record as any).assignees || [])
   const [editingDueDate, setEditingDueDate] = useState(false)
   const [dueDate, setDueDate] = useState((record as any).due_date?.split('T')[0] || '')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    projectService.listUsers()
-      .then(res => setUsers(Array.isArray(res.data) ? res.data : []))
-      .catch(() => setUsers([]))
+    // Fetch project members (not all users)
+    if (record?.project_id) {
+      projectService.listMembers(record.project_id)
+        .then(res => {
+          const data = Array.isArray(res.data) ? res.data : []
+          setMembers(data.map((m: any) => ({ id: m.user_id, name: m.user_name || m.user_email || m.user_id, email: m.user_email || '' })))
+        })
+        .catch(() => setMembers([]))
+    }
 
     // Fetch record labels from API
     if (record?.id && record?.project_id) {
@@ -135,35 +142,60 @@ export function RecordDetailModal({
 
             {/* Assignee */}
             <div>
-              <label className="text-[10px] font-medium text-on-surface-variant">Assignee</label>
+              <label className="text-[10px] font-medium text-on-surface-variant">Assignees</label>
               {editingAssignee ? (
-                <div className="mt-1">
-                  <select
-                    defaultValue={jiraRecord.assigned_to || ''}
-                    onChange={async (e) => {
-                      const val = e.target.value
-                      setSaving(true)
-                      try {
-                        const assignTo = val || null
-                        await projectService.updateRecord(record.project_id, record.id, { assigned_to: assignTo } as any)
-                        setEditingAssignee(false)
-                      } catch (err) { console.error('Failed to update assignee', err) }
-                      finally { setSaving(false) }
-                    }}
-                    className="w-full px-2 py-1 rounded border border-outline-variant text-sm"
-                  >
-                    <option value="">Unassigned</option>
-                    {users.map(u => (
-                      <option key={u.id} value={u.id}>{u.name || u.email}</option>
+                <div className="mt-1 space-y-2">
+                  <div className="max-h-40 overflow-y-auto border border-outline-variant rounded p-2 space-y-1">
+                    {members.map(m => (
+                      <label key={m.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-surface-container-high p-1 rounded">
+                        <input
+                          type="checkbox"
+                          checked={selectedAssignees.includes(m.id)}
+                          onChange={e => {
+                            if (e.target.checked) {
+                              setSelectedAssignees(prev => [...prev, m.id])
+                            } else {
+                              setSelectedAssignees(prev => prev.filter(id => id !== m.id))
+                            }
+                          }}
+                          className="accent-primary"
+                        />
+                        <span>{m.name || m.email}</span>
+                      </label>
                     ))}
-                  </select>
-                  <button onClick={() => setEditingAssignee(false)} className="text-[10px] text-on-surface-variant mt-1">Cancel</button>
+                    {members.length === 0 && <p className="text-[10px] text-on-surface-variant">Belum ada member</p>}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={async () => {
+                        setSaving(true)
+                        try {
+                          await projectService.updateRecord(record.project_id, record.id, { assignees: selectedAssignees } as any)
+                          setEditingAssignee(false)
+                          onUpdate?.()
+                        } catch (err) { console.error('Failed to update assignees', err) }
+                        finally { setSaving(false) }
+                      }}
+                      disabled={saving}
+                      className="text-[10px] text-primary font-semibold"
+                    >
+                      {saving ? 'Menyimpan...' : 'Simpan'}
+                    </button>
+                    <button onClick={() => { setEditingAssignee(false); setSelectedAssignees((record as any).assignees || []) }} className="text-[10px] text-on-surface-variant">Batal</button>
+                  </div>
                 </div>
               ) : (
-                <p className="text-sm text-on-surface mt-1 cursor-pointer hover:bg-surface-container-high p-1 rounded"
-                  onClick={() => setEditingAssignee(true)}>
-                  {jiraRecord.assigned_to ? (users.find(u => u.id === jiraRecord.assigned_to)?.name || users.find(u => u.id === jiraRecord.assigned_to)?.email || jiraRecord.assigned_to) : '— Klik untuk assign'}
-                </p>
+                <div
+                  className="text-sm text-on-surface mt-1 cursor-pointer hover:bg-surface-container-high p-1 rounded"
+                  onClick={() => setEditingAssignee(true)}
+                >
+                  {selectedAssignees.length > 0
+                    ? selectedAssignees.map(id => {
+                        const u = members.find(m => m.id === id)
+                        return u ? (u.name || u.email) : id
+                      }).join(', ')
+                    : '— Klik untuk assign'}
+                </div>
               )}
             </div>
 
@@ -246,7 +278,7 @@ export function RecordDetailModal({
               recordId={record.id}
               projectId={record.project_id}
               currentUserId={currentUserId || ''}
-              projectMembers={users.map(u => ({ id: u.id, name: u.name || u.email }))}
+              projectMembers={members.map(m => ({ id: m.id, name: m.name || m.email }))}
             />
           </div>
 

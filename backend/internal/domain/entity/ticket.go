@@ -35,16 +35,17 @@ const (
 )
 
 type Ticket struct {
-	ID          uuid.UUID    `json:"id"`
-	Title       string       `json:"title"`
-	Description string       `json:"description"`
-	Type        TicketType   `json:"type"`
-	Category    string       `json:"category"`
-	Priority    Priority     `json:"priority"`
-	Status      TicketStatus `json:"status"`
-	CreatedBy   uuid.UUID    `json:"created_by"`
-	AssignedTo  *uuid.UUID   `json:"assigned_to"`
-	CreatedAt   time.Time    `json:"created_at"`
-	UpdatedAt   time.Time    `json:"updated_at"`
-	ResolvedAt  *time.Time   `json:"resolved_at"`
+	ID             uuid.UUID    `json:"id"`
+	Title          string       `json:"title"`
+	Description    string       `json:"description"`
+	Type           TicketType   `json:"type"`
+	Category       string       `json:"category"`
+	Priority       Priority     `json:"priority"`
+	Status         TicketStatus `json:"status"`
+	CreatedBy      uuid.UUID    `json:"created_by"`
+	AssignedTo     *uuid.UUID   `json:"assigned_to"`
+	AssignedTeamID *uuid.UUID   `json:"assigned_team_id"`
+	CreatedAt      time.Time    `json:"created_at"`
+	UpdatedAt      time.Time    `json:"updated_at"`
+	ResolvedAt     *time.Time   `json:"resolved_at"`
 }

@@ -27,6 +27,7 @@ export interface Team {
   id: string
   division_id: string
   name: string
+  email?: string
   created_at: string
   updated_at: string
 }
@@ -55,6 +56,7 @@ export interface Ticket {
   status: TicketStatus
   created_by: string
   assigned_to?: string
+  assigned_team_id?: string
   created_at: string
   updated_at: string
 }

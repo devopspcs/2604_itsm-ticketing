@@ -1,0 +1,2 @@
+ALTER TABLE tickets DROP COLUMN IF EXISTS assigned_team_id;
+ALTER TABLE teams DROP COLUMN IF EXISTS email;

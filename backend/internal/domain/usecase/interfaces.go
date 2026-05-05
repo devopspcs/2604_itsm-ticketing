@@ -95,6 +95,7 @@ type ApprovalUseCase interface {
 
 type AssignmentUseCase interface {
 	AssignTicket(ctx context.Context, ticketID uuid.UUID, assigneeID uuid.UUID, requester UserClaims) error
+	AssignTicketToTeam(ctx context.Context, ticketID uuid.UUID, teamID uuid.UUID, requester UserClaims) error
 }
 
 type DashboardFilter struct {
@@ -162,11 +163,13 @@ type UpdateDivisionRequest struct {
 type CreateTeamRequest struct {
 	DivisionID uuid.UUID `json:"division_id" validate:"required"`
 	Name       string    `json:"name" validate:"required"`
+	Email      *string   `json:"email"`
 }
 
 type UpdateTeamRequest struct {
 	DivisionID uuid.UUID `json:"division_id" validate:"required"`
 	Name       string    `json:"name" validate:"required"`
+	Email      *string   `json:"email"`
 }
 
 type OrgUseCase interface {

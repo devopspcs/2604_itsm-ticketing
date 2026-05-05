@@ -153,13 +153,47 @@ func (h *TicketHandler) Assign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var body struct {
-		AssigneeID string `json:"assignee_id"`
+		AssigneeID *string `json:"assignee_id"`
+		TeamID     *string `json:"team_id"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		apperror.WriteError(w, apperror.ErrValidation)
 		return
 	}
-	assigneeID, err := uuid.Parse(body.AssigneeID)
+
+	// Assign to team if team_id is provided
+	if body.TeamID != nil && *body.TeamID != "" {
+		teamID, err := uuid.Parse(*body.TeamID)
+		if err != nil {
+			apperror.WriteError(w, apperror.ErrValidation)
+			return
+		}
+		if err := h.assignmentUC.AssignTicketToTeam(r.Context(), id, teamID, claims); err != nil {
+			apperror.WriteError(w, err)
+			return
+		}
+		// If assignee_id is also provided, assign to user as well
+		if body.AssigneeID != nil && *body.AssigneeID != "" {
+			assigneeID, err := uuid.Parse(*body.AssigneeID)
+			if err != nil {
+				apperror.WriteError(w, apperror.ErrValidation)
+				return
+			}
+			if err := h.assignmentUC.AssignTicket(r.Context(), id, assigneeID, claims); err != nil {
+				apperror.WriteError(w, err)
+				return
+			}
+		}
+		apperror.WriteJSON(w, http.StatusOK, map[string]string{"message": "ticket assigned to team"})
+		return
+	}
+
+	// Assign to user only
+	if body.AssigneeID == nil || *body.AssigneeID == "" {
+		apperror.WriteError(w, apperror.ErrValidation)
+		return
+	}
+	assigneeID, err := uuid.Parse(*body.AssigneeID)
 	if err != nil {
 		apperror.WriteError(w, apperror.ErrValidation)
 		return

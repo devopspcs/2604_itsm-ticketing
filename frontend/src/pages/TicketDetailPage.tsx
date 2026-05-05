@@ -3,14 +3,15 @@ import { useParams, Link } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { ticketService } from '../services/ticket.service'
 import { approvalService } from '../services/approval.service'
+import { orgService } from '../services/org.service'
 import api from '../services/api'
-import type { Ticket, Approval, ActivityLog, User } from '../types'
+import type { Ticket, Approval, ActivityLog, User, Team } from '../types'
 import type { RootState } from '../store'
 
 const actionIcon: Record<string, string> = {
   ticket_created: 'add_circle', status_changed: 'swap_horiz', assigned: 'person_add',
-  reassigned: 'person_search', approval_requested: 'pending', approval_decided: 'verified',
-  field_updated: 'edit_note',
+  reassigned: 'person_search', assigned_to_team: 'groups', approval_requested: 'pending',
+  approval_decided: 'verified', field_updated: 'edit_note',
 }
 
 // ── Modal wrapper ──────────────────────────────────────────────────────────
@@ -69,6 +70,166 @@ function NoteImage({ ticketId, noteId, imageName }: { ticketId: string; noteId: 
         onClick={() => window.open(src, '_blank')}
       />
       {imageName && <p className="text-[10px] text-on-surface-variant mt-1">{imageName}</p>}
+    </div>
+  )
+}
+
+// ── Assign Modal Component ─────────────────────────────────────────────────
+function AssignModal({
+  users,
+  ticket,
+  saving,
+  actionMsg,
+  onClose,
+  onAssign,
+  onAssignToTeam,
+}: {
+  users: User[]
+  ticket: Ticket
+  saving: boolean
+  actionMsg: string
+  onClose: () => void
+  onAssign: (userId?: string) => void
+  onAssignToTeam: (teamId: string, userId?: string) => void
+}) {
+  const [mode, setMode] = useState<'team' | 'user'>('team')
+  const [teams, setTeams] = useState<Team[]>([])
+  const [selectedTeamId, setSelectedTeamId] = useState('')
+  const [selectedUserId, setSelectedUserId] = useState('')
+  const [loadingTeams, setLoadingTeams] = useState(false)
+
+  useEffect(() => {
+    setLoadingTeams(true)
+    orgService.listTeams().then(res => {
+      setTeams(res.data ?? [])
+    }).catch(() => {}).finally(() => setLoadingTeams(false))
+  }, [])
+
+  return (
+    <div className="space-y-5">
+      {/* Mode Toggle */}
+      <div className="flex rounded-xl bg-surface-container-high p-1">
+        <button
+          onClick={() => setMode('team')}
+          className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+            mode === 'team' ? 'bg-primary text-white shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">groups</span>
+          Assign to Team
+        </button>
+        <button
+          onClick={() => setMode('user')}
+          className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+            mode === 'user' ? 'bg-primary text-white shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">person</span>
+          Assign to User
+        </button>
+      </div>
+
+      {mode === 'team' ? (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Select Team</label>
+            {loadingTeams ? (
+              <p className="text-sm text-on-surface-variant">Loading teams...</p>
+            ) : teams.length === 0 ? (
+              <p className="text-sm text-on-surface-variant">No teams available. Create teams in Org Structure first.</p>
+            ) : (
+              <select
+                value={selectedTeamId}
+                onChange={(e) => setSelectedTeamId(e.target.value)}
+                className="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 text-sm outline-none appearance-none"
+              >
+                <option value="">-- Select team --</option>
+                {teams.map(t => (
+                  <option key={t.id} value={t.id}>
+                    {t.name} {t.email ? `(${t.email})` : '(no email)'}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          {selectedTeamId && (
+            <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
+              <div className="flex items-center gap-2 text-blue-700 text-xs font-medium">
+                <span className="material-symbols-outlined text-sm">info</span>
+                {teams.find(t => t.id === selectedTeamId)?.email
+                  ? 'Email notifikasi akan dikirim ke email team.'
+                  : 'Team ini belum memiliki email. Tambahkan email team di Org Structure.'}
+              </div>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">
+              Also Assign to User (optional)
+            </label>
+            <select
+              value={selectedUserId}
+              onChange={(e) => setSelectedUserId(e.target.value)}
+              className="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 text-sm outline-none appearance-none"
+            >
+              <option value="">-- No specific user (team only) --</option>
+              {users.filter(u => u.is_active).map(u => (
+                <option key={u.id} value={u.id}>{u.full_name} ({u.role})</option>
+              ))}
+            </select>
+          </div>
+
+          {actionMsg && <p className="text-sm text-error">{actionMsg}</p>}
+          <div className="flex justify-end gap-3 pt-2">
+            <button onClick={onClose} className="px-5 py-2.5 rounded-xl font-semibold text-on-surface-variant hover:bg-surface-container-high transition-colors">Cancel</button>
+            <button
+              onClick={() => onAssignToTeam(selectedTeamId, selectedUserId || undefined)}
+              disabled={saving || !selectedTeamId}
+              className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold hover:opacity-90 transition-all disabled:opacity-70 flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-[18px]">groups</span>
+              {saving ? 'Assigning...' : 'Assign to Team'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Select Assignee</label>
+            {users.length === 0 ? (
+              <p className="text-sm text-on-surface-variant">Loading users...</p>
+            ) : (
+              <select
+                value={selectedUserId}
+                onChange={(e) => setSelectedUserId(e.target.value)}
+                className="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 text-sm outline-none appearance-none"
+              >
+                <option value="">-- Select user --</option>
+                {users.filter(u => u.is_active).map(u => (
+                  <option key={u.id} value={u.id}>{u.full_name} ({u.role})</option>
+                ))}
+              </select>
+            )}
+          </div>
+          {actionMsg && <p className="text-sm text-error">{actionMsg}</p>}
+          <div className="flex justify-end gap-3 pt-2">
+            <button onClick={onClose} className="px-5 py-2.5 rounded-xl font-semibold text-on-surface-variant hover:bg-surface-container-high transition-colors">Cancel</button>
+            <button
+              onClick={() => {
+                if (selectedUserId) {
+                  onAssign(selectedUserId)
+                }
+              }}
+              disabled={saving || !selectedUserId}
+              className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold hover:opacity-90 transition-all disabled:opacity-70 flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-[18px]">person_add</span>
+              {saving ? 'Assigning...' : 'Assign to User'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -207,15 +368,28 @@ export function TicketDetailPage() {
     finally { setSaving(false) }
   }
 
-  const handleAssign = async () => {
-    if (!id || !assigneeId) return
+  const handleAssign = async (userIdOverride?: string) => {
+    const targetId = userIdOverride || assigneeId
+    if (!id || !targetId) return
     setSaving(true)
     try {
-      await ticketService.assign(id, assigneeId)
+      await ticketService.assign(id, targetId)
       await load()
       closeModal()
       showSuccess('Ticket assigned successfully')
     } catch { setActionMsg('Failed to assign ticket') }
+    finally { setSaving(false) }
+  }
+
+  const handleAssignToTeam = async (teamId: string, userId?: string) => {
+    if (!id || !teamId) return
+    setSaving(true)
+    try {
+      await ticketService.assignToTeam(id, teamId, userId)
+      await load()
+      closeModal()
+      showSuccess('Ticket assigned to team successfully')
+    } catch { setActionMsg('Failed to assign ticket to team') }
     finally { setSaving(false) }
   }
 
@@ -341,6 +515,9 @@ export function TicketDetailPage() {
               <div><span className="text-on-surface-variant">Priority:</span> <span className="font-medium capitalize ml-1">{ticket.priority}</span></div>
               <div><span className="text-on-surface-variant">Created by:</span> <span className="font-medium ml-1">{userName(ticket.created_by)}</span></div>
               <div><span className="text-on-surface-variant">Assigned to:</span> <span className="font-medium ml-1">{ticket.assigned_to ? userName(ticket.assigned_to) : 'Unassigned'}</span></div>
+              {ticket.assigned_team_id && (
+                <div><span className="text-on-surface-variant">Team:</span> <span className="font-medium ml-1 text-primary">{ticket.assigned_team_id.slice(0, 8)}...</span></div>
+              )}
             </div>
           </section>
 
@@ -651,30 +828,15 @@ export function TicketDetailPage() {
       {/* Assign Modal */}
       {modal === 'assign' && (
         <Modal title="Assign Ticket" onClose={closeModal}>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Select Assignee</label>
-              {users.length === 0 ? (
-                <p className="text-sm text-on-surface-variant">Loading users...</p>
-              ) : (
-                <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}
-                  className="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 text-sm outline-none appearance-none">
-                  <option value="">-- Select user --</option>
-                  {users.filter(u => u.is_active).map(u => (
-                    <option key={u.id} value={u.id}>{u.full_name} ({u.role})</option>
-                  ))}
-                </select>
-              )}
-            </div>
-            {actionMsg && <p className="text-sm text-error">{actionMsg}</p>}
-            <div className="flex justify-end gap-3 pt-2">
-              <button onClick={closeModal} className="px-5 py-2.5 rounded-xl font-semibold text-on-surface-variant hover:bg-surface-container-high transition-colors">Cancel</button>
-              <button onClick={handleAssign} disabled={saving || !assigneeId}
-                className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold hover:opacity-90 transition-all disabled:opacity-70">
-                {saving ? 'Assigning...' : 'Assign'}
-              </button>
-            </div>
-          </div>
+          <AssignModal
+            users={users}
+            ticket={ticket}
+            saving={saving}
+            actionMsg={actionMsg}
+            onClose={closeModal}
+            onAssign={handleAssign}
+            onAssignToTeam={handleAssignToTeam}
+          />
         </Modal>
       )}
 

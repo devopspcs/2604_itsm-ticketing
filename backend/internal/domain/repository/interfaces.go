@@ -95,17 +95,18 @@ type RefreshTokenRepository interface {
 }
 
 type TicketFilter struct {
-	Status     *entity.TicketStatus
-	Type       *entity.TicketType
-	Priority   *entity.Priority
-	Category   *string
-	AssignedTo *uuid.UUID
-	CreatedBy  *uuid.UUID
-	DateFrom   *time.Time
-	DateTo     *time.Time
-	Search     *string
-	Page       int
-	PageSize   int
+	Status         *entity.TicketStatus
+	Type           *entity.TicketType
+	Priority       *entity.Priority
+	Category       *string
+	AssignedTo     *uuid.UUID
+	AssignedTeamID *uuid.UUID
+	CreatedBy      *uuid.UUID
+	DateFrom       *time.Time
+	DateTo         *time.Time
+	Search         *string
+	Page           int
+	PageSize       int
 }
 
 type PaginatedTickets struct {

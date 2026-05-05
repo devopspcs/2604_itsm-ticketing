@@ -80,7 +80,7 @@ func main() {
 	webhookUC := usecase.NewWebhookUseCase(webhookRepo, dispatcher)
 	ticketUC := usecase.NewTicketUseCase(ticketRepo, activityRepo, notifRepo, userRepo, webhookUC)
 	approvalUC := usecase.NewApprovalUseCase(ticketRepo, approvalRepo, activityRepo, notifRepo, userRepo, webhookUC)
-	assignmentUC := usecase.NewAssignmentUseCase(ticketRepo, userRepo, activityRepo, notifRepo, webhookUC, emailSvc)
+	assignmentUC := usecase.NewAssignmentUseCase(ticketRepo, userRepo, teamRepo, activityRepo, notifRepo, webhookUC, emailSvc)
 	dashboardUC := usecase.NewDashboardUseCase(ticketRepo)
 	notifUC := usecase.NewNotificationUseCase(notifRepo)
 	orgUC := usecase.NewOrgUseCase(deptRepo, divRepo, teamRepo)

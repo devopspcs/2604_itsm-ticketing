@@ -28,6 +28,7 @@ export function OrgStructurePage() {
   const [formCode, setFormCode] = useState('')
   const [formDeptId, setFormDeptId] = useState('')
   const [formDivId, setFormDivId] = useState('')
+  const [formEmail, setFormEmail] = useState('')
 
   const fetchDepartments = () => orgService.listDepartments().then(r => setDepartments(r.data ?? [])).catch(() => setError('Failed to load departments'))
   const fetchDivisions = () => orgService.listDivisions(filterDeptId || undefined).then(r => setDivisions(r.data ?? [])).catch(() => setError('Failed to load divisions'))
@@ -38,7 +39,7 @@ export function OrgStructurePage() {
   useEffect(() => { if (tab === 'teams') fetchTeams() }, [tab, filterDivId])
   useEffect(() => { if (tab === 'divisions' || tab === 'teams') fetchDepartments() }, [tab])
 
-  const resetForm = () => { setFormName(''); setFormCode(''); setFormDeptId(''); setFormDivId(''); setEditingId(null) }
+  const resetForm = () => { setFormName(''); setFormCode(''); setFormDeptId(''); setFormDivId(''); setFormEmail(''); setEditingId(null) }
 
   const openAdd = () => { resetForm(); setShowModal(true) }
   const openEdit = (item: Department | Division | Team) => {
@@ -47,6 +48,7 @@ export function OrgStructurePage() {
     if ('code' in item) setFormCode(item.code)
     if ('department_id' in item) setFormDeptId(item.department_id)
     if ('division_id' in item) setFormDivId(item.division_id)
+    if ('email' in item) setFormEmail(item.email ?? '')
     setShowModal(true)
   }
 
@@ -63,8 +65,8 @@ export function OrgStructurePage() {
         else await orgService.createDivision({ department_id: formDeptId, name: formName, code: formCode })
         await fetchDivisions()
       } else {
-        if (editingId) await orgService.updateTeam(editingId, { division_id: formDivId, name: formName })
-        else await orgService.createTeam({ division_id: formDivId, name: formName })
+        if (editingId) await orgService.updateTeam(editingId, { division_id: formDivId, name: formName, email: formEmail || undefined })
+        else await orgService.createTeam({ division_id: formDivId, name: formName, email: formEmail || undefined })
         await fetchTeams()
       }
       setShowModal(false)
@@ -156,6 +158,7 @@ export function OrgStructurePage() {
               {(tab === 'departments' || tab === 'divisions') && <th className="text-left px-4 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Code</th>}
               {tab === 'divisions' && <th className="text-left px-4 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Department</th>}
               {tab === 'teams' && <th className="text-left px-4 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Division</th>}
+              {tab === 'teams' && <th className="text-left px-4 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Email</th>}
               <th className="text-right px-4 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
@@ -185,6 +188,7 @@ export function OrgStructurePage() {
               <tr key={t.id} className="border-t border-outline-variant/30 hover:bg-surface-container/30">
                 <td className="px-4 py-3 text-sm">{t.name}</td>
                 <td className="px-4 py-3 text-sm text-on-surface-variant">{divName(t.division_id)}</td>
+                <td className="px-4 py-3 text-sm text-on-surface-variant">{t.email || <span className="italic text-on-surface-variant/50">No email</span>}</td>
                 <td className="px-4 py-3 text-right">
                   <button onClick={() => openEdit(t)} className="text-primary hover:underline text-sm mr-3">Edit</button>
                   <button onClick={() => setConfirmDeleteId(t.id)} className="text-error hover:underline text-sm">Delete</button>
@@ -233,6 +237,10 @@ export function OrgStructurePage() {
                 className="border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest" />
               {(tab === 'departments' || tab === 'divisions') && (
                 <input placeholder="Code" value={formCode} onChange={e => setFormCode(e.target.value)} required
+                  className="border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest" />
+              )}
+              {tab === 'teams' && (
+                <input placeholder="Team Email (for notifications)" value={formEmail} onChange={e => setFormEmail(e.target.value)} type="email"
                   className="border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest" />
               )}
               <div className="flex justify-end gap-2 mt-2">
