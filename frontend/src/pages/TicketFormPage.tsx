@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { ticketService } from '../services/ticket.service'
+import { orgService } from '../services/org.service'
 import api from '../services/api'
-import type { TicketType, Priority, User } from '../types'
+import type { TicketType, Priority, User, Team } from '../types'
 
 const steps = [
   { label: 'Request Type', icon: 'category' },
@@ -30,12 +31,18 @@ export function TicketFormPage() {
   const [files, setFiles] = useState<File[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [assigneeId, setAssigneeId] = useState('')
+  const [assignType, setAssignType] = useState<'user' | 'team'>('user')
+  const [teamId, setTeamId] = useState('')
   const [usersList, setUsersList] = useState<User[]>([])
+  const [teamsList, setTeamsList] = useState<Team[]>([])
 
-  // Load users for assign dropdown
+  // Load users and teams for assign dropdown
   useEffect(() => {
     api.get<User[]>('/users/list')
       .then(res => setUsersList(res.data ?? []))
+      .catch(() => {})
+    orgService.listTeams()
+      .then(res => setTeamsList(res.data ?? []))
       .catch(() => {})
   }, [])
 
@@ -66,8 +73,10 @@ export function TicketFormPage() {
         }).catch(() => {}) // don't fail if attachment upload fails
       }
 
-      // Assign ticket if assignee selected
-      if (assigneeId) {
+      // Assign ticket if assignee or team selected
+      if (assignType === 'team' && teamId) {
+        await ticketService.assignToTeam(ticketId, teamId).catch(() => {})
+      } else if (assignType === 'user' && assigneeId) {
         await ticketService.assign(ticketId, assigneeId).catch(() => {})
       }
 
@@ -241,17 +250,52 @@ export function TicketFormPage() {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Assign To (optional)</label>
-                      <select
-                        value={assigneeId}
-                        onChange={(e) => setAssigneeId(e.target.value)}
-                        className="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm appearance-none"
-                      >
-                        <option value="">-- No assignment (assign later) --</option>
-                        {usersList.filter(u => u.is_active).map(u => (
-                          <option key={u.id} value={u.id}>{u.full_name} ({u.role})</option>
-                        ))}
-                      </select>
-                      <p className="text-[10px] text-on-surface-variant mt-1">Select a user to immediately assign this ticket to.</p>
+                      <div className="flex gap-2 mb-2">
+                        <button
+                          type="button"
+                          onClick={() => { setAssignType('user'); setTeamId('') }}
+                          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                            assignType === 'user' ? 'bg-primary text-white' : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
+                          }`}
+                        >
+                          User
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setAssignType('team'); setAssigneeId('') }}
+                          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                            assignType === 'team' ? 'bg-primary text-white' : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
+                          }`}
+                        >
+                          Team
+                        </button>
+                      </div>
+                      {assignType === 'user' ? (
+                        <select
+                          value={assigneeId}
+                          onChange={(e) => setAssigneeId(e.target.value)}
+                          className="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm appearance-none"
+                        >
+                          <option value="">-- No assignment (assign later) --</option>
+                          {usersList.filter(u => u.is_active).map(u => (
+                            <option key={u.id} value={u.id}>{u.full_name} ({u.role})</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <select
+                          value={teamId}
+                          onChange={(e) => setTeamId(e.target.value)}
+                          className="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm appearance-none"
+                        >
+                          <option value="">-- No team assignment (assign later) --</option>
+                          {teamsList.map(t => (
+                            <option key={t.id} value={t.id}>{t.name}</option>
+                          ))}
+                        </select>
+                      )}
+                      <p className="text-[10px] text-on-surface-variant mt-1">
+                        {assignType === 'user' ? 'Select a user to immediately assign this ticket to.' : 'Select a team to assign this ticket to the entire team.'}
+                      </p>
                     </div>
                   </div>
                 </section>
@@ -367,12 +411,15 @@ export function TicketFormPage() {
                       <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Description</p>
                       <p className="text-sm text-on-surface-variant leading-relaxed">{description}</p>
                     </div>
-                    {assigneeId && (
+                    {(assigneeId || teamId) && (
                       <div className="p-4 bg-surface-container-low rounded-xl flex justify-between items-center">
                         <div>
                           <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Assigned To</p>
                           <p className="text-sm font-semibold text-on-surface">
-                            {usersList.find(u => u.id === assigneeId)?.full_name ?? assigneeId}
+                            {assignType === 'team'
+                              ? `Team: ${teamsList.find(t => t.id === teamId)?.name ?? teamId}`
+                              : usersList.find(u => u.id === assigneeId)?.full_name ?? assigneeId
+                            }
                           </p>
                         </div>
                         <button onClick={() => setStep(1)} className="text-xs text-primary font-bold hover:underline">Edit</button>
