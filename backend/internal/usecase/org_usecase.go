@@ -162,6 +162,7 @@ func (uc *orgUseCase) CreateTeam(ctx context.Context, req domainUC.CreateTeamReq
 		ID:         uuid.New(),
 		DivisionID: req.DivisionID,
 		Name:       req.Name,
+		Email:      req.Email,
 		CreatedAt:  now,
 		UpdatedAt:  now,
 	}
@@ -184,6 +185,7 @@ func (uc *orgUseCase) UpdateTeam(ctx context.Context, id uuid.UUID, req domainUC
 	}
 	team.DivisionID = req.DivisionID
 	team.Name = req.Name
+	team.Email = req.Email
 	if err := uc.teamRepo.Update(ctx, team); err != nil {
 		return nil, err
 	}

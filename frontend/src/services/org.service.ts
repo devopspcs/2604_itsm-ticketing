@@ -13,8 +13,8 @@ export const orgService = {
   deleteDivision: (id: string) => api.delete(`/divisions/${id}`),
 
   listTeams: (divisionId?: string) => api.get<Team[]>('/teams', { params: divisionId ? { division_id: divisionId } : {} }),
-  createTeam: (data: { division_id: string; name: string }) => api.post<Team>('/teams', data),
-  updateTeam: (id: string, data: { division_id: string; name: string }) => api.patch<Team>(`/teams/${id}`, data),
+  createTeam: (data: { division_id: string; name: string; email?: string }) => api.post<Team>('/teams', data),
+  updateTeam: (id: string, data: { division_id: string; name: string; email?: string }) => api.patch<Team>(`/teams/${id}`, data),
   deleteTeam: (id: string) => api.delete(`/teams/${id}`),
 
   updateUserOrg: (userId: string, data: { department_id?: string; division_id?: string; team_id?: string; position?: string }) =>

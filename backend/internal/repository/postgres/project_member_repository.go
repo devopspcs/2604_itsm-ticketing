@@ -32,7 +32,10 @@ func (r *projectMemberRepository) Remove(ctx context.Context, projectID uuid.UUI
 }
 
 func (r *projectMemberRepository) ListByProject(ctx context.Context, projectID uuid.UUID) ([]*entity.ProjectMember, error) {
-	rows, err := r.db.Query(ctx, "SELECT project_id, user_id, role, created_at FROM project_members WHERE project_id=$1 ORDER BY created_at ASC", projectID)
+	rows, err := r.db.Query(ctx,
+		`SELECT pm.project_id, pm.user_id, COALESCE(u.full_name, ''), COALESCE(u.email, ''), pm.role, pm.created_at
+		 FROM project_members pm LEFT JOIN users u ON pm.user_id = u.id
+		 WHERE pm.project_id=$1 ORDER BY pm.created_at ASC`, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +43,7 @@ func (r *projectMemberRepository) ListByProject(ctx context.Context, projectID u
 	var members []*entity.ProjectMember
 	for rows.Next() {
 		m := &entity.ProjectMember{}
-		if err := rows.Scan(&m.ProjectID, &m.UserID, &m.Role, &m.CreatedAt); err != nil {
+		if err := rows.Scan(&m.ProjectID, &m.UserID, &m.UserName, &m.UserEmail, &m.Role, &m.CreatedAt); err != nil {
 			return nil, err
 		}
 		members = append(members, m)

@@ -13,6 +13,7 @@ const (
 	ActionStatusChanged     ActivityAction = "status_changed"
 	ActionAssigned          ActivityAction = "assigned"
 	ActionReassigned        ActivityAction = "reassigned"
+	ActionAssignedToTeam    ActivityAction = "assigned_to_team"
 	ActionApprovalRequested ActivityAction = "approval_requested"
 	ActionApprovalDecided   ActivityAction = "approval_decided"
 	ActionFieldUpdated      ActivityAction = "field_updated"

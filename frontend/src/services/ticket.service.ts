@@ -17,6 +17,12 @@ export const ticketService = {
   assign: (id: string, assigneeId: string) =>
     api.post(`/tickets/${id}/assign`, { assignee_id: assigneeId }),
 
+  assignToTeam: (id: string, teamId: string, assigneeId?: string) =>
+    api.post(`/tickets/${id}/assign`, {
+      team_id: teamId,
+      ...(assigneeId ? { assignee_id: assigneeId } : {}),
+    }),
+
   getApprovals: (id: string) =>
     api.get<Approval[]>(`/tickets/${id}/approvals`),
 
