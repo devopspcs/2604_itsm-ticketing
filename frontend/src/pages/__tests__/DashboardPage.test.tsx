@@ -22,7 +22,7 @@ vi.mock('../../services/dashboard.service', () => ({
         by_type: {
           incident: 5,
           change_request: 3,
-          helpdesk_request: 2,
+          request: 2,
         },
         by_priority: {
           critical: 1,

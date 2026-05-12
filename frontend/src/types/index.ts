@@ -1,5 +1,5 @@
-export type Role = 'user' | 'approver' | 'admin'
-export type TicketType = 'change_request' | 'incident' | 'helpdesk_request'
+export type Role = 'user' | 'agent' | 'approver' | 'admin'
+export type TicketType = 'incident' | 'request' | 'change_request'
 export type Priority = 'low' | 'medium' | 'high' | 'critical'
 export type TicketStatus = 'open' | 'in_progress' | 'pending_approval' | 'approved' | 'rejected' | 'done'
 export type ApprovalDecision = 'approved' | 'rejected'

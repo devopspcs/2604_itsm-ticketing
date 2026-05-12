@@ -9,9 +9,9 @@ import (
 type TicketType string
 
 const (
-	TypeChangeRequest   TicketType = "change_request"
-	TypeIncident        TicketType = "incident"
-	TypeHelpdeskRequest TicketType = "helpdesk_request"
+	TypeIncident      TicketType = "incident"
+	TypeRequest       TicketType = "request"
+	TypeChangeRequest TicketType = "change_request"
 )
 
 type Priority string

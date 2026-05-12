@@ -82,8 +82,9 @@ func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, db interface{ Ping() err
 			r.Get("/tickets/{id}/attachments/{attachmentId}", h.Attachment.Download)
 			r.Delete("/tickets/{id}/attachments/{attachmentId}", h.Attachment.Delete)
 
-			// Assign — all authenticated users can assign
-			r.Post("/tickets/{id}/assign", h.Ticket.Assign)
+			// Assign — only agent, approver, or admin can assign
+			r.With(middleware.RequireRole(entity.RoleAdmin, entity.RoleAgent, entity.RoleApprover)).
+				Post("/tickets/{id}/assign", h.Ticket.Assign)
 
 			// Approvals — approver or admin only
 			r.With(middleware.RequireRole(entity.RoleAdmin, entity.RoleApprover)).

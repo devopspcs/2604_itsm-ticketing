@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import { ticketService } from '../services/ticket.service'
 import { orgService } from '../services/org.service'
 import api from '../services/api'
@@ -13,15 +14,33 @@ const steps = [
 ]
 
 const typeOptions = [
-  { value: 'incident' as TicketType, icon: 'bolt', label: 'Incident', desc: 'Something is broken or not working.' },
-  { value: 'change_request' as TicketType, icon: 'published_with_changes', label: 'Change Request', desc: 'Modify existing systems or access.' },
-  { value: 'helpdesk_request' as TicketType, icon: 'contact_support', label: 'Helpdesk', desc: 'General inquiries and guidance.' },
+  { value: 'incident' as TicketType, icon: 'bolt', label: 'Incident', desc: 'Something is broken or not working.', roles: ['user', 'agent', 'approver', 'admin'] },
+  { value: 'request' as TicketType, icon: 'contact_support', label: 'Request', desc: 'General service request or inquiry.', roles: ['user', 'agent', 'approver', 'admin'] },
+  { value: 'change_request' as TicketType, icon: 'published_with_changes', label: 'Change Request', desc: 'Request changes to existing systems.', roles: ['agent', 'approver', 'admin'] },
+]
+
+const changeRequestCategories = [
+  'Bug & Fix by PSOps',
+  'Cyber Security',
+  'ECR',
+  'EDC',
+  'ELK',
+  'Infra',
+  'Invera',
+  'IT Service Desk',
+  'KerjaYuk!',
+  'M3S',
+  'Memo Mentor',
+  'POSe',
+  'TAP',
+  'VPN',
 ]
 
 export function TicketFormPage() {
   const navigate = useNavigate()
+  const userRole = useSelector((state: { auth: { role: string | null } }) => state.auth.role) ?? 'user'
   const [step, setStep] = useState(0)
-  const [type, setType] = useState<TicketType>('helpdesk_request')
+  const [type, setType] = useState<TicketType>('incident')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState('Network & Connectivity')
@@ -36,15 +55,20 @@ export function TicketFormPage() {
   const [usersList, setUsersList] = useState<User[]>([])
   const [teamsList, setTeamsList] = useState<Team[]>([])
 
-  // Load users and teams for assign dropdown
+  // Filter type options based on user role
+  const availableTypes = typeOptions.filter(opt => opt.roles.includes(userRole))
+
+  // Load users and teams for assign dropdown (only for agent/admin)
   useEffect(() => {
-    api.get<User[]>('/users/list')
-      .then(res => setUsersList(res.data ?? []))
-      .catch(() => {})
-    orgService.listTeams()
-      .then(res => setTeamsList(res.data ?? []))
-      .catch(() => {})
-  }, [])
+    if (userRole === 'agent' || userRole === 'admin' || userRole === 'approver') {
+      api.get<User[]>('/users/list')
+        .then(res => setUsersList(res.data ?? []))
+        .catch(() => {})
+      orgService.listTeams()
+        .then(res => setTeamsList(res.data ?? []))
+        .catch(() => {})
+    }
+  }, [userRole])
 
   const canProceed = () => {
     if (step === 1) return title.trim().length > 0 && description.trim().length > 0
@@ -183,7 +207,7 @@ export function TicketFormPage() {
                   <h2 className="text-xl font-bold mb-1">Select Request Type</h2>
                   <p className="text-sm text-on-surface-variant mb-6">What kind of assistance do you need today?</p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {typeOptions.map((opt) => (
+                    {availableTypes.map((opt) => (
                       <button key={opt.value} type="button" onClick={() => setType(opt.value)}
                         className={`flex flex-col items-start p-5 border-2 rounded-xl text-left transition-all ${
                           type === opt.value ? 'border-primary bg-primary-fixed/30 shadow-sm' : 'border-transparent bg-surface-container-low hover:bg-surface-container-high'
@@ -215,14 +239,22 @@ export function TicketFormPage() {
                       <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Category</label>
                       <select value={category} onChange={(e) => setCategory(e.target.value)}
                         className="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm appearance-none">
-                        <option>Network &amp; Connectivity</option>
-                        <option>Software &amp; Applications</option>
-                        <option>Hardware Replacement</option>
-                        <option>Identity &amp; Access</option>
-                        <option>Infrastructure</option>
-                        <option>Security</option>
-                        <option>Database</option>
-                        <option>Other</option>
+                        {type === 'change_request' ? (
+                          changeRequestCategories.map(cat => (
+                            <option key={cat}>{cat}</option>
+                          ))
+                        ) : (
+                          <>
+                            <option>Network &amp; Connectivity</option>
+                            <option>Software &amp; Applications</option>
+                            <option>Hardware Replacement</option>
+                            <option>Identity &amp; Access</option>
+                            <option>Infrastructure</option>
+                            <option>Security</option>
+                            <option>Database</option>
+                            <option>Other</option>
+                          </>
+                        )}
                       </select>
                     </div>
                     <div>
@@ -248,6 +280,7 @@ export function TicketFormPage() {
                         placeholder="Provide detailed information about the incident..."
                         className="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm resize-none" />
                     </div>
+                    {(userRole === 'agent' || userRole === 'admin' || userRole === 'approver') && (
                     <div className="md:col-span-2">
                       <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Assign To (optional)</label>
                       <div className="flex gap-2 mb-2">
@@ -297,6 +330,7 @@ export function TicketFormPage() {
                         {assignType === 'user' ? 'Select a user to immediately assign this ticket to.' : 'Select a team to assign this ticket to the entire team.'}
                       </p>
                     </div>
+                    )}
                   </div>
                 </section>
               )}

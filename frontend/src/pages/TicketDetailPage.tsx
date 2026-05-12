@@ -726,7 +726,8 @@ export function TicketDetailPage() {
             </div>
           </section>
 
-          {/* Quick Actions */}
+          {/* Quick Actions - hidden for regular users */}
+          {role !== 'user' && (
           <section className="bg-surface-container-lowest rounded-xl p-6 shadow-sm">
             <h3 className="text-sm font-bold text-on-surface-variant uppercase tracking-widest mb-4">Quick Actions</h3>
             <div className="space-y-1">
@@ -777,6 +778,7 @@ export function TicketDetailPage() {
               )}
             </div>
           </section>
+          )}
         </aside>
       </div>
 
