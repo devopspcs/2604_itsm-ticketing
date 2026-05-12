@@ -36,6 +36,23 @@ func NewTicketUseCase(
 }
 
 func (uc *ticketUseCase) CreateTicket(ctx context.Context, req domainUC.CreateTicketRequest, requester domainUC.UserClaims) (*entity.Ticket, error) {
+	// Role-based ticket type enforcement
+	switch requester.Role {
+	case entity.RoleUser:
+		// Users can only create incident and request tickets
+		if req.Type != entity.TypeIncident && req.Type != entity.TypeRequest {
+			return nil, apperror.ErrForbidden.WithDetails(map[string]interface{}{
+				"message": "Users can only create incident or request tickets",
+			})
+		}
+	case entity.RoleAgent:
+		// Agents can create all types including change_request
+	case entity.RoleApprover, entity.RoleAdmin:
+		// Approvers and admins can create all types
+	default:
+		return nil, apperror.ErrForbidden
+	}
+
 	now := time.Now().UTC()
 	ticket := &entity.Ticket{
 		ID:          uuid.New(),
@@ -63,8 +80,8 @@ func (uc *ticketUseCase) CreateTicket(ctx context.Context, req domainUC.CreateTi
 		CreatedAt: now,
 	})
 
-	// Notify admins/approvers
-	go uc.notifyAdminsAndApprovers(ctx, ticket)
+	// Notify agents and admins about new tickets from users
+	go uc.notifyAgentsAndAdmins(ctx, ticket)
 
 	// Dispatch webhook
 	if uc.webhookUC != nil {
@@ -79,10 +96,9 @@ func (uc *ticketUseCase) GetTicket(ctx context.Context, id uuid.UUID, requester 
 	if err != nil {
 		return nil, err
 	}
+	// Users can only see their own tickets
 	if requester.Role == entity.RoleUser {
-		isCreator := ticket.CreatedBy == requester.UserID
-		isAssignee := ticket.AssignedTo != nil && *ticket.AssignedTo == requester.UserID
-		if !isCreator && !isAssignee {
+		if ticket.CreatedBy != requester.UserID {
 			return nil, apperror.ErrForbidden
 		}
 	}
@@ -99,20 +115,25 @@ func (uc *ticketUseCase) ListTickets(ctx context.Context, filter repository.Tick
 		return uc.ticketRepo.List(ctx, filter)
 	}
 
+	// Agent sees all tickets (they handle them)
+	if requester.Role == entity.RoleAgent {
+		return uc.ticketRepo.List(ctx, filter)
+	}
+
+	// Approver sees all tickets
+	if requester.Role == entity.RoleApprover {
+		return uc.ticketRepo.List(ctx, filter)
+	}
+
 	// Check if user has org assignment for position-based visibility
 	user, err := uc.userRepo.FindByID(ctx, requester.UserID)
 	if err == nil && user.Position != nil {
 		return uc.listTicketsByPosition(ctx, filter, user)
 	}
 
-	// Fallback to role-based visibility
-	if requester.Role != entity.RoleUser {
-		// Approver sees all
-		return uc.ticketRepo.List(ctx, filter)
-	}
-
-	// Regular user: own tickets + assigned tickets
-	return uc.listOwnAndAssignedTickets(ctx, filter, requester)
+	// Regular user: only own tickets
+	filter.CreatedBy = &requester.UserID
+	return uc.ticketRepo.List(ctx, filter)
 }
 
 // listTicketsByPosition applies position-based visibility filtering.
@@ -292,11 +313,17 @@ func (uc *ticketUseCase) UpdateTicket(ctx context.Context, id uuid.UUID, req dom
 	if err != nil {
 		return nil, err
 	}
+
+	// Users can only update their own tickets (title, description only while still open)
 	if requester.Role == entity.RoleUser {
-		isCreator := ticket.CreatedBy == requester.UserID
-		isAssignee := ticket.AssignedTo != nil && *ticket.AssignedTo == requester.UserID
-		if !isCreator && !isAssignee {
+		if ticket.CreatedBy != requester.UserID {
 			return nil, apperror.ErrForbidden
+		}
+		// Users cannot change status
+		if req.Status != nil {
+			return nil, apperror.ErrForbidden.WithDetails(map[string]interface{}{
+				"message": "Users cannot change ticket status",
+			})
 		}
 	}
 
@@ -340,13 +367,13 @@ func (uc *ticketUseCase) UpdateTicket(ctx context.Context, id uuid.UUID, req dom
 	return ticket, nil
 }
 
-func (uc *ticketUseCase) notifyAdminsAndApprovers(ctx context.Context, ticket *entity.Ticket) {
+func (uc *ticketUseCase) notifyAgentsAndAdmins(ctx context.Context, ticket *entity.Ticket) {
 	users, err := uc.userRepo.List(ctx, repository.UserFilter{})
 	if err != nil {
 		return
 	}
 	for _, u := range users {
-		if u.Role == entity.RoleAdmin || u.Role == entity.RoleApprover {
+		if u.Role == entity.RoleAdmin || u.Role == entity.RoleAgent {
 			_ = uc.notificationRepo.Create(ctx, &entity.Notification{
 				ID:        uuid.New(),
 				UserID:    u.ID,

@@ -65,7 +65,7 @@ var allStatuses = []entity.TicketStatus{
 }
 
 var allTypes = []entity.TicketType{
-	entity.TypeChangeRequest, entity.TypeIncident, entity.TypeHelpdeskRequest,
+	entity.TypeChangeRequest, entity.TypeIncident, entity.TypeRequest,
 }
 
 var allPriorities = []entity.Priority{

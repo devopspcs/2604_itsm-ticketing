@@ -11,8 +11,8 @@ const priorityStyles: Record<string, string> = {
 
 const typeIcons: Record<string, string> = {
   incident: 'report',
+  request: 'contact_support',
   change_request: 'published_with_changes',
-  helpdesk_request: 'contact_support',
 }
 
 export function TicketCard({ ticket }: { ticket: Ticket }) {

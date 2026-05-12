@@ -81,7 +81,7 @@ export function TicketListPage() {
             className="bg-surface-container-low border-none rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary/20 px-3 py-2 cursor-pointer hover:bg-surface-container-high transition-colors outline-none"
           >
             <option value="">All Categories</option>
-            {(['change_request', 'incident', 'helpdesk_request'] as TicketType[]).map(t => (
+            {(['incident', 'request', 'change_request'] as TicketType[]).map(t => (
               <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>
             ))}
           </select>

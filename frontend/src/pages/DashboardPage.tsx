@@ -91,16 +91,16 @@ export function DashboardPage() {
               </div>
               <div className="relative flex items-end justify-around gap-8 px-8" style={{ height: '280px' }}>
                 {[
-                  { label: 'Helpdesk', value: (stats.by_type as Record<string,number>)?.['helpdesk_request'] ?? 0, color: 'var(--color-primary)', light: 'var(--color-primary-fixed)' },
+                  { label: 'Request', value: (stats.by_type as Record<string,number>)?.['request'] ?? 0, color: 'var(--color-primary)', light: 'var(--color-primary-fixed)' },
                   { label: 'Incident', value: (stats.by_type as Record<string,number>)?.['incident'] ?? 0, color: '#ba1a1a', light: '#ffdad6' },
                   { label: 'Change', value: (stats.by_type as Record<string,number>)?.['change_request'] ?? 0, color: '#f59e0b', light: '#fef3c7' },
                 ].map((bar) => {
                   const byType = (stats.by_type as Record<string,number>) ?? {}
-                  const max = Math.max(byType['helpdesk_request'] ?? 0, byType['incident'] ?? 0, byType['change_request'] ?? 0, 1)
+                  const max = Math.max(byType['request'] ?? 0, byType['incident'] ?? 0, byType['change_request'] ?? 0, 1)
                   const barHeight = Math.max(Math.round((bar.value / max) * 220), bar.value > 0 ? 50 : 12)
                   return (
                     <div key={bar.label} className="flex flex-col items-center gap-3 flex-1 cursor-pointer group"
-                      onClick={() => navigate(`/tickets?type=${bar.label === 'Helpdesk' ? 'helpdesk_request' : bar.label === 'Incident' ? 'incident' : 'change_request'}`)}>
+                      onClick={() => navigate(`/tickets?type=${bar.label === 'Request' ? 'request' : bar.label === 'Incident' ? 'incident' : 'change_request'}`)}>
                       <div className="w-full max-w-[120px] rounded-t-xl relative overflow-hidden transition-all group-hover:opacity-80"
                         style={{ height: `${barHeight}px`, backgroundColor: bar.light }}>
                         <div className="absolute bottom-0 w-full rounded-t-xl transition-all"

@@ -35,7 +35,7 @@ type CreateUserRequest struct {
 	FullName     string           `json:"full_name" validate:"required"`
 	Email        string           `json:"email" validate:"required,email"`
 	Password     string           `json:"password" validate:"required,min=8"`
-	Role         entity.Role      `json:"role" validate:"required,oneof=user approver admin"`
+	Role         entity.Role      `json:"role" validate:"required,oneof=user agent approver admin"`
 	DepartmentID *uuid.UUID       `json:"department_id"`
 	DivisionID   *uuid.UUID       `json:"division_id"`
 	TeamID       *uuid.UUID       `json:"team_id"`
@@ -61,7 +61,7 @@ type UserUseCase interface {
 type CreateTicketRequest struct {
 	Title       string            `json:"title" validate:"required"`
 	Description string            `json:"description" validate:"required"`
-	Type        entity.TicketType `json:"type" validate:"required,oneof=change_request incident helpdesk_request"`
+	Type        entity.TicketType `json:"type" validate:"required,oneof=incident request change_request"`
 	Category    string            `json:"category"`
 	Priority    entity.Priority   `json:"priority" validate:"required,oneof=low medium high critical"`
 }

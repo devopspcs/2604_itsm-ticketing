@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import { AppLayout } from './components/layout/AppLayout'
 import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
@@ -26,6 +27,13 @@ import { ReleasesPage } from './pages/ReleasesPage'
 import { ComponentsPage } from './pages/ComponentsPage'
 import { IssuesPage } from './pages/IssuesPage'
 import { RepositoryPage } from './pages/RepositoryPage'
+import type { RootState } from './store'
+
+function RoleGuard({ roles, children }: { roles: string[]; children: React.ReactNode }) {
+  const role = useSelector((s: RootState) => s.auth.role) ?? 'user'
+  if (!roles.includes(role)) return <Navigate to="/dashboard" replace />
+  return <>{children}</>
+}
 
 export default function App() {
   return (
@@ -39,9 +47,9 @@ export default function App() {
           <Route path="/tickets" element={<TicketListPage />} />
           <Route path="/tickets/new" element={<TicketFormPage />} />
           <Route path="/tickets/:id" element={<TicketDetailPage />} />
-          <Route path="/kanban" element={<KanbanBoardPage />} />
-          <Route path="/approvals" element={<ApprovalsPage />} />
-          <Route path="/activity-logs" element={<ActivityLogsPage />} />
+          <Route path="/kanban" element={<RoleGuard roles={['agent', 'admin', 'approver']}><KanbanBoardPage /></RoleGuard>} />
+          <Route path="/approvals" element={<RoleGuard roles={['admin', 'approver']}><ApprovalsPage /></RoleGuard>} />
+          <Route path="/activity-logs" element={<RoleGuard roles={['agent', 'admin', 'approver']}><ActivityLogsPage /></RoleGuard>} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/users" element={<UserManagementPage />} />
           <Route path="/webhooks" element={<WebhookConfigPage />} />

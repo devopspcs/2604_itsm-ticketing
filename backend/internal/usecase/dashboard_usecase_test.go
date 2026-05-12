@@ -83,7 +83,7 @@ func TestBugCondition_DashboardStats_MissingSLAFields(t *testing.T) {
 		{
 			ID:        uuid.New(),
 			Title:     "Ticket 2",
-			Type:      entity.TypeHelpdeskRequest,
+			Type:      entity.TypeRequest,
 			Priority:  entity.PriorityLow,
 			Status:    entity.StatusDone,
 			CreatedBy: uuid.New(),
@@ -198,7 +198,7 @@ func TestPreservation_TotalTickets(t *testing.T) {
 	tickets := []*entity.Ticket{
 		{ID: uuid.New(), Title: "T1", Type: entity.TypeIncident, Priority: entity.PriorityCritical, Status: entity.StatusOpen, CreatedBy: user1, CreatedAt: now, UpdatedAt: now},
 		{ID: uuid.New(), Title: "T2", Type: entity.TypeChangeRequest, Priority: entity.PriorityHigh, Status: entity.StatusInProgress, CreatedBy: user1, CreatedAt: now, UpdatedAt: now},
-		{ID: uuid.New(), Title: "T3", Type: entity.TypeHelpdeskRequest, Priority: entity.PriorityMedium, Status: entity.StatusDone, CreatedBy: user1, CreatedAt: now, UpdatedAt: now},
+		{ID: uuid.New(), Title: "T3", Type: entity.TypeRequest, Priority: entity.PriorityMedium, Status: entity.StatusDone, CreatedBy: user1, CreatedAt: now, UpdatedAt: now},
 		{ID: uuid.New(), Title: "T4", Type: entity.TypeIncident, Priority: entity.PriorityLow, Status: entity.StatusPendingApproval, CreatedBy: user1, CreatedAt: now, UpdatedAt: now},
 		{ID: uuid.New(), Title: "T5", Type: entity.TypeChangeRequest, Priority: entity.PriorityCritical, Status: entity.StatusApproved, CreatedBy: user1, CreatedAt: now, UpdatedAt: now},
 	}
@@ -274,9 +274,9 @@ func TestPreservation_ByType(t *testing.T) {
 		{ID: uuid.New(), Title: "T1", Type: entity.TypeIncident, Priority: entity.PriorityCritical, Status: entity.StatusOpen, CreatedBy: user1, CreatedAt: now, UpdatedAt: now},
 		{ID: uuid.New(), Title: "T2", Type: entity.TypeIncident, Priority: entity.PriorityHigh, Status: entity.StatusOpen, CreatedBy: user1, CreatedAt: now, UpdatedAt: now},
 		{ID: uuid.New(), Title: "T3", Type: entity.TypeChangeRequest, Priority: entity.PriorityMedium, Status: entity.StatusOpen, CreatedBy: user1, CreatedAt: now, UpdatedAt: now},
-		{ID: uuid.New(), Title: "T4", Type: entity.TypeHelpdeskRequest, Priority: entity.PriorityLow, Status: entity.StatusOpen, CreatedBy: user1, CreatedAt: now, UpdatedAt: now},
-		{ID: uuid.New(), Title: "T5", Type: entity.TypeHelpdeskRequest, Priority: entity.PriorityCritical, Status: entity.StatusOpen, CreatedBy: user1, CreatedAt: now, UpdatedAt: now},
-		{ID: uuid.New(), Title: "T6", Type: entity.TypeHelpdeskRequest, Priority: entity.PriorityHigh, Status: entity.StatusOpen, CreatedBy: user1, CreatedAt: now, UpdatedAt: now},
+		{ID: uuid.New(), Title: "T4", Type: entity.TypeRequest, Priority: entity.PriorityLow, Status: entity.StatusOpen, CreatedBy: user1, CreatedAt: now, UpdatedAt: now},
+		{ID: uuid.New(), Title: "T5", Type: entity.TypeRequest, Priority: entity.PriorityCritical, Status: entity.StatusOpen, CreatedBy: user1, CreatedAt: now, UpdatedAt: now},
+		{ID: uuid.New(), Title: "T6", Type: entity.TypeRequest, Priority: entity.PriorityHigh, Status: entity.StatusOpen, CreatedBy: user1, CreatedAt: now, UpdatedAt: now},
 	}
 
 	repo := &mockTicketRepository{tickets: tickets}
@@ -293,7 +293,7 @@ func TestPreservation_ByType(t *testing.T) {
 	expected := map[entity.TicketType]int64{
 		entity.TypeIncident:        2,
 		entity.TypeChangeRequest:   1,
-		entity.TypeHelpdeskRequest: 3,
+		entity.TypeRequest: 3,
 	}
 
 	for typ, want := range expected {
@@ -399,7 +399,7 @@ func TestPreservation_RoleBasedFiltering(t *testing.T) {
 	tickets := []*entity.Ticket{
 		{ID: uuid.New(), Title: "User1-Created", Type: entity.TypeIncident, Priority: entity.PriorityCritical, Status: entity.StatusOpen, CreatedBy: user1, CreatedAt: now, UpdatedAt: now},
 		{ID: uuid.New(), Title: "User1-Created2", Type: entity.TypeChangeRequest, Priority: entity.PriorityHigh, Status: entity.StatusDone, CreatedBy: user1, CreatedAt: now, UpdatedAt: now},
-		{ID: uuid.New(), Title: "User2-Created", Type: entity.TypeHelpdeskRequest, Priority: entity.PriorityMedium, Status: entity.StatusOpen, CreatedBy: user2, CreatedAt: now, UpdatedAt: now},
+		{ID: uuid.New(), Title: "User2-Created", Type: entity.TypeRequest, Priority: entity.PriorityMedium, Status: entity.StatusOpen, CreatedBy: user2, CreatedAt: now, UpdatedAt: now},
 		{ID: uuid.New(), Title: "User2-Created2", Type: entity.TypeIncident, Priority: entity.PriorityLow, Status: entity.StatusInProgress, CreatedBy: user2, CreatedAt: now, UpdatedAt: now},
 		{ID: uuid.New(), Title: "User2-Assigned-to-User1", Type: entity.TypeIncident, Priority: entity.PriorityLow, Status: entity.StatusOpen, CreatedBy: user2, AssignedTo: &user1, CreatedAt: now, UpdatedAt: now},
 	}
