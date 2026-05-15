@@ -178,6 +178,7 @@ export function UserManagementPage() {
                 <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Role</label>
                 <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as Role })} className={inputStyle + ' appearance-none'}>
                   <option value="user">User</option>
+                  <option value="agent">Agent</option>
                   <option value="approver">Approver</option>
                   <option value="admin">Admin</option>
                 </select>
