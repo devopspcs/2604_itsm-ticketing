@@ -30,6 +30,7 @@ export function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [recentPage, setRecentPage] = useState(0)
   const role = useSelector((s: RootState) => s.auth.role) ?? 'user'
   const navigate = useNavigate()
 
@@ -129,30 +130,65 @@ export function DashboardPage() {
                 <Link to="/tickets" className="text-xs font-bold text-primary hover:underline">View All</Link>
               </div>
               <div className="space-y-4 overflow-y-auto flex-1">
-                {(stats.recent_tickets ?? []).length === 0 ? (
-                  <p className="text-sm text-on-surface-variant text-center py-8">No tickets yet</p>
-                ) : (
-                  (stats.recent_tickets ?? []).filter(Boolean).map((t) => (
-                    <Link to={`/tickets/${t.id}`} key={t.id} className="flex gap-3 group hover:bg-surface-container-low p-2 rounded-xl transition-colors">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-accent-50 flex items-center justify-center text-accent-600 group-hover:bg-accent-600 group-hover:text-white transition-colors">
-                        <span className="material-symbols-outlined text-lg">
-                          {(t.type ?? '') === 'incident' ? 'report' : (t.type ?? '') === 'change_request' ? 'published_with_changes' : 'contact_support'}
-                        </span>
-                      </div>
-                      <div className="flex-grow min-w-0">
-                        <p className="text-sm font-bold text-on-surface truncate">{t.title}</p>
-                        <div className="mt-1 flex gap-2">
-                          <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${
-                            t.priority === 'critical' ? 'bg-red-100 text-red-700' :
-                            t.priority === 'high' ? 'bg-amber-100 text-amber-700' :
-                            'bg-surface-container-high text-on-surface-variant'
-                          }`}>{t.priority}</span>
-                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-bold uppercase">{(t.status ?? '').replace(/_/g, ' ')}</span>
+                {(() => {
+                  const allTickets = (stats.recent_tickets ?? []).filter(Boolean).slice(0, 25)
+                  const pageSize = 5
+                  const totalPages = Math.ceil(allTickets.length / pageSize)
+                  const currentPage = Math.min(recentPage, totalPages - 1)
+                  const paged = allTickets.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
+
+                  if (allTickets.length === 0) {
+                    return <p className="text-sm text-on-surface-variant text-center py-8">No tickets yet</p>
+                  }
+
+                  return (
+                    <>
+                      {paged.map((t) => (
+                        <Link to={`/tickets/${t.id}`} key={t.id} className="flex gap-3 group hover:bg-surface-container-low p-2 rounded-xl transition-colors">
+                          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-accent-50 flex items-center justify-center text-accent-600 group-hover:bg-accent-600 group-hover:text-white transition-colors">
+                            <span className="material-symbols-outlined text-lg">
+                              {(t.type ?? '') === 'incident' ? 'report' : (t.type ?? '') === 'change_request' ? 'published_with_changes' : 'contact_support'}
+                            </span>
+                          </div>
+                          <div className="flex-grow min-w-0">
+                            <p className="text-sm font-bold text-on-surface truncate">{t.title}</p>
+                            <div className="mt-1 flex gap-2">
+                              <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                                t.priority === 'critical' ? 'bg-red-100 text-red-700' :
+                                t.priority === 'high' ? 'bg-amber-100 text-amber-700' :
+                                'bg-surface-container-high text-on-surface-variant'
+                              }`}>{t.priority}</span>
+                              <span className="text-[9px] px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-bold uppercase">{(t.status ?? '').replace(/_/g, ' ')}</span>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+
+                      {/* Pagination */}
+                      {totalPages > 1 && (
+                        <div className="flex items-center justify-between pt-3 border-t border-outline-variant/20">
+                          <button
+                            onClick={() => setRecentPage(p => Math.max(0, p - 1))}
+                            disabled={currentPage === 0}
+                            className="p-1.5 rounded-lg hover:bg-surface-container-high disabled:opacity-30 disabled:cursor-default transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-sm">chevron_left</span>
+                          </button>
+                          <span className="text-[10px] font-bold text-on-surface-variant">
+                            {currentPage + 1} / {totalPages}
+                          </span>
+                          <button
+                            onClick={() => setRecentPage(p => Math.min(totalPages - 1, p + 1))}
+                            disabled={currentPage >= totalPages - 1}
+                            className="p-1.5 rounded-lg hover:bg-surface-container-high disabled:opacity-30 disabled:cursor-default transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-sm">chevron_right</span>
+                          </button>
                         </div>
-                      </div>
-                    </Link>
-                  ))
-                )}
+                      )}
+                    </>
+                  )
+                })()}
               </div>
               <div className="mt-6 pt-4 border-t border-outline-variant/20">
                 <Link
