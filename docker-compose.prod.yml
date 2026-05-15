@@ -50,6 +50,10 @@ services:
       KEYCLOAK_REALM: ${KEYCLOAK_REALM:-sso-internal}
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-itsm-app}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-}
+      GOOGLE_DRIVE_FOLDER_ID: ${GOOGLE_DRIVE_FOLDER_ID:-}
+      GOOGLE_SERVICE_ACCOUNT_KEY_PATH: /app/credentials/service-account.json
+    volumes:
+      - ./credentials:/app/credentials:ro
     depends_on:
       postgres:
         condition: service_healthy
