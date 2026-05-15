@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { ticketService } from '../services/ticket.service'
-import type { Ticket, TicketStatus, TicketType } from '../types'
+import { orgService } from '../services/org.service'
+import api from '../services/api'
+import type { Ticket, TicketStatus, TicketType, User, Team } from '../types'
 import { Pagination } from '../components/common/Pagination'
 
 const priorityDot: Record<string, string> = {
@@ -30,6 +32,31 @@ export function TicketListPage() {
   const [typeFilter, setTypeFilter] = useState(searchParams.get('type') ?? '')
   const [priorityFilter, setPriorityFilter] = useState(searchParams.get('priority') ?? '')
   const [loading, setLoading] = useState(true)
+  const [users, setUsers] = useState<User[]>([])
+  const [teams, setTeams] = useState<Team[]>([])
+
+  useEffect(() => {
+    api.get<User[]>('/users/list').then(r => setUsers(r.data ?? [])).catch(() => {})
+    orgService.listTeams().then(r => setTeams(r.data ?? [])).catch(() => {})
+  }, [])
+
+  const resolveName = (ticket: Ticket) => {
+    if (ticket.assigned_to) {
+      const u = users.find(u => u.id === ticket.assigned_to)
+      const name = u ? u.full_name : null
+      if (ticket.assigned_team_id) {
+        const t = teams.find(t => t.id === ticket.assigned_team_id)
+        const teamLabel = t ? t.name : null
+        return name ? `${name} (${teamLabel ?? 'Team'})` : teamLabel ?? 'Assigned'
+      }
+      return name ?? ticket.assigned_to.slice(0, 8) + '...'
+    }
+    if (ticket.assigned_team_id) {
+      const t = teams.find(t => t.id === ticket.assigned_team_id)
+      return t ? `Team: ${t.name}` : 'Team assigned'
+    }
+    return null
+  }
 
   const fetchTickets = (p = 1) => {
     setLoading(true)
@@ -168,7 +195,7 @@ export function TicketListPage() {
                     </div>
                   </td>
                   <td className="px-6 py-5">
-                    <span className="text-xs font-medium text-on-surface-variant">{t.assigned_to ? t.assigned_to.slice(0, 8) + '...' : <span className="italic text-outline">Unassigned</span>}</span>
+                    <span className="text-xs font-medium text-on-surface-variant">{resolveName(t) ?? <span className="italic text-outline">Unassigned</span>}</span>
                   </td>
                   <td className="px-6 py-5 text-xs text-outline">
                     {new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
