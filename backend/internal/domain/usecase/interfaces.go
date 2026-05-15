@@ -79,6 +79,7 @@ type TicketUseCase interface {
 	GetTicket(ctx context.Context, id uuid.UUID, requester UserClaims) (*entity.Ticket, error)
 	ListTickets(ctx context.Context, filter repository.TicketFilter, requester UserClaims) (*repository.PaginatedTickets, error)
 	UpdateTicket(ctx context.Context, id uuid.UUID, req UpdateTicketRequest, requester UserClaims) (*entity.Ticket, error)
+	DeleteTicket(ctx context.Context, id uuid.UUID, requester UserClaims) error
 }
 
 type ApprovalDecisionRequest struct {

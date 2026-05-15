@@ -56,6 +56,10 @@ func (m *mockTicketRepository) Update(ctx context.Context, ticket *entity.Ticket
 	return nil
 }
 
+func (m *mockTicketRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	return nil
+}
+
 // Feature: sla-compliance-fix, Property 1: Bug Condition - Metrik SLA Tidak Ada di Response DashboardStats
 // **Validates: Requirements 1.5, 2.1, 2.2, 2.3, 2.5**
 //

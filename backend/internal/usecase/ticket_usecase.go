@@ -367,6 +367,35 @@ func (uc *ticketUseCase) UpdateTicket(ctx context.Context, id uuid.UUID, req dom
 	return ticket, nil
 }
 
+func (uc *ticketUseCase) DeleteTicket(ctx context.Context, id uuid.UUID, requester domainUC.UserClaims) error {
+	ticket, err := uc.ticketRepo.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// Only admin and agent can delete tickets
+	if requester.Role != entity.RoleAdmin && requester.Role != entity.RoleAgent {
+		return apperror.ErrForbidden
+	}
+
+	if err := uc.ticketRepo.Delete(ctx, id); err != nil {
+		return err
+	}
+
+	// Log the deletion with ticket ID in the activity log
+	ticketTitle := ticket.Title
+	_ = uc.activityRepo.Append(ctx, &entity.ActivityLog{
+		ID:        uuid.New(),
+		TicketID:  id,
+		ActorID:   requester.UserID,
+		Action:    entity.ActionTicketDeleted,
+		OldValue:  &ticketTitle,
+		CreatedAt: time.Now().UTC(),
+	})
+
+	return nil
+}
+
 func (uc *ticketUseCase) notifyAgentsAndAdmins(ctx context.Context, ticket *entity.Ticket) {
 	users, err := uc.userRepo.List(ctx, repository.UserFilter{})
 	if err != nil {

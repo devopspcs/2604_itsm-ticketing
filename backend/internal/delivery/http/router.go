@@ -71,6 +71,7 @@ func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, db interface{ Ping() err
 			r.Post("/tickets", h.Ticket.Create)
 			r.Get("/tickets/{id}", h.Ticket.Get)
 			r.Patch("/tickets/{id}", h.Ticket.Update)
+			r.Delete("/tickets/{id}", h.Ticket.Delete)
 			r.Post("/tickets/{id}/submit", h.Ticket.Submit)
 			r.Post("/tickets/{id}/notes", h.Attachment.AddNote)
 			r.Get("/tickets/{id}/notes", h.Attachment.ListNotes)

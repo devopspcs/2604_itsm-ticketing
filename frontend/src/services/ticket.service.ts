@@ -12,6 +12,8 @@ export const ticketService = {
   update: (id: string, data: Partial<Ticket>) =>
     api.patch<Ticket>(`/tickets/${id}`, data),
 
+  delete: (id: string) => api.delete(`/tickets/${id}`),
+
   submit: (id: string) => api.post(`/tickets/${id}/submit`),
 
   assign: (id: string, assigneeId: string) =>

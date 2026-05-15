@@ -166,7 +166,8 @@ export function DashboardPage() {
             </div>
           </div>
 
-          {/* SLA Footer */}
+          {/* SLA Footer - only visible to agent/admin/approver */}
+          {(role === 'agent' || role === 'admin' || role === 'approver') && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-primary-container/5 rounded-2xl p-8 border border-primary/5">
             <div className="flex items-center gap-6">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
@@ -199,6 +200,7 @@ export function DashboardPage() {
               </div>
             </div>
           </div>
+          )}
         </>
       ) : null}
 

@@ -3,12 +3,13 @@ import api from '../services/api'
 import type { ActivityLog, User } from '../types'
 
 const actionIcon: Record<string, string> = {
-  ticket_created: 'post_add', status_changed: 'edit_note', assigned: 'person_add',
+  ticket_created: 'post_add', ticket_deleted: 'delete', status_changed: 'edit_note', assigned: 'person_add',
   reassigned: 'person_search', approval_requested: 'pending', approval_decided: 'verified',
   field_updated: 'edit',
 }
 const statusChip: Record<string, string> = {
   ticket_created: 'border-slate-500 bg-slate-500/10 text-slate-700',
+  ticket_deleted: 'border-red-600 bg-red-600/10 text-red-700',
   status_changed: 'border-accent-600 bg-accent-600/10 text-accent-700',
   assigned: 'border-green-600 bg-green-600/10 text-green-700',
   reassigned: 'border-green-600 bg-green-600/10 text-green-700',
