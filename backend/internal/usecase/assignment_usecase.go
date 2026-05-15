@@ -107,7 +107,7 @@ func (uc *assignmentUseCase) AssignTicket(ctx context.Context, ticketID uuid.UUI
 		}
 		uc.emailSvc.SendTicketAssigned(
 			assignee.Email, assignee.FullName,
-			ticket.Title, ticket.ID.String(),
+			ticket.Title, ticket.ID.String(), ticket.TicketNumber,
 			string(ticket.Type), string(ticket.Priority), ticket.Category,
 			assignerName,
 		)
@@ -246,7 +246,7 @@ func (uc *assignmentUseCase) AssignTicketToTeam(ctx context.Context, ticketID uu
 		}
 		uc.emailSvc.SendTicketAssignedToTeam(
 			*team.Email, team.Name,
-			ticket.Title, ticket.ID.String(),
+			ticket.Title, ticket.ID.String(), ticket.TicketNumber,
 			string(ticket.Type), string(ticket.Priority), ticket.Category,
 			assignerName,
 		)

@@ -128,7 +128,7 @@ export function ApprovalsPage() {
                 <div className="min-w-0">
                   <h3 className="text-sm font-bold text-on-surface leading-tight truncate">{t.title}</h3>
                   <p className="text-xs text-on-surface-variant mt-0.5">
-                    {t.type === 'incident' ? 'INC' : t.type === 'change_request' ? 'CHG' : 'REQ'}-{t.id.slice(0, 6).toUpperCase()}
+                    {t.ticket_number}
                   </p>
                 </div>
               </div>

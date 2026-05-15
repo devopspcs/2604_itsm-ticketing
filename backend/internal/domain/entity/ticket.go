@@ -36,6 +36,7 @@ const (
 
 type Ticket struct {
 	ID             uuid.UUID    `json:"id"`
+	TicketNumber   string       `json:"ticket_number"`
 	Title          string       `json:"title"`
 	Description    string       `json:"description"`
 	Type           TicketType   `json:"type"`

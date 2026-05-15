@@ -512,7 +512,7 @@ export function TicketDetailPage() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <span className="text-xs font-semibold tracking-wider text-primary py-1 px-2 bg-primary-fixed rounded">
-              {ticket.type === 'incident' ? 'INC' : ticket.type === 'change_request' ? 'CHG' : 'REQ'}-{ticket.id.slice(0, 6).toUpperCase()}
+              {ticket.ticket_number}
             </span>
             <span className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded ${
               ticket.priority === 'critical' ? 'text-error bg-error-container' :

@@ -23,17 +23,48 @@ func NewTicketRepository(db *pgxpool.Pool) repository.TicketRepository {
 }
 
 func (r *ticketRepository) Create(ctx context.Context, ticket *entity.Ticket) error {
-	query := `INSERT INTO tickets (id, title, description, type, category, priority, status, created_by, assigned_to, assigned_team_id, created_at, updated_at, resolved_at)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`
-	_, err := r.db.Exec(ctx, query,
-		ticket.ID, ticket.Title, ticket.Description, ticket.Type,
+	// Generate sequential ticket number
+	ticketNumber, err := r.generateTicketNumber(ctx, ticket.Type)
+	if err != nil {
+		return err
+	}
+	ticket.TicketNumber = ticketNumber
+
+	query := `INSERT INTO tickets (id, ticket_number, title, description, type, category, priority, status, created_by, assigned_to, assigned_team_id, created_at, updated_at, resolved_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`
+	_, err = r.db.Exec(ctx, query,
+		ticket.ID, ticket.TicketNumber, ticket.Title, ticket.Description, ticket.Type,
 		ticket.Category, ticket.Priority, ticket.Status,
 		ticket.CreatedBy, ticket.AssignedTo, ticket.AssignedTeamID, ticket.CreatedAt, ticket.UpdatedAt, ticket.ResolvedAt)
 	return err
 }
 
+func (r *ticketRepository) generateTicketNumber(ctx context.Context, ticketType entity.TicketType) (string, error) {
+	// Atomically increment the counter and get the new value
+	var nextNum int64
+	err := r.db.QueryRow(ctx,
+		`UPDATE ticket_sequences SET last_number = last_number + 1 WHERE ticket_type = $1 RETURNING last_number`,
+		string(ticketType),
+	).Scan(&nextNum)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate ticket number: %w", err)
+	}
+
+	prefix := "REQ"
+	switch ticketType {
+	case entity.TypeIncident:
+		prefix = "INC"
+	case entity.TypeChangeRequest:
+		prefix = "CHG"
+	case entity.TypeRequest:
+		prefix = "REQ"
+	}
+
+	return fmt.Sprintf("%s-%06d", prefix, nextNum), nil
+}
+
 func (r *ticketRepository) FindByID(ctx context.Context, id uuid.UUID) (*entity.Ticket, error) {
-	query := `SELECT id, title, description, type, category, priority, status, created_by, assigned_to, assigned_team_id, created_at, updated_at, resolved_at FROM tickets WHERE id=$1`
+	query := `SELECT id, ticket_number, title, description, type, category, priority, status, created_by, assigned_to, assigned_team_id, created_at, updated_at, resolved_at FROM tickets WHERE id=$1`
 	row := r.db.QueryRow(ctx, query, id)
 	return scanTicket(row)
 }
@@ -89,7 +120,7 @@ func (r *ticketRepository) List(ctx context.Context, filter repository.TicketFil
 		i++
 	}
 	if filter.Search != nil && *filter.Search != "" {
-		where += fmt.Sprintf(" AND (title ILIKE $%d OR description ILIKE $%d)", i, i)
+		where += fmt.Sprintf(" AND (title ILIKE $%d OR description ILIKE $%d OR ticket_number ILIKE $%d)", i, i, i)
 		args = append(args, "%"+*filter.Search+"%")
 		i++
 	}
@@ -112,7 +143,7 @@ func (r *ticketRepository) List(ctx context.Context, filter repository.TicketFil
 
 	listArgs := append(args, pageSize, offset)
 	listQuery := fmt.Sprintf(
-		"SELECT id, title, description, type, category, priority, status, created_by, assigned_to, assigned_team_id, created_at, updated_at, resolved_at FROM tickets %s ORDER BY created_at DESC LIMIT $%d OFFSET $%d",
+		"SELECT id, ticket_number, title, description, type, category, priority, status, created_by, assigned_to, assigned_team_id, created_at, updated_at, resolved_at FROM tickets %s ORDER BY created_at DESC LIMIT $%d OFFSET $%d",
 		where, i, i+1,
 	)
 
@@ -146,7 +177,7 @@ func (r *ticketRepository) Delete(ctx context.Context, id uuid.UUID) error {
 
 func scanTicket(row pgx.Row) (*entity.Ticket, error) {
 	t := &entity.Ticket{}
-	err := row.Scan(&t.ID, &t.Title, &t.Description, &t.Type, &t.Category, &t.Priority, &t.Status, &t.CreatedBy, &t.AssignedTo, &t.AssignedTeamID, &t.CreatedAt, &t.UpdatedAt, &t.ResolvedAt)
+	err := row.Scan(&t.ID, &t.TicketNumber, &t.Title, &t.Description, &t.Type, &t.Category, &t.Priority, &t.Status, &t.CreatedBy, &t.AssignedTo, &t.AssignedTeamID, &t.CreatedAt, &t.UpdatedAt, &t.ResolvedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, apperror.ErrNotFound
@@ -158,6 +189,6 @@ func scanTicket(row pgx.Row) (*entity.Ticket, error) {
 
 func scanTicketRow(rows pgx.Rows) (*entity.Ticket, error) {
 	t := &entity.Ticket{}
-	err := rows.Scan(&t.ID, &t.Title, &t.Description, &t.Type, &t.Category, &t.Priority, &t.Status, &t.CreatedBy, &t.AssignedTo, &t.AssignedTeamID, &t.CreatedAt, &t.UpdatedAt, &t.ResolvedAt)
+	err := rows.Scan(&t.ID, &t.TicketNumber, &t.Title, &t.Description, &t.Type, &t.Category, &t.Priority, &t.Status, &t.CreatedBy, &t.AssignedTo, &t.AssignedTeamID, &t.CreatedAt, &t.UpdatedAt, &t.ResolvedAt)
 	return t, err
 }

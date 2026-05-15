@@ -35,8 +35,8 @@ func (s *EmailService) IsConfigured() bool {
 	return s.host != "" && s.user != "" && s.pass != ""
 }
 
-func (s *EmailService) SendTicketCreated(toEmail, toName, ticketTitle, ticketID, ticketType, priority string) {
-	subject := fmt.Sprintf("[PCS ITSM] New Ticket Created: %s", ticketTitle)
+func (s *EmailService) SendTicketCreated(toEmail, toName, ticketTitle, ticketID, ticketNumber, ticketType, priority string) {
+	subject := fmt.Sprintf("[PCS ITSM] New Ticket Created: %s - %s", ticketNumber, ticketTitle)
 	body := fmt.Sprintf(`
 <html>
 <body style="font-family: Inter, Arial, sans-serif; background: #f8f9fa; padding: 20px;">
@@ -64,20 +64,8 @@ func (s *EmailService) SendTicketCreated(toEmail, toName, ticketTitle, ticketID,
 	go s.send(toEmail, subject, body)
 }
 
-func (s *EmailService) SendTicketAssigned(toEmail, toName, ticketTitle, ticketID, ticketType, priority, category, assignedBy string) {
-	shortID := ticketID
-	if len(shortID) > 8 {
-		shortID = shortID[:8]
-	}
-	prefix := "REQ"
-	switch ticketType {
-	case "incident":
-		prefix = "INC"
-	case "change_request":
-		prefix = "CHG"
-	}
-
-	subject := fmt.Sprintf("[PCS ITSM] Ticket Assigned: %s-%s - %s", prefix, shortID, ticketTitle)
+func (s *EmailService) SendTicketAssigned(toEmail, toName, ticketTitle, ticketID, ticketNumber, ticketType, priority, category, assignedBy string) {
+	subject := fmt.Sprintf("[PCS ITSM] Ticket Assigned: %s - %s", ticketNumber, ticketTitle)
 	body := fmt.Sprintf(`
 <html>
 <body style="font-family: Inter, Arial, sans-serif; background: #f8f9fa; padding: 20px;">
@@ -90,7 +78,7 @@ func (s *EmailService) SendTicketAssigned(toEmail, toName, ticketTitle, ticketID
     <p>A ticket has been assigned to you by <strong>%s</strong>.</p>
     <p>Please review and take action on this ticket.</p>
     <table style="width: 100%%; border-collapse: collapse; margin: 20px 0; background: #f8f9fa; border-radius: 8px;">
-      <tr><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #737783; font-size: 13px; width: 140px;">Ticket Number</td><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">%s-%s</td></tr>
+      <tr><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #737783; font-size: 13px; width: 140px;">Ticket Number</td><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">%s</td></tr>
       <tr><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #737783; font-size: 13px;">Title</td><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">%s</td></tr>
       <tr><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #737783; font-size: 13px;">Type</td><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0;">%s</td></tr>
       <tr><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #737783; font-size: 13px;">Category</td><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0;">%s</td></tr>
@@ -106,27 +94,15 @@ func (s *EmailService) SendTicketAssigned(toEmail, toName, ticketTitle, ticketID
 </body>
 </html>`,
 		toName, assignedBy,
-		prefix, shortID, ticketTitle, ticketType, category,
+		ticketNumber, ticketTitle, ticketType, category,
 		priorityColor(priority), priority, assignedBy,
 		s.baseURL, ticketID)
 
 	go s.send(toEmail, subject, body)
 }
 
-func (s *EmailService) SendTicketAssignedToTeam(toEmail, teamName, ticketTitle, ticketID, ticketType, priority, category, assignedBy string) {
-	shortID := ticketID
-	if len(shortID) > 8 {
-		shortID = shortID[:8]
-	}
-	prefix := "REQ"
-	switch ticketType {
-	case "incident":
-		prefix = "INC"
-	case "change_request":
-		prefix = "CHG"
-	}
-
-	subject := fmt.Sprintf("[PCS ITSM] Ticket Assigned to Team: %s-%s - %s", prefix, shortID, ticketTitle)
+func (s *EmailService) SendTicketAssignedToTeam(toEmail, teamName, ticketTitle, ticketID, ticketNumber, ticketType, priority, category, assignedBy string) {
+	subject := fmt.Sprintf("[PCS ITSM] Ticket Assigned to Team: %s - %s", ticketNumber, ticketTitle)
 	body := fmt.Sprintf(`
 <html>
 <body style="font-family: Inter, Arial, sans-serif; background: #f8f9fa; padding: 20px;">
@@ -139,7 +115,7 @@ func (s *EmailService) SendTicketAssignedToTeam(toEmail, teamName, ticketTitle, 
     <p>A ticket has been assigned to your team by <strong>%s</strong>.</p>
     <p>Please coordinate within your team to handle this ticket.</p>
     <table style="width: 100%%; border-collapse: collapse; margin: 20px 0; background: #f8f9fa; border-radius: 8px;">
-      <tr><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #737783; font-size: 13px; width: 140px;">Ticket Number</td><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">%s-%s</td></tr>
+      <tr><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #737783; font-size: 13px; width: 140px;">Ticket Number</td><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">%s</td></tr>
       <tr><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #737783; font-size: 13px;">Title</td><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">%s</td></tr>
       <tr><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #737783; font-size: 13px;">Type</td><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0;">%s</td></tr>
       <tr><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #737783; font-size: 13px;">Category</td><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0;">%s</td></tr>
@@ -156,7 +132,7 @@ func (s *EmailService) SendTicketAssignedToTeam(toEmail, teamName, ticketTitle, 
 </body>
 </html>`,
 		teamName, assignedBy,
-		prefix, shortID, ticketTitle, ticketType, category,
+		ticketNumber, ticketTitle, ticketType, category,
 		priorityColor(priority), priority, assignedBy,
 		s.baseURL, ticketID)
 
