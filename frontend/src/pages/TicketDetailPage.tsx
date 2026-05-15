@@ -90,12 +90,13 @@ function AssignModal({
   actionMsg: string
   onClose: () => void
   onAssign: (userId?: string) => void
-  onAssignToTeam: (teamId: string, userId?: string) => void
+  onAssignToTeam: (teamId: string, userIds?: string[]) => void
 }) {
   const [mode, setMode] = useState<'team' | 'user'>('team')
   const [teams, setTeams] = useState<Team[]>([])
   const [selectedTeamId, setSelectedTeamId] = useState('')
   const [selectedUserId, setSelectedUserId] = useState('')
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
   const [loadingTeams, setLoadingTeams] = useState(false)
 
   useEffect(() => {
@@ -166,25 +167,47 @@ function AssignModal({
 
           <div>
             <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">
-              Also Assign to User (optional)
+              Additional Assignees (optional)
             </label>
-            <select
-              value={selectedUserId}
-              onChange={(e) => setSelectedUserId(e.target.value)}
-              className="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 text-sm outline-none appearance-none"
-            >
-              <option value="">-- No specific user (team only) --</option>
-              {users.filter(u => u.is_active).map(u => (
-                <option key={u.id} value={u.id}>{u.full_name} ({u.role})</option>
-              ))}
-            </select>
+            <div className="max-h-40 overflow-y-auto bg-surface-container-highest rounded-xl p-2 space-y-1">
+              {users.filter(u => u.is_active).length === 0 ? (
+                <p className="text-xs text-on-surface-variant p-2">No users available</p>
+              ) : (
+                users.filter(u => u.is_active).map(u => (
+                  <label key={u.id} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-container-low cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedUserIds.includes(u.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedUserIds(prev => [...prev, u.id])
+                        } else {
+                          setSelectedUserIds(prev => prev.filter(id => id !== u.id))
+                        }
+                      }}
+                      className="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary"
+                    />
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-6 h-6 rounded-full bg-primary-fixed flex items-center justify-center text-primary text-[10px] font-bold flex-shrink-0">
+                        {u.full_name.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-sm text-on-surface truncate">{u.full_name}</span>
+                      <span className="text-[10px] text-on-surface-variant capitalize">({u.role})</span>
+                    </div>
+                  </label>
+                ))
+              )}
+            </div>
+            {selectedUserIds.length > 0 && (
+              <p className="text-[10px] text-on-surface-variant mt-1">{selectedUserIds.length} user(s) selected</p>
+            )}
           </div>
 
           {actionMsg && <p className="text-sm text-error">{actionMsg}</p>}
           <div className="flex justify-end gap-3 pt-2">
             <button onClick={onClose} className="px-5 py-2.5 rounded-xl font-semibold text-on-surface-variant hover:bg-surface-container-high transition-colors">Cancel</button>
             <button
-              onClick={() => onAssignToTeam(selectedTeamId, selectedUserId || undefined)}
+              onClick={() => onAssignToTeam(selectedTeamId, selectedUserIds.length > 0 ? selectedUserIds : undefined)}
               disabled={saving || !selectedTeamId}
               className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold hover:opacity-90 transition-all disabled:opacity-70 flex items-center gap-2"
             >
@@ -240,6 +263,7 @@ export function TicketDetailPage() {
   const [approvals, setApprovals] = useState<Approval[]>([])
   const [activities, setActivities] = useState<ActivityLog[]>([])
   const [users, setUsers] = useState<User[]>([])
+  const [teams, setTeams] = useState<Team[]>([])
   const [attachments, setAttachments] = useState<{id:string;filename:string;file_size:number;mime_type:string;created_at:string;uploaded_by?:string}[]>([])
   const [notes, setNotes] = useState<{id:string;content:string;has_image:boolean;image_name?:string;created_at:string;author_id?:string}[]>([])
   const [loading, setLoading] = useState(true)
@@ -297,10 +321,23 @@ export function TicketDetailPage() {
     } catch {}
   }
 
+  const loadTeams = async () => {
+    try {
+      const res = await orgService.listTeams()
+      setTeams(res.data ?? [])
+    } catch {}
+  }
+
   const userName = (userId?: string) => {
     if (!userId) return 'Unknown'
     const u = users.find(u => u.id === userId)
     return u ? u.full_name : userId.slice(0, 8) + '...'
+  }
+
+  const teamName = (teamId?: string) => {
+    if (!teamId) return 'Unknown'
+    const t = teams.find(t => t.id === teamId)
+    return t ? t.name : teamId.slice(0, 8) + '...'
   }
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -340,7 +377,7 @@ export function TicketDetailPage() {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
   }
 
-  useEffect(() => { load(); loadUsers() }, [id])
+  useEffect(() => { load(); loadUsers(); loadTeams() }, [id])
 
   const closeModal = () => { setModal(null); setActionMsg('') }
 
@@ -381,11 +418,18 @@ export function TicketDetailPage() {
     finally { setSaving(false) }
   }
 
-  const handleAssignToTeam = async (teamId: string, userId?: string) => {
+  const handleAssignToTeam = async (teamId: string, userIds?: string[]) => {
     if (!id || !teamId) return
     setSaving(true)
     try {
-      await ticketService.assignToTeam(id, teamId, userId)
+      // Assign to team (with first user if any)
+      await ticketService.assignToTeam(id, teamId, userIds?.[0])
+      // Assign additional users
+      if (userIds && userIds.length > 1) {
+        for (let i = 1; i < userIds.length; i++) {
+          await ticketService.assign(id, userIds[i]).catch(() => {})
+        }
+      }
       await load()
       closeModal()
       showSuccess('Ticket assigned to team successfully')
@@ -516,7 +560,7 @@ export function TicketDetailPage() {
               <div><span className="text-on-surface-variant">Created by:</span> <span className="font-medium ml-1">{userName(ticket.created_by)}</span></div>
               <div><span className="text-on-surface-variant">Assigned to:</span> <span className="font-medium ml-1">{ticket.assigned_to ? userName(ticket.assigned_to) : 'Unassigned'}</span></div>
               {ticket.assigned_team_id && (
-                <div><span className="text-on-surface-variant">Team:</span> <span className="font-medium ml-1 text-primary">{ticket.assigned_team_id.slice(0, 8)}...</span></div>
+                <div><span className="text-on-surface-variant">Team:</span> <span className="font-medium ml-1 text-primary">{teamName(ticket.assigned_team_id)}</span></div>
               )}
             </div>
           </section>
