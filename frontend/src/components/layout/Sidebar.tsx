@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
 import type { RootState } from '../../store'
@@ -8,6 +8,7 @@ interface NavItem {
   icon: string
   label: string
   roles?: string[] // if undefined, visible to all
+  children?: NavItem[]
 }
 
 const navItems: NavItem[] = [
@@ -17,8 +18,12 @@ const navItems: NavItem[] = [
   { to: '/kanban', icon: 'view_kanban', label: 'Kanban Board', roles: ['agent', 'admin', 'approver'] },
   { to: '/approvals', icon: 'fact_check', label: 'Approvals', roles: ['admin', 'approver'] },
   { to: '/activity-logs', icon: 'history_edu', label: 'Activity Logs', roles: ['agent', 'admin', 'approver'] },
-  { to: '/users', icon: 'manage_accounts', label: 'User Management', roles: ['admin'] },
-  { to: '/acl', icon: 'shield_person', label: 'Access Control', roles: ['admin'] },
+  {
+    to: '/users', icon: 'manage_accounts', label: 'User Management', roles: ['admin'],
+    children: [
+      { to: '/acl', icon: 'shield_person', label: 'Access Control' },
+    ],
+  },
   { to: '/webhooks', icon: 'webhook', label: 'Webhooks', roles: ['admin'] },
   { to: '/org-structure', icon: 'account_tree', label: 'Org Structure', roles: ['admin'] },
   { to: '/settings', icon: 'settings', label: 'System Settings', roles: ['admin'] },
@@ -26,19 +31,10 @@ const navItems: NavItem[] = [
 
 export function Sidebar() {
   const role = useSelector((s: RootState) => s.auth.role) ?? 'user'
+  const location = useLocation()
   const [apiStatus, setApiStatus] = useState<'ok' | 'error' | 'checking'>('checking')
 
   useEffect(() => {
-    const checkHealth = () => {
-      fetch('/api/v1/../health', { method: 'GET' })
-        .then(res => {
-          if (res.ok) return res.json()
-          throw new Error('not ok')
-        })
-        .then(data => setApiStatus(data.status === 'ok' ? 'ok' : 'error'))
-        .catch(() => setApiStatus('error'))
-    }
-    // Use direct health endpoint
     const check = () => {
       fetch('/health')
         .then(res => res.ok ? res.json() : Promise.reject())
@@ -46,7 +42,7 @@ export function Sidebar() {
         .catch(() => setApiStatus('error'))
     }
     check()
-    const interval = setInterval(check, 15000) // check every 15s
+    const interval = setInterval(check, 15000)
     return () => clearInterval(interval)
   }, [])
 
@@ -62,27 +58,59 @@ export function Sidebar() {
       </div>
 
       <nav className="flex flex-col gap-1 flex-1">
-        {visible.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              isActive
-                ? 'flex items-center gap-3 px-3 py-2.5 text-accent-900 font-bold bg-white rounded-lg text-sm shadow-sm'
-                : 'flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:text-accent-700 hover:translate-x-1 transition-all text-sm font-medium'
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <span className="material-symbols-outlined"
-                  style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>
-                  {item.icon}
-                </span>
-                <span>{item.label}</span>
-              </>
-            )}
-          </NavLink>
-        ))}
+        {visible.map((item) => {
+          const isParentActive = location.pathname === item.to || item.children?.some(c => location.pathname === c.to)
+
+          return (
+            <div key={item.to + item.label}>
+              <NavLink
+                to={item.to}
+                className={({ isActive }) =>
+                  (isActive || isParentActive)
+                    ? 'flex items-center gap-3 px-3 py-2.5 text-accent-900 font-bold bg-white rounded-lg text-sm shadow-sm'
+                    : 'flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:text-accent-700 hover:translate-x-1 transition-all text-sm font-medium'
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <span className="material-symbols-outlined"
+                      style={(isActive || isParentActive) ? { fontVariationSettings: "'FILL' 1" } : {}}>
+                      {item.icon}
+                    </span>
+                    <span>{item.label}</span>
+                  </>
+                )}
+              </NavLink>
+
+              {/* Sub-items */}
+              {item.children && isParentActive && (
+                <div className="ml-6 mt-1 flex flex-col gap-0.5 border-l-2 border-outline-variant/20 pl-3">
+                  {item.children.map((child) => (
+                    <NavLink
+                      key={child.to}
+                      to={child.to}
+                      className={({ isActive }) =>
+                        isActive
+                          ? 'flex items-center gap-2 px-2 py-2 text-primary font-bold text-xs rounded-lg bg-primary-fixed/30'
+                          : 'flex items-center gap-2 px-2 py-2 text-slate-500 hover:text-primary text-xs rounded-lg hover:bg-white/60 transition-all'
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <span className="material-symbols-outlined text-base"
+                            style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>
+                            {child.icon}
+                          </span>
+                          <span>{child.label}</span>
+                        </>
+                      )}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </nav>
 
       <div className="mt-auto p-4 bg-primary-container/10 rounded-xl">
