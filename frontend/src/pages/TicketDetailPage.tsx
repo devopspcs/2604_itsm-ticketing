@@ -141,7 +141,7 @@ function AssignModal({
             ) : (
               <select
                 value={selectedTeamId}
-                onChange={(e) => setSelectedTeamId(e.target.value)}
+                onChange={(e) => { setSelectedTeamId(e.target.value); setSelectedUserIds([]) }}
                 className="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 text-sm outline-none appearance-none"
               >
                 <option value="">-- Select team --</option>
@@ -170,10 +170,11 @@ function AssignModal({
               Additional Assignees (optional)
             </label>
             <div className="max-h-40 overflow-y-auto bg-surface-container-highest rounded-xl p-2 space-y-1">
-              {users.filter(u => u.is_active).length === 0 ? (
-                <p className="text-xs text-on-surface-variant p-2">No users available</p>
-              ) : (
-                users.filter(u => u.is_active).map(u => (
+              {(() => {
+                const teamMembers = users.filter(u => u.is_active && u.team_id === selectedTeamId && (u.role === 'agent' || u.role === 'admin'))
+                if (!selectedTeamId) return <p className="text-xs text-on-surface-variant p-2">Pilih team terlebih dahulu</p>
+                if (teamMembers.length === 0) return <p className="text-xs text-on-surface-variant p-2">Tidak ada agent di team ini</p>
+                return teamMembers.map(u => (
                   <label key={u.id} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-container-low cursor-pointer transition-colors">
                     <input
                       type="checkbox"
@@ -196,7 +197,7 @@ function AssignModal({
                     </div>
                   </label>
                 ))
-              )}
+              })()}
             </div>
             {selectedUserIds.length > 0 && (
               <p className="text-[10px] text-on-surface-variant mt-1">{selectedUserIds.length} user(s) selected</p>
