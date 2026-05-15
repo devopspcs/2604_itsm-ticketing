@@ -18,6 +18,7 @@ const navItems: NavItem[] = [
   { to: '/approvals', icon: 'fact_check', label: 'Approvals', roles: ['admin', 'approver'] },
   { to: '/activity-logs', icon: 'history_edu', label: 'Activity Logs', roles: ['agent', 'admin', 'approver'] },
   { to: '/users', icon: 'manage_accounts', label: 'User Management', roles: ['admin'] },
+  { to: '/acl', icon: 'shield_person', label: 'Access Control', roles: ['admin'] },
   { to: '/webhooks', icon: 'webhook', label: 'Webhooks', roles: ['admin'] },
   { to: '/org-structure', icon: 'account_tree', label: 'Org Structure', roles: ['admin'] },
   { to: '/settings', icon: 'settings', label: 'System Settings', roles: ['admin'] },
