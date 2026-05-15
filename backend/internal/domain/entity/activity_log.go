@@ -10,6 +10,7 @@ type ActivityAction string
 
 const (
 	ActionTicketCreated     ActivityAction = "ticket_created"
+	ActionTicketDeleted     ActivityAction = "ticket_deleted"
 	ActionStatusChanged     ActivityAction = "status_changed"
 	ActionAssigned          ActivityAction = "assigned"
 	ActionReassigned        ActivityAction = "reassigned"

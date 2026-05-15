@@ -131,6 +131,20 @@ func (h *TicketHandler) Update(w http.ResponseWriter, r *http.Request) {
 	apperror.WriteJSON(w, http.StatusOK, ticket)
 }
 
+func (h *TicketHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	claims, _ := middleware.GetClaims(r)
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		apperror.WriteError(w, apperror.ErrValidation)
+		return
+	}
+	if err := h.ticketUC.DeleteTicket(r.Context(), id, claims); err != nil {
+		apperror.WriteError(w, err)
+		return
+	}
+	apperror.WriteJSON(w, http.StatusOK, map[string]string{"message": "ticket deleted"})
+}
+
 func (h *TicketHandler) Submit(w http.ResponseWriter, r *http.Request) {
 	claims, _ := middleware.GetClaims(r)
 	id, err := uuid.Parse(chi.URLParam(r, "id"))

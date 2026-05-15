@@ -12,7 +12,8 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { to: '/dashboard', icon: 'dashboard', label: 'Dashboard' },
-  { to: '/tickets', icon: 'confirmation_number', label: 'All Tickets' },
+  { to: '/tickets', icon: 'confirmation_number', label: 'My Tickets', roles: ['user'] },
+  { to: '/tickets', icon: 'confirmation_number', label: 'All Tickets', roles: ['agent', 'admin', 'approver'] },
   { to: '/kanban', icon: 'view_kanban', label: 'Kanban Board', roles: ['agent', 'admin', 'approver'] },
   { to: '/approvals', icon: 'fact_check', label: 'Approvals', roles: ['admin', 'approver'] },
   { to: '/activity-logs', icon: 'history_edu', label: 'Activity Logs', roles: ['agent', 'admin', 'approver'] },

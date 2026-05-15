@@ -121,6 +121,7 @@ type TicketRepository interface {
 	FindByID(ctx context.Context, id uuid.UUID) (*entity.Ticket, error)
 	List(ctx context.Context, filter TicketFilter) (*PaginatedTickets, error)
 	Update(ctx context.Context, ticket *entity.Ticket) error
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
 type ApprovalRepository interface {

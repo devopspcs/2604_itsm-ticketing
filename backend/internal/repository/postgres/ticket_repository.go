@@ -139,6 +139,11 @@ func (r *ticketRepository) Update(ctx context.Context, ticket *entity.Ticket) er
 	return err
 }
 
+func (r *ticketRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	_, err := r.db.Exec(ctx, `DELETE FROM tickets WHERE id = $1`, id)
+	return err
+}
+
 func scanTicket(row pgx.Row) (*entity.Ticket, error) {
 	t := &entity.Ticket{}
 	err := row.Scan(&t.ID, &t.Title, &t.Description, &t.Type, &t.Category, &t.Priority, &t.Status, &t.CreatedBy, &t.AssignedTo, &t.AssignedTeamID, &t.CreatedAt, &t.UpdatedAt, &t.ResolvedAt)
