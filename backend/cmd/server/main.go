@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	httpdelivery "github.com/org/itsm/internal/delivery/http"
 	"github.com/org/itsm/internal/delivery/http/handler"
+	"github.com/org/itsm/internal/infrastructure/storage"
 	"github.com/org/itsm/internal/infrastructure/webhook"
 	notifinfra "github.com/org/itsm/internal/infrastructure/notification"
 	"github.com/org/itsm/internal/repository/postgres"
@@ -123,6 +124,18 @@ func main() {
 	releaseUC := usecase.NewReleaseUseCase(releaseRepo, releaseRecordRepo, projectMemberRepo)
 	componentUC := usecase.NewComponentUseCase(componentRepo, projectRecordRepo, projectMemberRepo)
 
+	// Google Drive storage (optional — if not configured, falls back to DB storage)
+	var driveStorage *storage.DriveStorage
+	if os.Getenv("GOOGLE_DRIVE_FOLDER_ID") != "" {
+		ds, err := storage.NewDriveStorage()
+		if err != nil {
+			log.Warn("Google Drive storage not configured, using DB fallback: " + err.Error())
+		} else {
+			driveStorage = ds
+			log.Info("Google Drive storage initialized")
+		}
+	}
+
 	// Handlers
 	handlers := &httpdelivery.Handlers{
 		Auth:                 handler.NewAuthHandler(authUC),
@@ -132,7 +145,7 @@ func main() {
 		Dashboard:            handler.NewDashboardHandler(dashboardUC),
 		Notification:         handler.NewNotificationHandler(notifUC),
 		Webhook:              handler.NewWebhookHandler(webhookUC),
-		Attachment:           handler.NewAttachmentHandler(pool),
+		Attachment:           handler.NewAttachmentHandler(pool, driveStorage),
 		Org:                  handler.NewOrgHandler(orgUC),
 		SSO:                  handler.NewSSOHandler(cfg, userRepo, jwtManager),
 		Project:              handler.NewProjectHandler(projectBoardUC),

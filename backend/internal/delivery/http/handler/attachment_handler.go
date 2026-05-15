@@ -10,28 +10,31 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/org/itsm/internal/delivery/http/middleware"
+	"github.com/org/itsm/internal/infrastructure/storage"
 	"github.com/org/itsm/pkg/apperror"
 )
 
 type AttachmentHandler struct {
-	db *pgxpool.Pool
+	db    *pgxpool.Pool
+	drive *storage.DriveStorage
 }
 
-func NewAttachmentHandler(db *pgxpool.Pool) *AttachmentHandler {
-	return &AttachmentHandler{db: db}
+func NewAttachmentHandler(db *pgxpool.Pool, drive *storage.DriveStorage) *AttachmentHandler {
+	return &AttachmentHandler{db: db, drive: drive}
 }
 
 type Attachment struct {
-	ID         string    `json:"id"`
-	TicketID   string    `json:"ticket_id"`
-	UploadedBy string    `json:"uploaded_by"`
-	Filename   string    `json:"filename"`
-	FileSize   int64     `json:"file_size"`
-	MimeType   string    `json:"mime_type"`
-	CreatedAt  time.Time `json:"created_at"`
+	ID          string    `json:"id"`
+	TicketID    string    `json:"ticket_id"`
+	UploadedBy  string    `json:"uploaded_by"`
+	Filename    string    `json:"filename"`
+	FileSize    int64     `json:"file_size"`
+	MimeType    string    `json:"mime_type"`
+	DriveFileID string    `json:"drive_file_id,omitempty"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
-// Upload handles multipart file upload for a ticket
+// Upload handles multipart file upload for a ticket — stores in Google Drive
 func (h *AttachmentHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	claims, ok := middleware.GetClaims(r)
 	if !ok {
@@ -45,9 +48,9 @@ func (h *AttachmentHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Max 10MB
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		apperror.WriteError(w, apperror.ErrValidation.WithDetails(map[string]interface{}{"error": "file too large, max 10MB"}))
+	// Max 50MB
+	if err := r.ParseMultipartForm(50 << 20); err != nil {
+		apperror.WriteError(w, apperror.ErrValidation.WithDetails(map[string]interface{}{"error": "file too large, max 50MB"}))
 		return
 	}
 
@@ -69,26 +72,48 @@ func (h *AttachmentHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		mimeType = "application/octet-stream"
 	}
 
+	// Upload to Google Drive
+	driveFileID := ""
+	if h.drive != nil {
+		driveFileName := ticketID.String() + "/" + header.Filename
+		driveFileID, err = h.drive.Upload(r.Context(), driveFileName, mimeType, data)
+		if err != nil {
+			// Log error but fallback to DB storage
+			driveFileID = ""
+		}
+	}
+
 	id := uuid.New()
 	now := time.Now().UTC()
 
-	_, err = h.db.Exec(r.Context(),
-		`INSERT INTO ticket_attachments (id, ticket_id, uploaded_by, filename, file_size, mime_type, file_data, created_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-		id, ticketID, claims.UserID, header.Filename, header.Size, mimeType, data, now,
-	)
+	if driveFileID != "" {
+		// Store metadata only (file is in Google Drive)
+		_, err = h.db.Exec(r.Context(),
+			`INSERT INTO ticket_attachments (id, ticket_id, uploaded_by, filename, file_size, mime_type, drive_file_id, created_at)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+			id, ticketID, claims.UserID, header.Filename, header.Size, mimeType, driveFileID, now,
+		)
+	} else {
+		// Fallback: store file data in DB
+		_, err = h.db.Exec(r.Context(),
+			`INSERT INTO ticket_attachments (id, ticket_id, uploaded_by, filename, file_size, mime_type, file_data, created_at)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+			id, ticketID, claims.UserID, header.Filename, header.Size, mimeType, data, now,
+		)
+	}
 	if err != nil {
 		apperror.WriteError(w, apperror.ErrInternal)
 		return
 	}
 
 	apperror.WriteJSON(w, http.StatusCreated, Attachment{
-		ID:        id.String(),
-		TicketID:  ticketID.String(),
-		Filename:  header.Filename,
-		FileSize:  header.Size,
-		MimeType:  mimeType,
-		CreatedAt: now,
+		ID:          id.String(),
+		TicketID:    ticketID.String(),
+		Filename:    header.Filename,
+		FileSize:    header.Size,
+		MimeType:    mimeType,
+		DriveFileID: driveFileID,
+		CreatedAt:   now,
 	})
 }
 
@@ -101,7 +126,7 @@ func (h *AttachmentHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := h.db.Query(r.Context(),
-		`SELECT id, ticket_id, uploaded_by, filename, file_size, mime_type, created_at
+		`SELECT id, ticket_id, uploaded_by, filename, file_size, mime_type, COALESCE(drive_file_id, '') as drive_file_id, created_at
 		 FROM ticket_attachments WHERE ticket_id = $1 ORDER BY created_at DESC`,
 		ticketID,
 	)
@@ -114,7 +139,7 @@ func (h *AttachmentHandler) List(w http.ResponseWriter, r *http.Request) {
 	var attachments []Attachment
 	for rows.Next() {
 		var a Attachment
-		if err := rows.Scan(&a.ID, &a.TicketID, &a.UploadedBy, &a.Filename, &a.FileSize, &a.MimeType, &a.CreatedAt); err != nil {
+		if err := rows.Scan(&a.ID, &a.TicketID, &a.UploadedBy, &a.Filename, &a.FileSize, &a.MimeType, &a.DriveFileID, &a.CreatedAt); err != nil {
 			continue
 		}
 		attachments = append(attachments, a)
@@ -126,7 +151,7 @@ func (h *AttachmentHandler) List(w http.ResponseWriter, r *http.Request) {
 	apperror.WriteJSON(w, http.StatusOK, attachments)
 }
 
-// Download serves the file content
+// Download serves the file content (from Drive or DB fallback)
 func (h *AttachmentHandler) Download(w http.ResponseWriter, r *http.Request) {
 	attachmentID, err := uuid.Parse(chi.URLParam(r, "attachmentId"))
 	if err != nil {
@@ -134,13 +159,27 @@ func (h *AttachmentHandler) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var filename, mimeType string
+	var filename, mimeType, driveFileID string
 	var data []byte
 	err = h.db.QueryRow(r.Context(),
-		`SELECT filename, mime_type, file_data FROM ticket_attachments WHERE id = $1`,
+		`SELECT filename, mime_type, COALESCE(drive_file_id, ''), file_data FROM ticket_attachments WHERE id = $1`,
 		attachmentID,
-	).Scan(&filename, &mimeType, &data)
+	).Scan(&filename, &mimeType, &driveFileID, &data)
 	if err != nil {
+		apperror.WriteError(w, apperror.ErrNotFound)
+		return
+	}
+
+	// If stored in Google Drive, download from there
+	if driveFileID != "" && h.drive != nil {
+		driveData, err := h.drive.Download(r.Context(), driveFileID)
+		if err == nil {
+			data = driveData
+		}
+		// If Drive download fails, fall through to DB data if available
+	}
+
+	if data == nil {
 		apperror.WriteError(w, apperror.ErrNotFound)
 		return
 	}
@@ -151,7 +190,7 @@ func (h *AttachmentHandler) Download(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
-// Delete removes an attachment
+// Delete removes an attachment (from Drive and DB)
 func (h *AttachmentHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	claims, ok := middleware.GetClaims(r)
 	if !ok {
@@ -167,9 +206,10 @@ func (h *AttachmentHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	// Only uploader or admin can delete
 	var uploadedBy uuid.UUID
+	var driveFileID string
 	err = h.db.QueryRow(r.Context(),
-		`SELECT uploaded_by FROM ticket_attachments WHERE id = $1`, attachmentID,
-	).Scan(&uploadedBy)
+		`SELECT uploaded_by, COALESCE(drive_file_id, '') FROM ticket_attachments WHERE id = $1`, attachmentID,
+	).Scan(&uploadedBy, &driveFileID)
 	if err != nil {
 		apperror.WriteError(w, apperror.ErrNotFound)
 		return
@@ -178,6 +218,11 @@ func (h *AttachmentHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if claims.UserID != uploadedBy && claims.Role != "admin" {
 		apperror.WriteError(w, apperror.ErrForbidden)
 		return
+	}
+
+	// Delete from Google Drive if applicable
+	if driveFileID != "" && h.drive != nil {
+		_ = h.drive.Delete(r.Context(), driveFileID)
 	}
 
 	h.db.Exec(r.Context(), `DELETE FROM ticket_attachments WHERE id = $1`, attachmentID)
