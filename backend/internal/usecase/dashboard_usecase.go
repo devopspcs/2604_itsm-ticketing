@@ -64,8 +64,8 @@ func (uc *dashboardUseCase) GetStats(ctx context.Context, filter domainUC.Dashbo
 			stats.ByPriority[t.Priority]++
 		}
 		recent := allTickets
-		if len(recent) > 10 {
-			recent = recent[:10]
+		if len(recent) > 25 {
+			recent = recent[:25]
 		}
 		stats.RecentTickets = recent
 
@@ -110,10 +110,10 @@ func (uc *dashboardUseCase) GetStats(ctx context.Context, filter domainUC.Dashbo
 		stats.ByPriority[t.Priority]++
 	}
 
-	// Recent tickets: up to 10
+	// Recent tickets: up to 25
 	recent := result.Tickets
-	if len(recent) > 10 {
-		recent = recent[:10]
+	if len(recent) > 25 {
+		recent = recent[:25]
 	}
 	stats.RecentTickets = recent
 
