@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -78,9 +79,14 @@ func (h *AttachmentHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		driveFileName := ticketID.String() + "/" + header.Filename
 		driveFileID, err = h.drive.Upload(r.Context(), driveFileName, mimeType, data)
 		if err != nil {
-			// Log error but fallback to DB storage
+			// Log error and fallback to DB storage
+			fmt.Printf("[DRIVE ERROR] Upload failed for %s: %v\n", header.Filename, err)
 			driveFileID = ""
+		} else {
+			fmt.Printf("[DRIVE OK] Uploaded %s -> fileID: %s\n", header.Filename, driveFileID)
 		}
+	} else {
+		fmt.Println("[DRIVE WARN] Drive storage is nil, using DB fallback")
 	}
 
 	id := uuid.New()

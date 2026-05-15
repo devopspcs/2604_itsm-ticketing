@@ -126,14 +126,19 @@ func main() {
 
 	// Google Drive storage (optional — if not configured, falls back to DB storage)
 	var driveStorage *storage.DriveStorage
-	if os.Getenv("GOOGLE_DRIVE_FOLDER_ID") != "" {
+	folderID := os.Getenv("GOOGLE_DRIVE_FOLDER_ID")
+	log.Info("GOOGLE_DRIVE_FOLDER_ID = " + folderID)
+	log.Info("GOOGLE_SERVICE_ACCOUNT_KEY_PATH = " + os.Getenv("GOOGLE_SERVICE_ACCOUNT_KEY_PATH"))
+	if folderID != "" {
 		ds, err := storage.NewDriveStorage()
 		if err != nil {
 			log.Warn("Google Drive storage not configured, using DB fallback: " + err.Error())
 		} else {
 			driveStorage = ds
-			log.Info("Google Drive storage initialized")
+			log.Info("Google Drive storage initialized successfully, folder: " + folderID)
 		}
+	} else {
+		log.Warn("GOOGLE_DRIVE_FOLDER_ID is empty, using DB storage")
 	}
 
 	// Handlers
