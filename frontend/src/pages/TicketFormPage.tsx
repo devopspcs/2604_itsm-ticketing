@@ -112,38 +112,8 @@ export function TicketFormPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-64px)] overflow-hidden">
-      <aside className="bg-slate-100 w-64 flex flex-col p-4 space-y-2 h-full hidden md:flex">
-        <div className="mb-8 px-2 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white">
-              <span className="material-symbols-outlined">description</span>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-primary">Service Console</p>
-              <p className="text-[10px] uppercase tracking-widest text-slate-500">ITSM Workspace</p>
-            </div>
-          </div>
-        </div>
-        <nav className="space-y-1">
-          {[
-            { to: '/dashboard', icon: 'dashboard', label: 'Home' },
-            { to: '/tickets', icon: 'description', label: 'My Requests', active: true },
-            { to: '/approvals', icon: 'fact_check', label: 'Approvals' },
-            { to: '/activity-logs', icon: 'history_edu', label: 'Activity Logs' },
-          ].map(item => (
-            <Link key={item.to} to={item.to}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
-                item.active ? 'bg-white text-primary shadow-sm' : 'text-slate-600 hover:bg-slate-200 hover:translate-x-1 duration-200'
-              }`}>
-              <span className="material-symbols-outlined">{item.icon}</span>
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      </aside>
-
-      <main className="flex-1 overflow-y-auto bg-surface p-8">
+    <div className="h-[calc(100vh-64px)] overflow-hidden">
+      <main className="h-full overflow-y-auto bg-surface p-8">
         <div className="max-w-5xl mx-auto">
           <div className="mb-10">
             <div className="flex items-center gap-2 text-on-surface-variant text-sm mb-4">
