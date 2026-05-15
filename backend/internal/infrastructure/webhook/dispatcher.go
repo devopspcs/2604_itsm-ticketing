@@ -128,20 +128,25 @@ func formatGoogleChat(event entity.WebhookEvent, rawPayload []byte, baseURL stri
 	ticketType := getStr(data, "type")
 	category := getStr(data, "category")
 	ticketID := getStr(data, "id")
+	ticketNumber := getStr(data, "ticket_number")
 	createdBy := getStr(data, "created_by")
 	assignedTo := getStr(data, "assigned_to")
 
-	shortID := ticketID
-	if len(shortID) > 8 {
-		shortID = shortID[:8]
-	}
-
-	prefix := "REQ"
-	switch ticketType {
-	case "incident":
-		prefix = "INC"
-	case "change_request":
-		prefix = "CHG"
+	// Use ticket_number directly if available
+	displayNumber := ticketNumber
+	if displayNumber == "" {
+		shortID := ticketID
+		if len(shortID) > 8 {
+			shortID = shortID[:8]
+		}
+		prefix := "REQ"
+		switch ticketType {
+		case "incident":
+			prefix = "INC"
+		case "change_request":
+			prefix = "CHG"
+		}
+		displayNumber = prefix + "-" + shortID
 	}
 
 	// Event header
@@ -162,7 +167,7 @@ func formatGoogleChat(event entity.WebhookEvent, rawPayload []byte, baseURL stri
 	}
 
 	text := fmt.Sprintf("*PCS Ticketing System*\n%s\n\n", eventLabel)
-	text += fmt.Sprintf("*Ticket Number:* %s-%s\n\n", prefix, shortID)
+	text += fmt.Sprintf("*Ticket Number:* %s\n\n", displayNumber)
 	text += fmt.Sprintf("*Title:* %s\n\n", title)
 
 	if category != "" {

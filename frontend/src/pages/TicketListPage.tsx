@@ -173,7 +173,7 @@ export function TicketListPage() {
                 <tr key={t.id} className="hover:bg-surface-container-low/30 transition-colors group">
                   <td className="px-6 py-5">
                     <span className="text-xs font-bold text-primary-fixed-dim bg-primary/5 px-2 py-1 rounded">
-                      {t.type === 'incident' ? 'INC' : t.type === 'change_request' ? 'CHG' : 'REQ'}-{t.id.slice(0, 6).toUpperCase()}
+                      {t.ticket_number}
                     </span>
                   </td>
                   <td className="px-6 py-5">
