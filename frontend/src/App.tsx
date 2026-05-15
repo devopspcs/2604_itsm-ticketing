@@ -10,6 +10,7 @@ import { ApprovalsPage } from './pages/ApprovalsPage'
 import { ActivityLogsPage } from './pages/ActivityLogsPage'
 import { NotificationsPage } from './pages/NotificationsPage'
 import { UserManagementPage } from './pages/UserManagementPage'
+import { ACLDashboardPage } from './pages/ACLDashboardPage'
 import { WebhookConfigPage } from './pages/WebhookConfigPage'
 import { OrgStructurePage } from './pages/OrgStructurePage'
 import { ProfilePage } from './pages/ProfilePage'
@@ -51,11 +52,12 @@ export default function App() {
           <Route path="/approvals" element={<RoleGuard roles={['admin', 'approver']}><ApprovalsPage /></RoleGuard>} />
           <Route path="/activity-logs" element={<RoleGuard roles={['agent', 'admin', 'approver']}><ActivityLogsPage /></RoleGuard>} />
           <Route path="/notifications" element={<NotificationsPage />} />
-          <Route path="/users" element={<UserManagementPage />} />
-          <Route path="/webhooks" element={<WebhookConfigPage />} />
-          <Route path="/org-structure" element={<OrgStructurePage />} />
+          <Route path="/users" element={<RoleGuard roles={['admin']}><UserManagementPage /></RoleGuard>} />
+          <Route path="/acl" element={<RoleGuard roles={['admin']}><ACLDashboardPage /></RoleGuard>} />
+          <Route path="/webhooks" element={<RoleGuard roles={['admin']}><WebhookConfigPage /></RoleGuard>} />
+          <Route path="/org-structure" element={<RoleGuard roles={['admin']}><OrgStructurePage /></RoleGuard>} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/settings" element={<UserManagementPage />} />
+          <Route path="/settings" element={<RoleGuard roles={['admin']}><UserManagementPage /></RoleGuard>} />
         </Route>
         <Route element={<ProjectBoardLayout />}>
           <Route path="/projects" element={<ProjectHomePage />} />

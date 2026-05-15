@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/org/itsm/internal/domain/entity"
+	"github.com/org/itsm/internal/domain/repository"
 	domainUC "github.com/org/itsm/internal/domain/usecase"
 	jwtpkg "github.com/org/itsm/pkg/jwt"
 	"github.com/org/itsm/pkg/apperror"
@@ -15,7 +16,7 @@ type contextKey string
 
 const ClaimsKey contextKey = "user_claims"
 
-func JWTAuth(jwtManager *jwtpkg.Manager) func(http.Handler) http.Handler {
+func JWTAuth(jwtManager *jwtpkg.Manager, userRepo repository.UserRepository) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get("Authorization")
@@ -35,6 +36,16 @@ func JWTAuth(jwtManager *jwtpkg.Manager) func(http.Handler) http.Handler {
 			if id, err := parseUUID(claims.UserID); err == nil {
 				userClaims.UserID = id
 			}
+
+			// Check if user is still active (immediate revoke on deactivation)
+			if userRepo != nil {
+				user, err := userRepo.FindByID(r.Context(), userClaims.UserID)
+				if err != nil || !user.IsActive {
+					apperror.WriteError(w, apperror.ErrForbidden)
+					return
+				}
+			}
+
 			ctx := context.WithValue(r.Context(), ClaimsKey, userClaims)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

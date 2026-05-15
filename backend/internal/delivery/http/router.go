@@ -8,6 +8,7 @@ import (
 	"github.com/org/itsm/internal/delivery/http/handler"
 	"github.com/org/itsm/internal/delivery/http/middleware"
 	"github.com/org/itsm/internal/domain/entity"
+	"github.com/org/itsm/internal/domain/repository"
 	jwtpkg "github.com/org/itsm/pkg/jwt"
 )
 
@@ -27,7 +28,7 @@ type Handlers struct {
 	ProjectBoardFeatures *handler.ProjectBoardFeaturesHandler
 }
 
-func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, db interface{ Ping() error }) http.Handler {
+func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, userRepo repository.UserRepository, db interface{ Ping() error }) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(chimw.Logger)
@@ -57,7 +58,7 @@ func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, db interface{ Ping() err
 
 		// Authenticated routes
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.JWTAuth(jwtManager))
+			r.Use(middleware.JWTAuth(jwtManager, userRepo))
 			r.Use(middleware.RateLimit(100)) // 100 requests per minute per user
 
 			r.Post("/auth/logout", h.Auth.Logout)
