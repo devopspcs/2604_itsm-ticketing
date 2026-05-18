@@ -17,6 +17,7 @@ type approvalUseCase struct {
 	activityRepo     repository.ActivityLogRepository
 	notificationRepo repository.NotificationRepository
 	userRepo         repository.UserRepository
+	teamRepo         repository.TeamRepository
 	webhookUC        domainUC.WebhookUseCase
 }
 
@@ -26,6 +27,7 @@ func NewApprovalUseCase(
 	activityRepo repository.ActivityLogRepository,
 	notificationRepo repository.NotificationRepository,
 	userRepo repository.UserRepository,
+	teamRepo repository.TeamRepository,
 	webhookUC domainUC.WebhookUseCase,
 ) domainUC.ApprovalUseCase {
 	return &approvalUseCase{
@@ -34,6 +36,7 @@ func NewApprovalUseCase(
 		activityRepo:     activityRepo,
 		notificationRepo: notificationRepo,
 		userRepo:         userRepo,
+		teamRepo:         teamRepo,
 		webhookUC:        webhookUC,
 	}
 }
@@ -88,16 +91,25 @@ func (uc *approvalUseCase) Decide(ctx context.Context, req domainUC.ApprovalDeci
 		return err
 	}
 
-	// Team-based scope validation for approvers
+	// Team-based scope validation for approvers (division-based)
 	if approver.Role == entity.RoleApprover {
 		approverUser, err := uc.userRepo.FindByID(ctx, approver.UserID)
-		if err == nil && approverUser.TeamID != nil {
-			// Approver with team can only approve tickets assigned to their team or unassigned
-			isTeamTicket := ticket.AssignedTeamID != nil && *ticket.AssignedTeamID == *approverUser.TeamID
-			isUnassigned := ticket.AssignedTeamID == nil
-			if !isTeamTicket && !isUnassigned {
-				return apperror.ErrForbidden
+		if err == nil && approverUser.DivisionID != nil {
+			if ticket.AssignedTeamID != nil {
+				// Check if ticket's team is in approver's division
+				teams, _ := uc.teamRepo.List(ctx, repository.TeamFilter{DivisionID: approverUser.DivisionID})
+				found := false
+				for _, t := range teams {
+					if t.ID == *ticket.AssignedTeamID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					return apperror.ErrForbidden
+				}
 			}
+			// unassigned tickets can be approved by any approver
 		}
 	}
 

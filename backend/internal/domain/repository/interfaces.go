@@ -101,7 +101,7 @@ type TicketFilter struct {
 	Category                    *string
 	AssignedTo                  *uuid.UUID
 	AssignedTeamID              *uuid.UUID
-	AssignedTeamIDOrUnassigned  *uuid.UUID // filter: team_id matches OR assigned_team_id IS NULL
+	AssignedTeamIDsOrUnassigned []uuid.UUID // filter: assigned_team_id IN (...) OR assigned_team_id IS NULL
 	CreatedBy                   *uuid.UUID
 	DateFrom                    *time.Time
 	DateTo                      *time.Time
