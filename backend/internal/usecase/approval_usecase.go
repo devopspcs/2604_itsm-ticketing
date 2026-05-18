@@ -81,7 +81,7 @@ func (uc *approvalUseCase) Decide(ctx context.Context, req domainUC.ApprovalDeci
 			return apperror.ErrForbidden
 		}
 		pos := *approverUser.Position
-		if pos != entity.PositionManager && pos != entity.PositionDivisionManager {
+		if pos != entity.PositionManager {
 			return apperror.ErrForbidden
 		}
 	}
@@ -212,12 +212,7 @@ func (uc *approvalUseCase) validateApprovalScope(approver, creator *entity.User)
 	}
 	switch *approver.Position {
 	case entity.PositionManager:
-		// Manager can approve tickets from users in the same team
-		if approver.TeamID == nil || creator.TeamID == nil || *approver.TeamID != *creator.TeamID {
-			return apperror.ErrForbidden
-		}
-	case entity.PositionDivisionManager:
-		// Division Manager can approve tickets from users in the same division
+		// Manager can approve tickets from users in the same division
 		if approver.DivisionID == nil || creator.DivisionID == nil || *approver.DivisionID != *creator.DivisionID {
 			return apperror.ErrForbidden
 		}
@@ -253,28 +248,12 @@ func (uc *approvalUseCase) ResolveApprovers(ctx context.Context, creatorID uuid.
 		if u.Position == nil || !u.IsActive {
 			continue
 		}
-		if *u.Position == entity.PositionManager && u.TeamID != nil && *u.TeamID == *creator.TeamID && u.ID != creatorID {
+		if *u.Position == entity.PositionManager && u.DivisionID != nil && *u.DivisionID == *creator.DivisionID && u.ID != creatorID {
 			approvers = append(approvers, struct {
 				UserID uuid.UUID
 				Level  int
 			}{UserID: u.ID, Level: 1})
 			break
-		}
-	}
-
-	// Find Division Manager in the same division
-	if creator.DivisionID != nil {
-		for _, u := range users {
-			if u.Position == nil || !u.IsActive {
-				continue
-			}
-			if *u.Position == entity.PositionDivisionManager && u.DivisionID != nil && *u.DivisionID == *creator.DivisionID && u.ID != creatorID {
-				approvers = append(approvers, struct {
-					UserID uuid.UUID
-					Level  int
-				}{UserID: u.ID, Level: 2})
-				break
-			}
 		}
 	}
 

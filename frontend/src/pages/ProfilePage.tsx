@@ -6,7 +6,7 @@ import type { RootState } from '../store'
 import { orgService } from '../services/org.service'
 
 const POSITION_LABELS: Record<Position, string> = {
-  division_manager: 'Division Manager', manager: 'Manager', leader: 'Leader', staff: 'Staff',
+  manager: 'Manager', leader: 'Leader', staff: 'Staff',
 }
 
 export function ProfilePage() {
