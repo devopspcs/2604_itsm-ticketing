@@ -88,6 +88,19 @@ func (uc *approvalUseCase) Decide(ctx context.Context, req domainUC.ApprovalDeci
 		return err
 	}
 
+	// Team-based scope validation for approvers
+	if approver.Role == entity.RoleApprover {
+		approverUser, err := uc.userRepo.FindByID(ctx, approver.UserID)
+		if err == nil && approverUser.TeamID != nil {
+			// Approver with team can only approve tickets assigned to their team or unassigned
+			isTeamTicket := ticket.AssignedTeamID != nil && *ticket.AssignedTeamID == *approverUser.TeamID
+			isUnassigned := ticket.AssignedTeamID == nil
+			if !isTeamTicket && !isUnassigned {
+				return apperror.ErrForbidden
+			}
+		}
+	}
+
 	// Org-based scope validation: if approver has org position, validate scope
 	approverUser, _ := uc.userRepo.FindByID(ctx, approver.UserID)
 	if approverUser != nil && approverUser.Position != nil && approver.Role != entity.RoleAdmin {
