@@ -118,8 +118,8 @@ func (uc *assignmentUseCase) AssignTicket(ctx context.Context, ticketID uuid.UUI
 
 // checkAssignmentACL validates position-based assignment permissions.
 func (uc *assignmentUseCase) checkAssignmentACL(ctx context.Context, requester domainUC.UserClaims, assignee *entity.User) error {
-	// Admin can assign to anyone
-	if requester.Role == entity.RoleAdmin {
+	// Admin, Agent, and Approver can assign to anyone
+	if requester.Role == entity.RoleAdmin || requester.Role == entity.RoleAgent || requester.Role == entity.RoleApprover {
 		return nil
 	}
 
@@ -177,8 +177,8 @@ func (uc *assignmentUseCase) AssignTicketToTeam(ctx context.Context, ticketID uu
 		return apperror.ErrNotFound.WithDetails(map[string]interface{}{"team": "team not found"})
 	}
 
-	// Check ACL: only admin, manager, division_manager, or leader can assign to team
-	if requester.Role != entity.RoleAdmin {
+	// Check ACL: admin, agent, approver can assign to team; staff cannot
+	if requester.Role != entity.RoleAdmin && requester.Role != entity.RoleAgent && requester.Role != entity.RoleApprover {
 		reqUser, err := uc.userRepo.FindByID(ctx, requester.UserID)
 		if err != nil {
 			return nil // backward compat
