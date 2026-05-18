@@ -183,7 +183,7 @@ export function TicketListPage() {
                   No tickets found
                 </td></tr>
               ) : tickets.map((t) => (
-                <tr key={t.id} className="hover:bg-surface-container-low/30 transition-colors group">
+                <tr key={t.id} onClick={() => navigate(`/tickets/${t.id}`)} className="hover:bg-surface-container-low/30 transition-colors group cursor-pointer">
                   <td className="px-6 py-5">
                     <span className="text-xs font-bold text-primary-fixed-dim bg-primary/5 px-2 py-1 rounded">
                       {t.ticket_number}
