@@ -44,7 +44,7 @@ export function DashboardPage() {
   return (
     <div className="max-w-[1400px] mx-auto p-6 md:p-8">
       {/* Welcome Header */}
-      <div className="mb-10">
+      <div className="mb-8">
         <h1 className="text-3xl font-extrabold text-on-surface tracking-tight mb-2">
           {role === 'user' ? 'My Service Requests' : 'Operational Overview'}
         </h1>
@@ -71,10 +71,10 @@ export function DashboardPage() {
         <>
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-            <StatCard label="Total Tickets" value={stats.total_tickets ?? 0} icon="confirmation_number" borderColor="border-primary" delta="+12%" onClick={() => navigate('/tickets')} />
-            <StatCard label="Pending Approvals" value={(stats.by_status as Record<string,number>)?.['pending_approval'] ?? 0} icon="fact_check" borderColor="border-amber-500" delta="-5" onClick={() => navigate('/tickets?status=pending_approval')} />
-            <StatCard label="Active Incidents" value={(stats.by_type as Record<string,number>)?.['incident'] ?? 0} icon="report" borderColor="border-error" deltaLabel="High Risk" onClick={() => navigate('/tickets?type=incident')} />
-            <StatCard label="Completed" value={(stats.by_status as Record<string,number>)?.['done'] ?? 0} icon="check_circle" borderColor="border-emerald-500" deltaLabel="Daily Goal Hit" onClick={() => navigate('/tickets?status=done')} />
+            <StatCard label="Total Tickets" value={stats.total_tickets ?? 0} icon="confirmation_number" borderColor="border-primary" onClick={() => navigate('/tickets')} />
+            <StatCard label="Pending Approvals" value={(stats.by_status as Record<string,number>)?.['pending_approval'] ?? 0} icon="fact_check" borderColor="border-amber-500" onClick={() => navigate('/tickets?status=pending_approval')} />
+            <StatCard label="Active Incidents" value={(stats.by_type as Record<string,number>)?.['incident'] ?? 0} icon="report" borderColor="border-error" onClick={() => navigate('/tickets?type=incident')} />
+            <StatCard label="Completed" value={(stats.by_status as Record<string,number>)?.['done'] ?? 0} icon="check_circle" borderColor="border-emerald-500" onClick={() => navigate('/tickets?status=done')} />
           </div>
 
           {/* Bento Grid */}
@@ -85,9 +85,6 @@ export function DashboardPage() {
                 <div>
                   <h3 className="text-xl font-bold text-on-surface">Tickets per Category</h3>
                   <p className="text-sm text-on-surface-variant">Distribution across ticket types</p>
-                </div>
-                <div className="flex gap-2">
-                  <button className="px-3 py-1 text-xs font-bold bg-primary text-white rounded-full">Weekly</button>
                 </div>
               </div>
               <div className="relative flex items-end justify-around gap-8 px-8" style={{ height: '280px' }}>
