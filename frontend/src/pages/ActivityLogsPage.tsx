@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
-import type { ActivityLog, User } from '../types'
+import { orgService } from '../services/org.service'
+import type { ActivityLog, User, Team } from '../types'
 
 const actionIcon: Record<string, string> = {
   ticket_created: 'post_add', ticket_deleted: 'delete', status_changed: 'edit_note', assigned: 'person_add',
-  reassigned: 'person_search', approval_requested: 'pending', approval_decided: 'verified',
+  reassigned: 'person_search', assigned_to_team: 'groups', approval_requested: 'pending', approval_decided: 'verified',
   field_updated: 'edit',
 }
 const statusChip: Record<string, string> = {
@@ -13,6 +14,7 @@ const statusChip: Record<string, string> = {
   status_changed: 'border-accent-600 bg-accent-600/10 text-accent-700',
   assigned: 'border-green-600 bg-green-600/10 text-green-700',
   reassigned: 'border-green-600 bg-green-600/10 text-green-700',
+  assigned_to_team: 'border-blue-600 bg-blue-600/10 text-blue-700',
   approval_requested: 'border-amber-500 bg-amber-500/10 text-amber-700',
   approval_decided: 'border-tertiary bg-tertiary/10 text-tertiary',
   field_updated: 'border-accent-600 bg-accent-600/10 text-accent-700',
@@ -21,6 +23,7 @@ const statusChip: Record<string, string> = {
 export function ActivityLogsPage() {
   const [logs, setLogs] = useState<ActivityLog[]>([])
   const [users, setUsers] = useState<User[]>([])
+  const [teams, setTeams] = useState<Team[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
 
@@ -30,19 +33,26 @@ export function ActivityLogsPage() {
     return u ? u.full_name : id.slice(0, 8) + '...'
   }
 
-  // Resolve UUID values to user names in activity details
+  // Resolve UUID values to user/team names in activity details
   const resolveValue = (val?: string | null) => {
     if (!val) return ''
     // Check if value looks like a UUID
     if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val)) {
-      return userName(val)
+      // Try user first
+      const u = users.find(u => u.id === val)
+      if (u) return u.full_name
+      // Try team
+      const t = teams.find(t => t.id === val)
+      if (t) return t.name
+      return val.slice(0, 8) + '...'
     }
     return val
   }
 
   useEffect(() => {
-    // Load users for name resolution
+    // Load users and teams for name resolution
     api.get<User[]>('/users/list').then(r => setUsers(r.data ?? [])).catch(() => {})
+    orgService.listTeams().then(r => setTeams(r.data ?? [])).catch(() => {})
   }, [])
 
   useEffect(() => {
