@@ -6,7 +6,6 @@ import { LoadingSpinner } from '../components/common/LoadingSpinner'
 import { ErrorMessage } from '../components/common/ErrorMessage'
 
 const POSITION_LABELS: Record<Position, string> = {
-  division_manager: 'Division Manager',
   manager: 'Manager',
   leader: 'Leader',
   staff: 'Staff',
@@ -205,11 +204,11 @@ export function UserManagementPage() {
               </div>
               <div>
                 <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Team</label>
-                {(form.position === 'manager' || form.position === 'division_manager') ? (
+                {(form.position === 'manager') ? (
                   <div className="w-full bg-surface-container-high/50 border-none rounded-xl px-4 py-3 text-sm text-on-surface-variant">
                     <span className="flex items-center gap-2">
                       <span className="material-symbols-outlined text-[16px]">info</span>
-                      {form.position === 'manager' ? 'Manager handles all teams in this division' : 'Division Manager handles all teams in this division'}
+                      Manager handles all teams in this division
                     </span>
                   </div>
                 ) : (
@@ -224,8 +223,8 @@ export function UserManagementPage() {
                 <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Position</label>
                 <select value={form.position} onChange={(e) => {
                   const newPos = e.target.value
-                  // Clear team_id when switching to manager/division_manager
-                  if (newPos === 'manager' || newPos === 'division_manager') {
+                  // Clear team_id when switching to manager
+                  if (newPos === 'manager') {
                     setForm({ ...form, position: newPos, team_id: '' })
                   } else {
                     setForm({ ...form, position: newPos })

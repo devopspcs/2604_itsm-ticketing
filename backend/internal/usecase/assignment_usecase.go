@@ -147,14 +147,7 @@ func (uc *assignmentUseCase) checkAssignmentACL(ctx context.Context, requester d
 		return nil
 
 	case entity.PositionManager:
-		// Manager can assign to any member of the same team
-		if reqUser.TeamID == nil || assignee.TeamID == nil || *reqUser.TeamID != *assignee.TeamID {
-			return apperror.ErrForbidden
-		}
-		return nil
-
-	case entity.PositionDivisionManager:
-		// Division Manager can assign to any member of the same division
+		// Manager can assign to any member of the same division
 		if reqUser.DivisionID == nil || assignee.DivisionID == nil || *reqUser.DivisionID != *assignee.DivisionID {
 			return apperror.ErrForbidden
 		}

@@ -4,7 +4,7 @@ export type Priority = 'low' | 'medium' | 'high' | 'critical'
 export type TicketStatus = 'open' | 'in_progress' | 'pending_approval' | 'approved' | 'rejected' | 'done'
 export type ApprovalDecision = 'approved' | 'rejected'
 
-export type Position = 'division_manager' | 'manager' | 'leader' | 'staff'
+export type Position = 'manager' | 'leader' | 'staff'
 
 export interface Department {
   id: string

@@ -183,16 +183,16 @@ func (uc *ticketUseCase) listTicketsByPosition(ctx context.Context, filter repos
 		filter.CreatedBy = &user.ID
 		return uc.ticketRepo.List(ctx, filter)
 
-	case entity.PositionLeader, entity.PositionManager:
-		// Leader/Manager: tickets from all team members
+	case entity.PositionLeader:
+		// Leader: tickets from all team members
 		if user.TeamID == nil {
 			filter.CreatedBy = &user.ID
 			return uc.ticketRepo.List(ctx, filter)
 		}
 		return uc.listTicketsByTeam(ctx, filter, *user.TeamID)
 
-	case entity.PositionDivisionManager:
-		// Division Manager: tickets from all division members
+	case entity.PositionManager:
+		// Manager: tickets from all division members
 		if user.DivisionID == nil {
 			filter.CreatedBy = &user.ID
 			return uc.ticketRepo.List(ctx, filter)
