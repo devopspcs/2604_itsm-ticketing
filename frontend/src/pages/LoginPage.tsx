@@ -53,7 +53,7 @@ export function LoginPage() {
                 Email or Username
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-outline group-focus-within:text-primary transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-outline group-focus-within:text-primary transition-colors overflow-hidden w-10">
                   <span className="material-symbols-outlined text-[20px]">alternate_email</span>
                 </div>
                 <input
@@ -75,7 +75,7 @@ export function LoginPage() {
                 </label>
               </div>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-outline group-focus-within:text-primary transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-outline group-focus-within:text-primary transition-colors overflow-hidden w-10">
                   <span className="material-symbols-outlined text-[20px]">lock</span>
                 </div>
                 <input
@@ -90,7 +90,7 @@ export function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-outline hover:text-on-surface transition-colors"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-outline hover:text-on-surface transition-colors overflow-hidden w-10"
                 >
                   <span className="material-symbols-outlined text-[20px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
                 </button>
@@ -134,10 +134,6 @@ export function LoginPage() {
           </p>
         </footer>
       </main>
-
-      <div className="fixed bottom-8 right-8 hidden lg:block opacity-40">
-        <div className="text-[140px] font-black text-primary/5 select-none pointer-events-none leading-none">PCS</div>
-      </div>
     </body>
   )
 }
