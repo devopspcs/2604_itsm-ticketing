@@ -41,6 +41,18 @@ export function TicketListPage() {
     orgService.listTeams().then(r => setTeams(r.data ?? [])).catch(() => {})
   }, [])
 
+  // Sync state from URL search params when they change
+  useEffect(() => {
+    const urlSearch = searchParams.get('search') ?? ''
+    const urlStatus = searchParams.get('status') ?? ''
+    const urlType = searchParams.get('type') ?? ''
+    const urlPriority = searchParams.get('priority') ?? ''
+    if (urlSearch !== search) setSearch(urlSearch)
+    if (urlStatus !== statusFilter) setStatusFilter(urlStatus)
+    if (urlType !== typeFilter) setTypeFilter(urlType)
+    if (urlPriority !== priorityFilter) setPriorityFilter(urlPriority)
+  }, [searchParams])
+
   const resolveName = (ticket: Ticket) => {
     if (ticket.assigned_to) {
       const u = users.find(u => u.id === ticket.assigned_to)
