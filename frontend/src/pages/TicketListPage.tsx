@@ -28,7 +28,7 @@ export function TicketListPage() {
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(searchParams.get('search') ?? '')
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') ?? '')
   const [typeFilter, setTypeFilter] = useState(searchParams.get('type') ?? '')
   const [priorityFilter, setPriorityFilter] = useState(searchParams.get('priority') ?? '')
@@ -73,7 +73,7 @@ export function TicketListPage() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { fetchTickets(page) }, [page, pageSize, statusFilter, typeFilter, priorityFilter])
+  useEffect(() => { fetchTickets(page) }, [page, pageSize, search, statusFilter, typeFilter, priorityFilter])
 
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setPage(1); fetchTickets(1) }
 

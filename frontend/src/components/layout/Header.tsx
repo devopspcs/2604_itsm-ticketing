@@ -73,6 +73,15 @@ export function Header() {
             className="pl-10 pr-4 py-2 bg-surface-container-highest border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/20 w-64 outline-none"
             placeholder="Global Search..."
             type="text"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                const val = (e.target as HTMLInputElement).value.trim()
+                if (val) {
+                  navigate(`/tickets?search=${encodeURIComponent(val)}`)
+                  ;(e.target as HTMLInputElement).value = ''
+                }
+              }
+            }}
           />
         </div>
 
