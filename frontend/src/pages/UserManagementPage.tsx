@@ -124,7 +124,7 @@ export function UserManagementPage() {
   if (loading) return <LoadingSpinner />
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-[1400px] mx-auto p-6 md:p-8">
       {actionMsg && (
         <div className="fixed top-20 right-6 z-50 px-5 py-3 rounded-xl shadow-lg font-semibold text-sm bg-emerald-100 text-emerald-800 flex items-center gap-2">
           <span className="material-symbols-outlined text-sm">check_circle</span>
