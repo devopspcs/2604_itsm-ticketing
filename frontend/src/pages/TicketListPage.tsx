@@ -27,6 +27,7 @@ export function TicketListPage() {
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') ?? '')
   const [typeFilter, setTypeFilter] = useState(searchParams.get('type') ?? '')
@@ -60,7 +61,7 @@ export function TicketListPage() {
 
   const fetchTickets = (p = 1) => {
     setLoading(true)
-    const params: Record<string, string | number> = { page: p, page_size: 10 }
+    const params: Record<string, string | number> = { page: p, page_size: pageSize }
     if (search) params.search = search
     if (statusFilter) params.status = statusFilter
     if (typeFilter) params.type = typeFilter
@@ -72,7 +73,7 @@ export function TicketListPage() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { fetchTickets(page) }, [page, statusFilter, typeFilter, priorityFilter])
+  useEffect(() => { fetchTickets(page) }, [page, pageSize, statusFilter, typeFilter, priorityFilter])
 
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setPage(1); fetchTickets(1) }
 
@@ -213,10 +214,22 @@ export function TicketListPage() {
 
         {/* Pagination */}
         <div className="bg-surface-container-low px-6 py-4 flex items-center justify-between">
-          <p className="text-xs text-on-surface-variant font-medium">
-            Showing <span className="font-bold">{tickets.length}</span> of <span className="font-bold">{total}</span> records
-          </p>
-          <Pagination page={page} total={total} pageSize={10} onPageChange={setPage} />
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-on-surface-variant">Rows per page:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1) }}
+              className="bg-surface-container-high border-none rounded-lg px-3 py-1.5 text-xs font-semibold outline-none appearance-none cursor-pointer"
+            >
+              {[10, 25, 50, 100].map(n => (
+                <option key={n} value={n}>{n} rows</option>
+              ))}
+            </select>
+            <span className="text-xs text-on-surface-variant ml-2">
+              {Math.min((page - 1) * pageSize + 1, total)}–{Math.min(page * pageSize, total)} of <span className="font-bold">{total}</span> records
+            </span>
+          </div>
+          <Pagination page={page} total={total} pageSize={pageSize} onPageChange={setPage} />
         </div>
       </div>
 
