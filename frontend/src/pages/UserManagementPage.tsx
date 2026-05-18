@@ -205,15 +205,32 @@ export function UserManagementPage() {
               </div>
               <div>
                 <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Team</label>
-                <select value={form.team_id} onChange={(e) => setForm({ ...form, team_id: e.target.value })}
-                  disabled={!form.division_id} className={inputStyle + ' appearance-none'}>
-                  <option value="">-- None --</option>
-                  {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
+                {(form.position === 'manager' || form.position === 'division_manager') ? (
+                  <div className="w-full bg-surface-container-high/50 border-none rounded-xl px-4 py-3 text-sm text-on-surface-variant">
+                    <span className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[16px]">info</span>
+                      {form.position === 'manager' ? 'Manager handles all teams in this division' : 'Division Manager handles all teams in this division'}
+                    </span>
+                  </div>
+                ) : (
+                  <select value={form.team_id} onChange={(e) => setForm({ ...form, team_id: e.target.value })}
+                    disabled={!form.division_id} className={inputStyle + ' appearance-none'}>
+                    <option value="">-- None --</option>
+                    {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                )}
               </div>
               <div>
                 <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Position</label>
-                <select value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} className={inputStyle + ' appearance-none'}>
+                <select value={form.position} onChange={(e) => {
+                  const newPos = e.target.value
+                  // Clear team_id when switching to manager/division_manager
+                  if (newPos === 'manager' || newPos === 'division_manager') {
+                    setForm({ ...form, position: newPos, team_id: '' })
+                  } else {
+                    setForm({ ...form, position: newPos })
+                  }
+                }} className={inputStyle + ' appearance-none'}>
                   <option value="">-- None --</option>
                   {(Object.keys(POSITION_LABELS) as Position[]).map(p => <option key={p} value={p}>{POSITION_LABELS[p]}</option>)}
                 </select>
