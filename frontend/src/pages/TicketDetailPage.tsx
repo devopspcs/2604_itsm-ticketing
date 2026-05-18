@@ -230,7 +230,7 @@ function AssignModal({
                 className="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 text-sm outline-none appearance-none"
               >
                 <option value="">-- Select user --</option>
-                {users.filter(u => u.is_active).map(u => (
+                {users.filter(u => u.is_active && u.role === 'agent').map(u => (
                   <option key={u.id} value={u.id}>{u.full_name} ({u.role})</option>
                 ))}
               </select>

@@ -280,7 +280,7 @@ export function TicketFormPage() {
                           className="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm appearance-none"
                         >
                           <option value="">-- No assignment (assign later) --</option>
-                          {usersList.filter(u => u.is_active).map(u => (
+                          {usersList.filter(u => u.is_active && u.role === 'agent').map(u => (
                             <option key={u.id} value={u.id}>{u.full_name} ({u.role})</option>
                           ))}
                         </select>
