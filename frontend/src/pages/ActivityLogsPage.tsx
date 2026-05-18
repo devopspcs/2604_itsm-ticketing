@@ -26,6 +26,8 @@ export function ActivityLogsPage() {
   const [teams, setTeams] = useState<Team[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
 
   const userName = (id?: string) => {
     if (!id) return 'System'
@@ -56,8 +58,8 @@ export function ActivityLogsPage() {
   }, [])
 
   useEffect(() => {
-    // Fetch recent activity logs — we'll get from a few recent tickets
-    api.get('/tickets', { params: { page: 1, page_size: 5 } })
+    // Fetch recent activity logs — get from all recent tickets
+    api.get('/tickets', { params: { page: 1, page_size: 50 } })
       .then(async (res) => {
         const tickets = res.data.tickets ?? []
         const allLogs: ActivityLog[] = []
@@ -74,6 +76,12 @@ export function ActivityLogsPage() {
   }, [])
 
   const filtered = filter === 'all' ? logs : logs.filter(l => l.action.includes(filter))
+  const totalPages = Math.ceil(filtered.length / rowsPerPage)
+  const paginatedLogs = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage)
+
+  // Reset page when filter or rowsPerPage changes
+  const handleFilterChange = (f: string) => { setFilter(f); setPage(1) }
+  const handleRowsPerPageChange = (val: number) => { setRowsPerPage(val); setPage(1) }
 
   return (
     <div className="max-w-[1600px] mx-auto p-8">
@@ -144,7 +152,7 @@ export function ActivityLogsPage() {
             {['all', 'ticket', 'approval', 'status'].map((f) => (
               <button
                 key={f}
-                onClick={() => setFilter(f)}
+                onClick={() => handleFilterChange(f)}
                 className={`text-sm font-medium px-3 py-1 rounded-full transition-colors ${
                   filter === f ? 'font-bold text-primary bg-primary-fixed' : 'text-on-surface-variant hover:bg-surface-container-low'
                 }`}
@@ -176,7 +184,7 @@ export function ActivityLogsPage() {
                   <span className="material-symbols-outlined text-4xl block mb-2 opacity-30">history</span>
                   No activity logs found
                 </td></tr>
-              ) : filtered.map((log) => (
+              ) : paginatedLogs.map((log) => (
                 <tr key={log.id} className="hover:bg-surface-container-low/30 transition-colors">
                   <td className="px-8 py-5">
                     <div className="text-sm font-semibold text-on-surface">{new Date(log.created_at).toLocaleDateString()}</div>
@@ -207,8 +215,75 @@ export function ActivityLogsPage() {
           </table>
         </div>
 
-        <div className="px-8 py-6 border-t border-surface-container-low flex items-center justify-between">
-          <p className="text-xs text-on-surface-variant">Showing {filtered.length} activities</p>
+        <div className="px-8 py-5 border-t border-surface-container-low flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-on-surface-variant">Rows per page:</span>
+            <select
+              value={rowsPerPage}
+              onChange={(e) => handleRowsPerPageChange(Number(e.target.value))}
+              className="bg-surface-container-high border-none rounded-lg px-3 py-1.5 text-xs font-semibold outline-none appearance-none cursor-pointer"
+            >
+              {[10, 25, 50, 100].map(n => (
+                <option key={n} value={n}>{n} rows</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-on-surface-variant mr-2">
+              {Math.min((page - 1) * rowsPerPage + 1, filtered.length)}–{Math.min(page * rowsPerPage, filtered.length)} of {filtered.length}
+            </span>
+            <button
+              onClick={() => setPage(1)}
+              disabled={page === 1}
+              className="p-1.5 rounded-lg hover:bg-surface-container-high disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <span className="material-symbols-outlined text-sm">first_page</span>
+            </button>
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="p-1.5 rounded-lg hover:bg-surface-container-high disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <span className="material-symbols-outlined text-sm">chevron_left</span>
+            </button>
+            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+              let pageNum: number
+              if (totalPages <= 5) {
+                pageNum = i + 1
+              } else if (page <= 3) {
+                pageNum = i + 1
+              } else if (page >= totalPages - 2) {
+                pageNum = totalPages - 4 + i
+              } else {
+                pageNum = page - 2 + i
+              }
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setPage(pageNum)}
+                  className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
+                    page === pageNum ? 'bg-primary text-white' : 'hover:bg-surface-container-high text-on-surface-variant'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              )
+            })}
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages || totalPages === 0}
+              className="p-1.5 rounded-lg hover:bg-surface-container-high disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <span className="material-symbols-outlined text-sm">chevron_right</span>
+            </button>
+            <button
+              onClick={() => setPage(totalPages)}
+              disabled={page === totalPages || totalPages === 0}
+              className="p-1.5 rounded-lg hover:bg-surface-container-high disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <span className="material-symbols-outlined text-sm">last_page</span>
+            </button>
+          </div>
         </div>
       </section>
 
