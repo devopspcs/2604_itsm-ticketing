@@ -102,8 +102,9 @@ func (uc *approvalUseCase) Decide(ctx context.Context, req domainUC.ApprovalDeci
 	}
 
 	// Org-based scope validation: if approver has org position, validate scope
+	// Skip for role-based approvers (they use team-based validation above)
 	approverUser, _ := uc.userRepo.FindByID(ctx, approver.UserID)
-	if approverUser != nil && approverUser.Position != nil && approver.Role != entity.RoleAdmin {
+	if approverUser != nil && approverUser.Position != nil && approver.Role != entity.RoleAdmin && approver.Role != entity.RoleApprover {
 		creator, _ := uc.userRepo.FindByID(ctx, ticket.CreatedBy)
 		if creator != nil {
 			if err := uc.validateApprovalScope(approverUser, creator); err != nil {
