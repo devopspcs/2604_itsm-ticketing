@@ -16,6 +16,7 @@ type ticketUseCase struct {
 	activityRepo     repository.ActivityLogRepository
 	notificationRepo repository.NotificationRepository
 	userRepo         repository.UserRepository
+	teamRepo         repository.TeamRepository
 	webhookUC        domainUC.WebhookUseCase
 }
 
@@ -24,6 +25,7 @@ func NewTicketUseCase(
 	activityRepo repository.ActivityLogRepository,
 	notificationRepo repository.NotificationRepository,
 	userRepo repository.UserRepository,
+	teamRepo repository.TeamRepository,
 	webhookUC domainUC.WebhookUseCase,
 ) domainUC.TicketUseCase {
 	return &ticketUseCase{
@@ -31,6 +33,7 @@ func NewTicketUseCase(
 		activityRepo:     activityRepo,
 		notificationRepo: notificationRepo,
 		userRepo:         userRepo,
+		teamRepo:         teamRepo,
 		webhookUC:        webhookUC,
 	}
 }
@@ -102,15 +105,25 @@ func (uc *ticketUseCase) GetTicket(ctx context.Context, id uuid.UUID, requester 
 			return nil, apperror.ErrForbidden
 		}
 	}
-	// Approvers can only see tickets from their team or unassigned
+	// Approvers can only see tickets from teams in their division or unassigned
 	if requester.Role == entity.RoleApprover {
 		approver, err := uc.userRepo.FindByID(ctx, requester.UserID)
-		if err == nil && approver.TeamID != nil {
-			isTeamTicket := ticket.AssignedTeamID != nil && *ticket.AssignedTeamID == *approver.TeamID
-			isUnassigned := ticket.AssignedTeamID == nil
-			if !isTeamTicket && !isUnassigned {
-				return nil, apperror.ErrForbidden
+		if err == nil && approver.DivisionID != nil {
+			if ticket.AssignedTeamID != nil {
+				// Check if ticket's team is in approver's division
+				teams, _ := uc.teamRepo.List(ctx, repository.TeamFilter{DivisionID: approver.DivisionID})
+				found := false
+				for _, t := range teams {
+					if t.ID == *ticket.AssignedTeamID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					return nil, apperror.ErrForbidden
+				}
 			}
+			// unassigned tickets are visible to all approvers
 		}
 	}
 	return ticket, nil
@@ -131,15 +144,23 @@ func (uc *ticketUseCase) ListTickets(ctx context.Context, filter repository.Tick
 		return uc.ticketRepo.List(ctx, filter)
 	}
 
-	// Approver sees tickets assigned to their team + unassigned tickets
+	// Approver sees tickets assigned to teams in their division + unassigned tickets
 	if requester.Role == entity.RoleApprover {
 		approver, err := uc.userRepo.FindByID(ctx, requester.UserID)
-		if err != nil || approver.TeamID == nil {
-			// Approver without team: see all (backward compatible)
+		if err != nil || approver.DivisionID == nil {
+			// Approver without division: see all (backward compatible)
 			return uc.ticketRepo.List(ctx, filter)
 		}
-		// Filter: tickets assigned to approver's team OR unassigned
-		filter.AssignedTeamIDOrUnassigned = approver.TeamID
+		// Get all teams in the approver's division
+		teams, err := uc.teamRepo.List(ctx, repository.TeamFilter{DivisionID: approver.DivisionID})
+		if err != nil || len(teams) == 0 {
+			return uc.ticketRepo.List(ctx, filter)
+		}
+		var teamIDs []uuid.UUID
+		for _, t := range teams {
+			teamIDs = append(teamIDs, t.ID)
+		}
+		filter.AssignedTeamIDsOrUnassigned = teamIDs
 		return uc.ticketRepo.List(ctx, filter)
 	}
 

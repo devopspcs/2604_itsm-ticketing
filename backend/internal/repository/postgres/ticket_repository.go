@@ -104,10 +104,17 @@ func (r *ticketRepository) List(ctx context.Context, filter repository.TicketFil
 		args = append(args, *filter.AssignedTeamID)
 		i++
 	}
-	if filter.AssignedTeamIDOrUnassigned != nil {
-		where += fmt.Sprintf(" AND (assigned_team_id=$%d OR assigned_team_id IS NULL)", i)
-		args = append(args, *filter.AssignedTeamIDOrUnassigned)
-		i++
+	if len(filter.AssignedTeamIDsOrUnassigned) > 0 {
+		placeholders := ""
+		for idx, tid := range filter.AssignedTeamIDsOrUnassigned {
+			if idx > 0 {
+				placeholders += ","
+			}
+			placeholders += fmt.Sprintf("$%d", i)
+			args = append(args, tid)
+			i++
+		}
+		where += fmt.Sprintf(" AND (assigned_team_id IN (%s) OR assigned_team_id IS NULL)", placeholders)
 	}
 	if filter.CreatedBy != nil {
 		where += fmt.Sprintf(" AND created_by=$%d", i)
