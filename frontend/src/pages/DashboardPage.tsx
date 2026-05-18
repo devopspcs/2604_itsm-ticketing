@@ -42,7 +42,7 @@ export function DashboardPage() {
   }, [])
 
   return (
-    <div className="max-w-7xl mx-auto p-6 md:p-10">
+    <div className="max-w-[1400px] mx-auto p-6 md:p-8">
       {/* Welcome Header */}
       <div className="mb-10">
         <h1 className="text-3xl font-extrabold text-on-surface tracking-tight mb-2">

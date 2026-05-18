@@ -84,7 +84,7 @@ export function ActivityLogsPage() {
   const handleRowsPerPageChange = (val: number) => { setRowsPerPage(val); setPage(1) }
 
   return (
-    <div className="max-w-[1600px] mx-auto p-8">
+    <div className="max-w-[1400px] mx-auto p-6 md:p-8">
       {/* Header */}
       <div className="grid grid-cols-12 gap-6 mb-8">
         <div className="col-span-12 lg:col-span-8">

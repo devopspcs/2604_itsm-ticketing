@@ -5,7 +5,7 @@ export function NotificationsPage() {
   const { notifications, unreadCount, markAsRead } = useNotifications()
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
+    <div className="max-w-[1400px] mx-auto p-6 md:p-8">
       <div className="flex items-end justify-between mb-10">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight text-on-surface mb-2">Notifications</h1>

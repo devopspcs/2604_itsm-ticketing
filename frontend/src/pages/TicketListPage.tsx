@@ -78,7 +78,7 @@ export function TicketListPage() {
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setPage(1); fetchTickets(1) }
 
   return (
-    <div className="max-w-[1400px] mx-auto p-8 lg:p-12">
+    <div className="max-w-[1400px] mx-auto p-6 md:p-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
         <div>

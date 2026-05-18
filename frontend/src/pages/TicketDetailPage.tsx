@@ -489,13 +489,13 @@ export function TicketDetailPage() {
   )
 
   if (error || !ticket) return (
-    <div className="max-w-7xl mx-auto p-8">
+    <div className="max-w-[1400px] mx-auto p-6 md:p-8">
       <div className="bg-error-container/30 text-error px-6 py-4 rounded-xl">{error || 'Ticket not found'}</div>
     </div>
   )
 
   return (
-    <div className="max-w-7xl mx-auto px-8 pb-12 pt-8">
+    <div className="max-w-[1400px] mx-auto px-6 md:px-8 pb-12 pt-6 md:pt-8">
 
       {/* Success/Error toast */}
       {actionMsg && (
