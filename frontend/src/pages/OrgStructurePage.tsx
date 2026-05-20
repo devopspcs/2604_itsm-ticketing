@@ -4,19 +4,19 @@ import type { Department, Division, Team } from '../types'
 import { LoadingSpinner } from '../components/common/LoadingSpinner'
 import { ErrorMessage } from '../components/common/ErrorMessage'
 
-type Tab = 'departments' | 'divisions' | 'teams'
+type Tab = 'divisions' | 'departments' | 'teams'
 
 export function OrgStructurePage() {
-  const [tab, setTab] = useState<Tab>('departments')
-  const [departments, setDepartments] = useState<Department[]>([])
+  const [tab, setTab] = useState<Tab>('divisions')
   const [divisions, setDivisions] = useState<Division[]>([])
+  const [departments, setDepartments] = useState<Department[]>([])
   const [teams, setTeams] = useState<Team[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   // Filters
-  const [filterDeptId, setFilterDeptId] = useState('')
   const [filterDivId, setFilterDivId] = useState('')
+  const [filterDeptId, setFilterDeptId] = useState('')
 
   // Modal state
   const [showModal, setShowModal] = useState(false)
@@ -26,28 +26,32 @@ export function OrgStructurePage() {
   // Form fields
   const [formName, setFormName] = useState('')
   const [formCode, setFormCode] = useState('')
-  const [formDeptId, setFormDeptId] = useState('')
   const [formDivId, setFormDivId] = useState('')
+  const [formDeptId, setFormDeptId] = useState('')
   const [formEmail, setFormEmail] = useState('')
 
-  const fetchDepartments = () => orgService.listDepartments().then(r => setDepartments(r.data ?? [])).catch(() => setError('Failed to load departments'))
-  const fetchDivisions = () => orgService.listDivisions(filterDeptId || undefined).then(r => setDivisions(r.data ?? [])).catch(() => setError('Failed to load divisions'))
-  const fetchTeams = () => orgService.listTeams(filterDivId || undefined).then(r => setTeams(r.data ?? [])).catch(() => setError('Failed to load teams'))
+  const fetchDivisions = () => orgService.listDivisions().then(r => setDivisions(r.data ?? [])).catch(() => setError('Failed to load divisions'))
+  const fetchDepartments = () => orgService.listDepartments(filterDivId || undefined).then(r => setDepartments(r.data ?? [])).catch(() => setError('Failed to load departments'))
+  const fetchTeams = () => orgService.listTeams(filterDeptId || undefined).then(r => setTeams(r.data ?? [])).catch(() => setError('Failed to load teams'))
 
-  useEffect(() => { fetchDepartments().finally(() => setLoading(false)) }, [])
-  useEffect(() => { if (tab === 'divisions') fetchDivisions() }, [tab, filterDeptId])
-  useEffect(() => { if (tab === 'teams') fetchTeams() }, [tab, filterDivId])
-  useEffect(() => { if (tab === 'divisions' || tab === 'teams') fetchDepartments() }, [tab])
+  useEffect(() => { fetchDivisions().finally(() => setLoading(false)) }, [])
+  useEffect(() => { if (tab === 'departments') fetchDepartments() }, [tab, filterDivId])
+  useEffect(() => { if (tab === 'teams') fetchTeams() }, [tab, filterDeptId])
+  useEffect(() => { if (tab === 'departments' || tab === 'teams') fetchDivisions() }, [tab])
 
-  const resetForm = () => { setFormName(''); setFormCode(''); setFormDeptId(''); setFormDivId(''); setFormEmail(''); setEditingId(null) }
+  // All departments for team filter dropdown (unfiltered)
+  const [allDepartments, setAllDepartments] = useState<Department[]>([])
+  useEffect(() => { if (tab === 'teams') orgService.listDepartments().then(r => setAllDepartments(r.data ?? [])) }, [tab])
+
+  const resetForm = () => { setFormName(''); setFormCode(''); setFormDivId(''); setFormDeptId(''); setFormEmail(''); setEditingId(null) }
 
   const openAdd = () => { resetForm(); setShowModal(true) }
-  const openEdit = (item: Department | Division | Team) => {
+  const openEdit = (item: Division | Department | Team) => {
     setEditingId(item.id)
     setFormName(item.name)
     if ('code' in item) setFormCode(item.code)
-    if ('department_id' in item) setFormDeptId(item.department_id)
     if ('division_id' in item) setFormDivId(item.division_id)
+    if ('department_id' in item) setFormDeptId(item.department_id)
     if ('email' in item) setFormEmail(item.email ?? '')
     setShowModal(true)
   }
@@ -56,17 +60,17 @@ export function OrgStructurePage() {
     e.preventDefault()
     setError('')
     try {
-      if (tab === 'departments') {
-        if (editingId) await orgService.updateDepartment(editingId, { name: formName, code: formCode })
-        else await orgService.createDepartment({ name: formName, code: formCode })
-        await fetchDepartments()
-      } else if (tab === 'divisions') {
-        if (editingId) await orgService.updateDivision(editingId, { department_id: formDeptId, name: formName, code: formCode })
-        else await orgService.createDivision({ department_id: formDeptId, name: formName, code: formCode })
+      if (tab === 'divisions') {
+        if (editingId) await orgService.updateDivision(editingId, { name: formName, code: formCode })
+        else await orgService.createDivision({ name: formName, code: formCode })
         await fetchDivisions()
+      } else if (tab === 'departments') {
+        if (editingId) await orgService.updateDepartment(editingId, { division_id: formDivId, name: formName, code: formCode })
+        else await orgService.createDepartment({ division_id: formDivId, name: formName, code: formCode })
+        await fetchDepartments()
       } else {
-        if (editingId) await orgService.updateTeam(editingId, { division_id: formDivId, name: formName, email: formEmail || undefined })
-        else await orgService.createTeam({ division_id: formDivId, name: formName, email: formEmail || undefined })
+        if (editingId) await orgService.updateTeam(editingId, { department_id: formDeptId, name: formName, email: formEmail || undefined })
+        else await orgService.createTeam({ department_id: formDeptId, name: formName, email: formEmail || undefined })
         await fetchTeams()
       }
       setShowModal(false)
@@ -80,8 +84,8 @@ export function OrgStructurePage() {
   const handleDelete = async (id: string) => {
     setError('')
     try {
-      if (tab === 'departments') { await orgService.deleteDepartment(id); await fetchDepartments() }
-      else if (tab === 'divisions') { await orgService.deleteDivision(id); await fetchDivisions() }
+      if (tab === 'divisions') { await orgService.deleteDivision(id); await fetchDivisions() }
+      else if (tab === 'departments') { await orgService.deleteDepartment(id); await fetchDepartments() }
       else { await orgService.deleteTeam(id); await fetchTeams() }
       setConfirmDeleteId(null)
     } catch (err: unknown) {
@@ -91,17 +95,12 @@ export function OrgStructurePage() {
     }
   }
 
-  const deptName = (id: string) => departments.find(d => d.id === id)?.name ?? id
-
-  // All divisions for team filter dropdown (unfiltered)
-  const [allDivisions, setAllDivisions] = useState<Division[]>([])
-  useEffect(() => { if (tab === 'teams') orgService.listDivisions().then(r => setAllDivisions(r.data ?? [])) }, [tab])
-
-  const divName = (id: string) => allDivisions.find(d => d.id === id)?.name ?? divisions.find(d => d.id === id)?.name ?? id
+  const divName = (id: string) => divisions.find(d => d.id === id)?.name ?? id
+  const deptName = (id: string) => allDepartments.find(d => d.id === id)?.name ?? departments.find(d => d.id === id)?.name ?? id
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: 'departments', label: 'Departments' },
     { key: 'divisions', label: 'Divisions' },
+    { key: 'departments', label: 'Departments' },
     { key: 'teams', label: 'Teams' },
   ]
 
@@ -113,7 +112,7 @@ export function OrgStructurePage() {
         <h2 className="text-xl font-bold text-on-surface">Organizational Structure</h2>
         <button onClick={openAdd} className="flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors">
           <span className="material-symbols-outlined text-[18px]">add</span>
-          Add {tab === 'departments' ? 'Department' : tab === 'divisions' ? 'Division' : 'Team'}
+          Add {tab === 'divisions' ? 'Division' : tab === 'departments' ? 'Department' : 'Team'}
         </button>
       </div>
 
@@ -130,21 +129,21 @@ export function OrgStructurePage() {
       </div>
 
       {/* Filters */}
-      {tab === 'divisions' && (
+      {tab === 'departments' && (
         <div className="mb-4">
-          <select value={filterDeptId} onChange={e => setFilterDeptId(e.target.value)}
+          <select value={filterDivId} onChange={e => setFilterDivId(e.target.value)}
             className="border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest">
-            <option value="">All Departments</option>
-            {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+            <option value="">All Divisions</option>
+            {divisions.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
         </div>
       )}
       {tab === 'teams' && (
         <div className="mb-4">
-          <select value={filterDivId} onChange={e => setFilterDivId(e.target.value)}
+          <select value={filterDeptId} onChange={e => setFilterDeptId(e.target.value)}
             className="border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest">
-            <option value="">All Divisions</option>
-            {allDivisions.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+            <option value="">All Departments</option>
+            {allDepartments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
         </div>
       )}
@@ -155,15 +154,15 @@ export function OrgStructurePage() {
           <thead>
             <tr className="bg-surface-container">
               <th className="text-left px-4 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Name</th>
-              {(tab === 'departments' || tab === 'divisions') && <th className="text-left px-4 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Code</th>}
-              {tab === 'divisions' && <th className="text-left px-4 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Department</th>}
-              {tab === 'teams' && <th className="text-left px-4 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Division</th>}
+              {(tab === 'divisions' || tab === 'departments') && <th className="text-left px-4 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Code</th>}
+              {tab === 'departments' && <th className="text-left px-4 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Division</th>}
+              {tab === 'teams' && <th className="text-left px-4 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Department</th>}
               {tab === 'teams' && <th className="text-left px-4 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Email</th>}
               <th className="text-right px-4 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {tab === 'departments' && departments.map(d => (
+            {tab === 'divisions' && divisions.map(d => (
               <tr key={d.id} className="border-t border-outline-variant/30 hover:bg-surface-container/30">
                 <td className="px-4 py-3 text-sm">{d.name}</td>
                 <td className="px-4 py-3 text-sm text-on-surface-variant">{d.code}</td>
@@ -173,11 +172,11 @@ export function OrgStructurePage() {
                 </td>
               </tr>
             ))}
-            {tab === 'divisions' && divisions.map(d => (
+            {tab === 'departments' && departments.map(d => (
               <tr key={d.id} className="border-t border-outline-variant/30 hover:bg-surface-container/30">
                 <td className="px-4 py-3 text-sm">{d.name}</td>
                 <td className="px-4 py-3 text-sm text-on-surface-variant">{d.code}</td>
-                <td className="px-4 py-3 text-sm text-on-surface-variant">{deptName(d.department_id)}</td>
+                <td className="px-4 py-3 text-sm text-on-surface-variant">{divName(d.division_id)}</td>
                 <td className="px-4 py-3 text-right">
                   <button onClick={() => openEdit(d)} className="text-primary hover:underline text-sm mr-3">Edit</button>
                   <button onClick={() => setConfirmDeleteId(d.id)} className="text-error hover:underline text-sm">Delete</button>
@@ -187,7 +186,7 @@ export function OrgStructurePage() {
             {tab === 'teams' && teams.map(t => (
               <tr key={t.id} className="border-t border-outline-variant/30 hover:bg-surface-container/30">
                 <td className="px-4 py-3 text-sm">{t.name}</td>
-                <td className="px-4 py-3 text-sm text-on-surface-variant">{divName(t.division_id)}</td>
+                <td className="px-4 py-3 text-sm text-on-surface-variant">{deptName(t.department_id)}</td>
                 <td className="px-4 py-3 text-sm text-on-surface-variant">{t.email || <span className="italic text-on-surface-variant/50">No email</span>}</td>
                 <td className="px-4 py-3 text-right">
                   <button onClick={() => openEdit(t)} className="text-primary hover:underline text-sm mr-3">Edit</button>
@@ -217,25 +216,25 @@ export function OrgStructurePage() {
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-surface-container-lowest rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
-            <h3 className="text-lg font-bold text-on-surface mb-4">{editingId ? 'Edit' : 'Add'} {tab === 'departments' ? 'Department' : tab === 'divisions' ? 'Division' : 'Team'}</h3>
+            <h3 className="text-lg font-bold text-on-surface mb-4">{editingId ? 'Edit' : 'Add'} {tab === 'divisions' ? 'Division' : tab === 'departments' ? 'Department' : 'Team'}</h3>
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-              {tab === 'divisions' && (
-                <select value={formDeptId} onChange={e => setFormDeptId(e.target.value)} required
-                  className="border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest">
-                  <option value="">Select Department</option>
-                  {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                </select>
-              )}
-              {tab === 'teams' && (
+              {tab === 'departments' && (
                 <select value={formDivId} onChange={e => setFormDivId(e.target.value)} required
                   className="border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest">
                   <option value="">Select Division</option>
-                  {allDivisions.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  {divisions.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                </select>
+              )}
+              {tab === 'teams' && (
+                <select value={formDeptId} onChange={e => setFormDeptId(e.target.value)} required
+                  className="border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest">
+                  <option value="">Select Department</option>
+                  {allDepartments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                 </select>
               )}
               <input placeholder="Name" value={formName} onChange={e => setFormName(e.target.value)} required
                 className="border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest" />
-              {(tab === 'departments' || tab === 'divisions') && (
+              {(tab === 'divisions' || tab === 'departments') && (
                 <input placeholder="Code" value={formCode} onChange={e => setFormCode(e.target.value)} required
                   className="border border-outline-variant rounded-lg px-3 py-2 text-sm bg-surface-container-lowest" />
               )}

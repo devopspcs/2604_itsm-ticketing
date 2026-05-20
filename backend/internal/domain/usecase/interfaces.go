@@ -139,55 +139,55 @@ type WebhookUseCase interface {
 	Dispatch(ctx context.Context, event entity.WebhookEvent, payload interface{}) error
 }
 
-type CreateDepartmentRequest struct {
-	Name string `json:"name" validate:"required"`
-	Code string `json:"code" validate:"required"`
-}
-
-type UpdateDepartmentRequest struct {
-	Name string `json:"name" validate:"required"`
-	Code string `json:"code" validate:"required"`
-}
-
 type CreateDivisionRequest struct {
-	DepartmentID uuid.UUID `json:"department_id" validate:"required"`
-	Name         string    `json:"name" validate:"required"`
-	Code         string    `json:"code" validate:"required"`
+	Name string `json:"name" validate:"required"`
+	Code string `json:"code" validate:"required"`
 }
 
 type UpdateDivisionRequest struct {
-	DepartmentID uuid.UUID `json:"department_id" validate:"required"`
-	Name         string    `json:"name" validate:"required"`
-	Code         string    `json:"code" validate:"required"`
+	Name string `json:"name" validate:"required"`
+	Code string `json:"code" validate:"required"`
+}
+
+type CreateDepartmentRequest struct {
+	DivisionID uuid.UUID `json:"division_id" validate:"required"`
+	Name       string    `json:"name" validate:"required"`
+	Code       string    `json:"code" validate:"required"`
+}
+
+type UpdateDepartmentRequest struct {
+	DivisionID uuid.UUID `json:"division_id" validate:"required"`
+	Name       string    `json:"name" validate:"required"`
+	Code       string    `json:"code" validate:"required"`
 }
 
 type CreateTeamRequest struct {
-	DivisionID uuid.UUID `json:"division_id" validate:"required"`
-	Name       string    `json:"name" validate:"required"`
-	Email      *string   `json:"email"`
+	DepartmentID uuid.UUID `json:"department_id" validate:"required"`
+	Name         string    `json:"name" validate:"required"`
+	Email        *string   `json:"email"`
 }
 
 type UpdateTeamRequest struct {
-	DivisionID uuid.UUID `json:"division_id" validate:"required"`
-	Name       string    `json:"name" validate:"required"`
-	Email      *string   `json:"email"`
+	DepartmentID uuid.UUID `json:"department_id" validate:"required"`
+	Name         string    `json:"name" validate:"required"`
+	Email        *string   `json:"email"`
 }
 
 type OrgUseCase interface {
-	CreateDepartment(ctx context.Context, req CreateDepartmentRequest) (*entity.Department, error)
-	UpdateDepartment(ctx context.Context, id uuid.UUID, req UpdateDepartmentRequest) (*entity.Department, error)
-	DeleteDepartment(ctx context.Context, id uuid.UUID) error
-	ListDepartments(ctx context.Context) ([]*entity.Department, error)
-
 	CreateDivision(ctx context.Context, req CreateDivisionRequest) (*entity.Division, error)
 	UpdateDivision(ctx context.Context, id uuid.UUID, req UpdateDivisionRequest) (*entity.Division, error)
 	DeleteDivision(ctx context.Context, id uuid.UUID) error
-	ListDivisions(ctx context.Context, departmentID *uuid.UUID) ([]*entity.Division, error)
+	ListDivisions(ctx context.Context) ([]*entity.Division, error)
+
+	CreateDepartment(ctx context.Context, req CreateDepartmentRequest) (*entity.Department, error)
+	UpdateDepartment(ctx context.Context, id uuid.UUID, req UpdateDepartmentRequest) (*entity.Department, error)
+	DeleteDepartment(ctx context.Context, id uuid.UUID) error
+	ListDepartments(ctx context.Context, divisionID *uuid.UUID) ([]*entity.Department, error)
 
 	CreateTeam(ctx context.Context, req CreateTeamRequest) (*entity.Team, error)
 	UpdateTeam(ctx context.Context, id uuid.UUID, req UpdateTeamRequest) (*entity.Team, error)
 	DeleteTeam(ctx context.Context, id uuid.UUID) error
-	ListTeams(ctx context.Context, divisionID *uuid.UUID) ([]*entity.Team, error)
+	ListTeams(ctx context.Context, departmentID *uuid.UUID) ([]*entity.Team, error)
 }
 
 // --- Project Board ---

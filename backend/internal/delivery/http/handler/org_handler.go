@@ -18,73 +18,10 @@ func NewOrgHandler(orgUC domainUC.OrgUseCase) *OrgHandler {
 	return &OrgHandler{orgUC: orgUC}
 }
 
-// --- Department ---
-
-func (h *OrgHandler) ListDepartments(w http.ResponseWriter, r *http.Request) {
-	depts, err := h.orgUC.ListDepartments(r.Context())
-	if err != nil {
-		apperror.WriteError(w, err)
-		return
-	}
-	apperror.WriteJSON(w, http.StatusOK, depts)
-}
-
-func (h *OrgHandler) CreateDepartment(w http.ResponseWriter, r *http.Request) {
-	var req domainUC.CreateDepartmentRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		apperror.WriteError(w, apperror.ErrValidation)
-		return
-	}
-	dept, err := h.orgUC.CreateDepartment(r.Context(), req)
-	if err != nil {
-		apperror.WriteError(w, err)
-		return
-	}
-	apperror.WriteJSON(w, http.StatusCreated, dept)
-}
-
-func (h *OrgHandler) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
-	id, err := uuid.Parse(chi.URLParam(r, "id"))
-	if err != nil {
-		apperror.WriteError(w, apperror.ErrValidation)
-		return
-	}
-	var req domainUC.UpdateDepartmentRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		apperror.WriteError(w, apperror.ErrValidation)
-		return
-	}
-	dept, err := h.orgUC.UpdateDepartment(r.Context(), id, req)
-	if err != nil {
-		apperror.WriteError(w, err)
-		return
-	}
-	apperror.WriteJSON(w, http.StatusOK, dept)
-}
-
-func (h *OrgHandler) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
-	id, err := uuid.Parse(chi.URLParam(r, "id"))
-	if err != nil {
-		apperror.WriteError(w, apperror.ErrValidation)
-		return
-	}
-	if err := h.orgUC.DeleteDepartment(r.Context(), id); err != nil {
-		apperror.WriteError(w, err)
-		return
-	}
-	apperror.WriteJSON(w, http.StatusOK, map[string]string{"message": "department deleted"})
-}
-
-// --- Division ---
+// --- Division (top level) ---
 
 func (h *OrgHandler) ListDivisions(w http.ResponseWriter, r *http.Request) {
-	var deptID *uuid.UUID
-	if d := r.URL.Query().Get("department_id"); d != "" {
-		if id, err := uuid.Parse(d); err == nil {
-			deptID = &id
-		}
-	}
-	divs, err := h.orgUC.ListDivisions(r.Context(), deptID)
+	divs, err := h.orgUC.ListDivisions(r.Context())
 	if err != nil {
 		apperror.WriteError(w, err)
 		return
@@ -138,16 +75,79 @@ func (h *OrgHandler) DeleteDivision(w http.ResponseWriter, r *http.Request) {
 	apperror.WriteJSON(w, http.StatusOK, map[string]string{"message": "division deleted"})
 }
 
-// --- Team ---
+// --- Department (child of Division) ---
 
-func (h *OrgHandler) ListTeams(w http.ResponseWriter, r *http.Request) {
+func (h *OrgHandler) ListDepartments(w http.ResponseWriter, r *http.Request) {
 	var divID *uuid.UUID
 	if d := r.URL.Query().Get("division_id"); d != "" {
 		if id, err := uuid.Parse(d); err == nil {
 			divID = &id
 		}
 	}
-	teams, err := h.orgUC.ListTeams(r.Context(), divID)
+	depts, err := h.orgUC.ListDepartments(r.Context(), divID)
+	if err != nil {
+		apperror.WriteError(w, err)
+		return
+	}
+	apperror.WriteJSON(w, http.StatusOK, depts)
+}
+
+func (h *OrgHandler) CreateDepartment(w http.ResponseWriter, r *http.Request) {
+	var req domainUC.CreateDepartmentRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		apperror.WriteError(w, apperror.ErrValidation)
+		return
+	}
+	dept, err := h.orgUC.CreateDepartment(r.Context(), req)
+	if err != nil {
+		apperror.WriteError(w, err)
+		return
+	}
+	apperror.WriteJSON(w, http.StatusCreated, dept)
+}
+
+func (h *OrgHandler) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		apperror.WriteError(w, apperror.ErrValidation)
+		return
+	}
+	var req domainUC.UpdateDepartmentRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		apperror.WriteError(w, apperror.ErrValidation)
+		return
+	}
+	dept, err := h.orgUC.UpdateDepartment(r.Context(), id, req)
+	if err != nil {
+		apperror.WriteError(w, err)
+		return
+	}
+	apperror.WriteJSON(w, http.StatusOK, dept)
+}
+
+func (h *OrgHandler) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		apperror.WriteError(w, apperror.ErrValidation)
+		return
+	}
+	if err := h.orgUC.DeleteDepartment(r.Context(), id); err != nil {
+		apperror.WriteError(w, err)
+		return
+	}
+	apperror.WriteJSON(w, http.StatusOK, map[string]string{"message": "department deleted"})
+}
+
+// --- Team (child of Department) ---
+
+func (h *OrgHandler) ListTeams(w http.ResponseWriter, r *http.Request) {
+	var deptID *uuid.UUID
+	if d := r.URL.Query().Get("department_id"); d != "" {
+		if id, err := uuid.Parse(d); err == nil {
+			deptID = &id
+		}
+	}
+	teams, err := h.orgUC.ListTeams(r.Context(), deptID)
 	if err != nil {
 		apperror.WriteError(w, err)
 		return

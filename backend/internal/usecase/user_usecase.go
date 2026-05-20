@@ -15,17 +15,20 @@ import (
 type userUseCase struct {
 	userRepo repository.UserRepository
 	divRepo  repository.DivisionRepository
+	deptRepo repository.DepartmentRepository
 	teamRepo repository.TeamRepository
 }
 
 func NewUserUseCase(
 	userRepo repository.UserRepository,
 	divRepo repository.DivisionRepository,
+	deptRepo repository.DepartmentRepository,
 	teamRepo repository.TeamRepository,
 ) usecase.UserUseCase {
 	return &userUseCase{
 		userRepo: userRepo,
 		divRepo:  divRepo,
+		deptRepo: deptRepo,
 		teamRepo: teamRepo,
 	}
 }
@@ -155,14 +158,14 @@ func (u *userUseCase) UpdateUserOrg(ctx context.Context, userID uuid.UUID, req u
 	return user, nil
 }
 
-// validateOrgHierarchy checks that division belongs to department and team belongs to division.
+// validateOrgHierarchy checks that department belongs to division and team belongs to department.
 func (u *userUseCase) validateOrgHierarchy(ctx context.Context, deptID, divID, teamID *uuid.UUID) error {
-	if divID != nil {
-		div, err := u.divRepo.FindByID(ctx, *divID)
+	if deptID != nil {
+		dept, err := u.deptRepo.FindByID(ctx, *deptID)
 		if err != nil {
 			return apperror.ErrNotFound
 		}
-		if deptID == nil || div.DepartmentID != *deptID {
+		if divID == nil || dept.DivisionID != *divID {
 			return apperror.ErrInvalidHierarchy
 		}
 	}
@@ -171,7 +174,7 @@ func (u *userUseCase) validateOrgHierarchy(ctx context.Context, deptID, divID, t
 		if err != nil {
 			return apperror.ErrNotFound
 		}
-		if divID == nil || team.DivisionID != *divID {
+		if deptID == nil || team.DepartmentID != *deptID {
 			return apperror.ErrInvalidHierarchy
 		}
 	}
