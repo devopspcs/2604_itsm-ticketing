@@ -22,12 +22,12 @@ func NewUserRepository(db *pgxpool.Pool) repository.UserRepository {
 }
 
 func (r *userRepository) Create(ctx context.Context, user *entity.User) error {
-	query := `INSERT INTO users (id, full_name, email, password, role, is_active, department_id, division_id, team_id, position, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
+	query := `INSERT INTO users (id, full_name, email, password, role, is_active, department_id, division_id, team_id, position, reports_to, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`
 	_, err := r.db.Exec(ctx, query,
 		user.ID, user.FullName, user.Email, user.PasswordHash,
 		user.Role, user.IsActive, user.DepartmentID, user.DivisionID,
-		user.TeamID, user.Position, user.CreatedAt, user.UpdatedAt)
+		user.TeamID, user.Position, user.ReportsTo, user.CreatedAt, user.UpdatedAt)
 	if err != nil {
 		if isUniqueViolation(err) {
 			return apperror.ErrConflict
@@ -38,27 +38,27 @@ func (r *userRepository) Create(ctx context.Context, user *entity.User) error {
 }
 
 func (r *userRepository) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
-	query := `SELECT id, full_name, email, password, role, is_active, department_id, division_id, team_id, position, created_at, updated_at FROM users WHERE email = $1`
+	query := `SELECT id, full_name, email, password, role, is_active, department_id, division_id, team_id, position, reports_to, created_at, updated_at FROM users WHERE email = $1`
 	row := r.db.QueryRow(ctx, query, email)
 	return scanUser(row)
 }
 
 func (r *userRepository) FindByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
-	query := `SELECT id, full_name, email, password, role, is_active, department_id, division_id, team_id, position, created_at, updated_at FROM users WHERE id = $1`
+	query := `SELECT id, full_name, email, password, role, is_active, department_id, division_id, team_id, position, reports_to, created_at, updated_at FROM users WHERE id = $1`
 	row := r.db.QueryRow(ctx, query, id)
 	return scanUser(row)
 }
 
 func (r *userRepository) Update(ctx context.Context, user *entity.User) error {
-	query := `UPDATE users SET full_name=$1, email=$2, role=$3, is_active=$4, department_id=$5, division_id=$6, team_id=$7, position=$8, updated_at=$9 WHERE id=$10`
+	query := `UPDATE users SET full_name=$1, email=$2, role=$3, is_active=$4, department_id=$5, division_id=$6, team_id=$7, position=$8, reports_to=$9, updated_at=$10 WHERE id=$11`
 	_, err := r.db.Exec(ctx, query, user.FullName, user.Email, user.Role, user.IsActive,
-		user.DepartmentID, user.DivisionID, user.TeamID, user.Position,
+		user.DepartmentID, user.DivisionID, user.TeamID, user.Position, user.ReportsTo,
 		time.Now().UTC(), user.ID)
 	return err
 }
 
 func (r *userRepository) List(ctx context.Context, filter repository.UserFilter) ([]*entity.User, error) {
-	query := `SELECT id, full_name, email, password, role, is_active, department_id, division_id, team_id, position, created_at, updated_at FROM users WHERE 1=1`
+	query := `SELECT id, full_name, email, password, role, is_active, department_id, division_id, team_id, position, reports_to, created_at, updated_at FROM users WHERE 1=1`
 	args := []interface{}{}
 	i := 1
 	if filter.Role != nil {
@@ -81,7 +81,7 @@ func (r *userRepository) List(ctx context.Context, filter repository.UserFilter)
 	for rows.Next() {
 		u := &entity.User{}
 		if err := rows.Scan(&u.ID, &u.FullName, &u.Email, &u.PasswordHash, &u.Role, &u.IsActive,
-			&u.DepartmentID, &u.DivisionID, &u.TeamID, &u.Position,
+			&u.DepartmentID, &u.DivisionID, &u.TeamID, &u.Position, &u.ReportsTo,
 			&u.CreatedAt, &u.UpdatedAt); err != nil {
 			return nil, err
 		}
@@ -93,7 +93,7 @@ func (r *userRepository) List(ctx context.Context, filter repository.UserFilter)
 func scanUser(row pgx.Row) (*entity.User, error) {
 	u := &entity.User{}
 	err := row.Scan(&u.ID, &u.FullName, &u.Email, &u.PasswordHash, &u.Role, &u.IsActive,
-		&u.DepartmentID, &u.DivisionID, &u.TeamID, &u.Position,
+		&u.DepartmentID, &u.DivisionID, &u.TeamID, &u.Position, &u.ReportsTo,
 		&u.CreatedAt, &u.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

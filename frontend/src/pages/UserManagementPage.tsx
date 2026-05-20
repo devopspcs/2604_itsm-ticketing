@@ -21,6 +21,7 @@ export function UserManagementPage() {
   const [form, setForm] = useState({
     full_name: '', email: '', password: '', role: 'user' as Role,
     department_id: '', division_id: '', team_id: '', position: '' as string,
+    reports_to: '',
   })
 
   const [departments, setDepartments] = useState<Department[]>([])
@@ -52,7 +53,7 @@ export function UserManagementPage() {
   }, [form.department_id])
 
   const resetForm = () => {
-    setForm({ full_name: '', email: '', password: '', role: 'user', department_id: '', division_id: '', team_id: '', position: '' })
+    setForm({ full_name: '', email: '', password: '', role: 'user', department_id: '', division_id: '', team_id: '', position: '', reports_to: '' })
     setEditingUser(null)
     setShowForm(false)
   }
@@ -73,6 +74,7 @@ export function UserManagementPage() {
       division_id: u.division_id ?? '',
       team_id: u.team_id ?? '',
       position: u.position ?? '',
+      reports_to: u.reports_to ?? '',
     })
     setShowForm(true)
   }
@@ -90,6 +92,7 @@ export function UserManagementPage() {
         orgPayload.division_id = form.division_id || null
         orgPayload.team_id = form.team_id || null
         orgPayload.position = form.position || null
+        orgPayload.reports_to = form.reports_to || null
         await api.patch(`/users/${editingUser.id}/org`, orgPayload)
         showMsg('User updated')
       } else {
@@ -100,6 +103,7 @@ export function UserManagementPage() {
         if (form.division_id) payload.division_id = form.division_id
         if (form.team_id) payload.team_id = form.team_id
         if (form.position) payload.position = form.position
+        if (form.reports_to) payload.reports_to = form.reports_to
         await api.post('/users', payload)
         showMsg('User created')
       }
@@ -232,6 +236,16 @@ export function UserManagementPage() {
                 }} className={inputStyle + ' appearance-none'}>
                   <option value="">-- None --</option>
                   {(Object.keys(POSITION_LABELS) as Position[]).map(p => <option key={p} value={p}>{POSITION_LABELS[p]}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Reports To</label>
+                <select value={form.reports_to} onChange={(e) => setForm({ ...form, reports_to: e.target.value })}
+                  className={inputStyle + ' appearance-none'}>
+                  <option value="">-- None (Top Level) --</option>
+                  {users.filter(u => u.id !== editingUser?.id && u.is_active).map(u => (
+                    <option key={u.id} value={u.id}>{u.full_name}</option>
+                  ))}
                 </select>
               </div>
 

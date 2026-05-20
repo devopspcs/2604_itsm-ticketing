@@ -69,20 +69,44 @@ func (uc *approvalUseCase) SubmitForApproval(ctx context.Context, ticketID uuid.
 		go uc.webhookUC.Dispatch(context.Background(), entity.EventApprovalRequested, ticket)
 	}
 
+	// Auto-notify direct manager (reports_to) for approval
+	creator, err := uc.userRepo.FindByID(ctx, ticket.CreatedBy)
+	if err == nil && creator.ReportsTo != nil {
+		_ = uc.notificationRepo.Create(ctx, &entity.Notification{
+			ID:        uuid.New(),
+			UserID:    *creator.ReportsTo,
+			TicketID:  ticket.ID,
+			Message:   "Ticket \"" + ticket.Title + "\" from " + creator.FullName + " needs your approval",
+			IsRead:    false,
+			CreatedAt: time.Now().UTC(),
+		})
+	}
+
 	return nil
 }
 
 func (uc *approvalUseCase) Decide(ctx context.Context, req domainUC.ApprovalDecisionRequest, approver domainUC.UserClaims) error {
 	// Check role-based permission first
 	if approver.Role != entity.RoleApprover && approver.Role != entity.RoleAdmin {
-		// Check if user has org-based approval permission
+		// Check if user has org-based approval permission (manager or direct superior)
 		approverUser, err := uc.userRepo.FindByID(ctx, approver.UserID)
-		if err != nil || approverUser.Position == nil {
+		if err != nil {
 			return apperror.ErrForbidden
 		}
-		pos := *approverUser.Position
-		if pos != entity.PositionManager {
-			return apperror.ErrForbidden
+
+		// Allow if approver is the direct manager (reports_to) of the ticket creator
+		ticket, ticketErr := uc.ticketRepo.FindByID(ctx, req.TicketID)
+		if ticketErr != nil {
+			return ticketErr
+		}
+		creator, creatorErr := uc.userRepo.FindByID(ctx, ticket.CreatedBy)
+		isDirectManager := creatorErr == nil && creator.ReportsTo != nil && *creator.ReportsTo == approver.UserID
+
+		if !isDirectManager {
+			// Fallback: check position-based permission
+			if approverUser.Position == nil || *approverUser.Position != entity.PositionManager {
+				return apperror.ErrForbidden
+			}
 		}
 	}
 

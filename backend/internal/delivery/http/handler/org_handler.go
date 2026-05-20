@@ -200,3 +200,14 @@ func (h *OrgHandler) DeleteTeam(w http.ResponseWriter, r *http.Request) {
 	}
 	apperror.WriteJSON(w, http.StatusOK, map[string]string{"message": "team deleted"})
 }
+
+// --- Org Chart ---
+
+func (h *OrgHandler) GetOrgChart(w http.ResponseWriter, r *http.Request) {
+	chart, err := h.orgUC.GetOrgChart(r.Context())
+	if err != nil {
+		apperror.WriteError(w, err)
+		return
+	}
+	apperror.WriteJSON(w, http.StatusOK, chart)
+}

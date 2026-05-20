@@ -102,6 +102,7 @@ func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, userRepo repository.User
 			r.Get("/departments", h.Org.ListDepartments)
 			r.Get("/divisions", h.Org.ListDivisions)
 			r.Get("/teams", h.Org.ListTeams)
+			r.Get("/org-chart", h.Org.GetOrgChart)
 
 			// Project Board
 			r.Route("/projects", func(r chi.Router) {

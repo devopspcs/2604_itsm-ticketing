@@ -40,6 +40,7 @@ type CreateUserRequest struct {
 	DivisionID   *uuid.UUID       `json:"division_id"`
 	TeamID       *uuid.UUID       `json:"team_id"`
 	Position     *entity.Position `json:"position"`
+	ReportsTo    *uuid.UUID       `json:"reports_to"`
 }
 
 type UpdateUserOrgRequest struct {
@@ -47,6 +48,7 @@ type UpdateUserOrgRequest struct {
 	DivisionID   *uuid.UUID       `json:"division_id"`
 	TeamID       *uuid.UUID       `json:"team_id"`
 	Position     *entity.Position `json:"position"`
+	ReportsTo    *uuid.UUID       `json:"reports_to"`
 }
 
 type UserUseCase interface {
@@ -188,6 +190,21 @@ type OrgUseCase interface {
 	UpdateTeam(ctx context.Context, id uuid.UUID, req UpdateTeamRequest) (*entity.Team, error)
 	DeleteTeam(ctx context.Context, id uuid.UUID) error
 	ListTeams(ctx context.Context, departmentID *uuid.UUID) ([]*entity.Team, error)
+
+	GetOrgChart(ctx context.Context) ([]*OrgChartNode, error)
+}
+
+type OrgChartNode struct {
+	ID           uuid.UUID       `json:"id"`
+	FullName     string          `json:"full_name"`
+	Email        string          `json:"email"`
+	Position     *entity.Position `json:"position"`
+	Role         entity.Role     `json:"role"`
+	ReportsTo    *uuid.UUID      `json:"reports_to"`
+	DivisionID   *uuid.UUID      `json:"division_id"`
+	DepartmentID *uuid.UUID      `json:"department_id"`
+	TeamID       *uuid.UUID      `json:"team_id"`
+	Children     []*OrgChartNode `json:"children"`
 }
 
 // --- Project Board ---

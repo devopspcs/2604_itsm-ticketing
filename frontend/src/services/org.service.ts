@@ -1,5 +1,5 @@
 import api from './api'
-import type { Department, Division, Team } from '../types'
+import type { Department, Division, Team, OrgChartNode } from '../types'
 
 export const orgService = {
   listDivisions: () => api.get<Division[]>('/divisions'),
@@ -17,6 +17,8 @@ export const orgService = {
   updateTeam: (id: string, data: { department_id: string; name: string; email?: string }) => api.patch<Team>(`/teams/${id}`, data),
   deleteTeam: (id: string) => api.delete(`/teams/${id}`),
 
-  updateUserOrg: (userId: string, data: { department_id?: string; division_id?: string; team_id?: string; position?: string }) =>
+  getOrgChart: () => api.get<OrgChartNode[]>('/org-chart'),
+
+  updateUserOrg: (userId: string, data: { department_id?: string; division_id?: string; team_id?: string; position?: string; reports_to?: string }) =>
     api.patch(`/users/${userId}/org`, data),
 }
