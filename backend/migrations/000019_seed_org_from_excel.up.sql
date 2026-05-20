@@ -1,5 +1,14 @@
 BEGIN;
 
+-- Ensure old unique constraint on code alone is removed (may still exist on production)
+ALTER TABLE departments DROP CONSTRAINT IF EXISTS departments_code_key;
+
+-- Clean existing data to avoid conflicts
+UPDATE users SET department_id = NULL, division_id = NULL, team_id = NULL;
+DELETE FROM teams;
+DELETE FROM departments;
+DELETE FROM divisions;
+
 -- Seed org structure from Excel: Division -> Department -> Team
 
 -- Divisions (top level)
