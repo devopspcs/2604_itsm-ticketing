@@ -26,7 +26,7 @@ const navItems: NavItem[] = [
   },
   { to: '/webhooks', icon: 'webhook', label: 'Webhooks', roles: ['admin'] },
   { to: '/org-structure', icon: 'account_tree', label: 'Org Structure', roles: ['admin'] },
-  { to: '/org-chart', icon: 'groups', label: 'Org Chart', roles: ['admin', 'approver', 'agent', 'user'] },
+  { to: '/org-chart', icon: 'groups', label: 'Org Chart', roles: ['admin', 'approver'] },
   { to: '/settings', icon: 'settings', label: 'System Settings', roles: ['admin'] },
 ]
 
