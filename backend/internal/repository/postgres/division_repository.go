@@ -22,9 +22,9 @@ func NewDivisionRepository(db *pgxpool.Pool) repository.DivisionRepository {
 }
 
 func (r *divisionRepository) Create(ctx context.Context, div *entity.Division) error {
-	query := `INSERT INTO divisions (id, department_id, name, code, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6)`
-	_, err := r.db.Exec(ctx, query, div.ID, div.DepartmentID, div.Name, div.Code, div.CreatedAt, div.UpdatedAt)
+	query := `INSERT INTO divisions (id, name, code, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5)`
+	_, err := r.db.Exec(ctx, query, div.ID, div.Name, div.Code, div.CreatedAt, div.UpdatedAt)
 	if err != nil {
 		if isUniqueViolation(err) {
 			return apperror.ErrConflict
@@ -35,10 +35,10 @@ func (r *divisionRepository) Create(ctx context.Context, div *entity.Division) e
 }
 
 func (r *divisionRepository) FindByID(ctx context.Context, id uuid.UUID) (*entity.Division, error) {
-	query := `SELECT id, department_id, name, code, created_at, updated_at FROM divisions WHERE id = $1`
+	query := `SELECT id, name, code, created_at, updated_at FROM divisions WHERE id = $1`
 	row := r.db.QueryRow(ctx, query, id)
 	d := &entity.Division{}
-	err := row.Scan(&d.ID, &d.DepartmentID, &d.Name, &d.Code, &d.CreatedAt, &d.UpdatedAt)
+	err := row.Scan(&d.ID, &d.Name, &d.Code, &d.CreatedAt, &d.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, apperror.ErrNotFound
@@ -49,8 +49,8 @@ func (r *divisionRepository) FindByID(ctx context.Context, id uuid.UUID) (*entit
 }
 
 func (r *divisionRepository) Update(ctx context.Context, div *entity.Division) error {
-	query := `UPDATE divisions SET department_id=$1, name=$2, code=$3, updated_at=$4 WHERE id=$5`
-	_, err := r.db.Exec(ctx, query, div.DepartmentID, div.Name, div.Code, time.Now().UTC(), div.ID)
+	query := `UPDATE divisions SET name=$1, code=$2, updated_at=$3 WHERE id=$4`
+	_, err := r.db.Exec(ctx, query, div.Name, div.Code, time.Now().UTC(), div.ID)
 	if err != nil {
 		if isUniqueViolation(err) {
 			return apperror.ErrConflict
@@ -66,17 +66,9 @@ func (r *divisionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-func (r *divisionRepository) List(ctx context.Context, filter repository.DivisionFilter) ([]*entity.Division, error) {
-	query := `SELECT id, department_id, name, code, created_at, updated_at FROM divisions WHERE 1=1`
-	args := []interface{}{}
-	i := 1
-	if filter.DepartmentID != nil {
-		query += ` AND department_id = $` + itoa(i)
-		args = append(args, *filter.DepartmentID)
-		i++
-	}
-	query += ` ORDER BY name ASC`
-	rows, err := r.db.Query(ctx, query, args...)
+func (r *divisionRepository) List(ctx context.Context) ([]*entity.Division, error) {
+	query := `SELECT id, name, code, created_at, updated_at FROM divisions ORDER BY name ASC`
+	rows, err := r.db.Query(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +76,7 @@ func (r *divisionRepository) List(ctx context.Context, filter repository.Divisio
 	var divs []*entity.Division
 	for rows.Next() {
 		d := &entity.Division{}
-		if err := rows.Scan(&d.ID, &d.DepartmentID, &d.Name, &d.Code, &d.CreatedAt, &d.UpdatedAt); err != nil {
+		if err := rows.Scan(&d.ID, &d.Name, &d.Code, &d.CreatedAt, &d.UpdatedAt); err != nil {
 			return nil, err
 		}
 		divs = append(divs, d)
@@ -92,16 +84,9 @@ func (r *divisionRepository) List(ctx context.Context, filter repository.Divisio
 	return divs, nil
 }
 
-func (r *divisionRepository) HasTeamsOrUsers(ctx context.Context, id uuid.UUID) (bool, error) {
+func (r *divisionRepository) HasDepartments(ctx context.Context, id uuid.UUID) (bool, error) {
 	var count int
-	err := r.db.QueryRow(ctx, `SELECT COUNT(*) FROM teams WHERE division_id = $1`, id).Scan(&count)
-	if err != nil {
-		return false, err
-	}
-	if count > 0 {
-		return true, nil
-	}
-	err = r.db.QueryRow(ctx, `SELECT COUNT(*) FROM users WHERE division_id = $1`, id).Scan(&count)
+	err := r.db.QueryRow(ctx, `SELECT COUNT(*) FROM departments WHERE division_id = $1`, id).Scan(&count)
 	if err != nil {
 		return false, err
 	}

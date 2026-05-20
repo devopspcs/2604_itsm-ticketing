@@ -91,13 +91,13 @@ func (uc *approvalUseCase) Decide(ctx context.Context, req domainUC.ApprovalDeci
 		return err
 	}
 
-	// Team-based scope validation for approvers (division-based)
+	// Team-based scope validation for approvers (department-based)
 	if approver.Role == entity.RoleApprover {
 		approverUser, err := uc.userRepo.FindByID(ctx, approver.UserID)
-		if err == nil && approverUser.DivisionID != nil {
+		if err == nil && approverUser.DepartmentID != nil {
 			if ticket.AssignedTeamID != nil {
-				// Check if ticket's team is in approver's division
-				teams, _ := uc.teamRepo.List(ctx, repository.TeamFilter{DivisionID: approverUser.DivisionID})
+				// Check if ticket's team is in approver's department
+				teams, _ := uc.teamRepo.List(ctx, repository.TeamFilter{DepartmentID: approverUser.DepartmentID})
 				found := false
 				for _, t := range teams {
 					if t.ID == *ticket.AssignedTeamID {

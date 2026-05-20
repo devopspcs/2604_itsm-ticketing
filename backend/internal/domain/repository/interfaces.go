@@ -153,30 +153,30 @@ type WebhookRepository interface {
 	SaveLog(ctx context.Context, log *entity.WebhookLog) error
 }
 
-type DepartmentRepository interface {
-	Create(ctx context.Context, dept *entity.Department) error
-	FindByID(ctx context.Context, id uuid.UUID) (*entity.Department, error)
-	Update(ctx context.Context, dept *entity.Department) error
-	Delete(ctx context.Context, id uuid.UUID) error
-	List(ctx context.Context) ([]*entity.Department, error)
-	HasDivisions(ctx context.Context, id uuid.UUID) (bool, error)
-}
-
-type DivisionFilter struct {
-	DepartmentID *uuid.UUID
-}
-
 type DivisionRepository interface {
 	Create(ctx context.Context, div *entity.Division) error
 	FindByID(ctx context.Context, id uuid.UUID) (*entity.Division, error)
 	Update(ctx context.Context, div *entity.Division) error
 	Delete(ctx context.Context, id uuid.UUID) error
-	List(ctx context.Context, filter DivisionFilter) ([]*entity.Division, error)
+	List(ctx context.Context) ([]*entity.Division, error)
+	HasDepartments(ctx context.Context, id uuid.UUID) (bool, error)
+}
+
+type DepartmentFilter struct {
+	DivisionID *uuid.UUID
+}
+
+type DepartmentRepository interface {
+	Create(ctx context.Context, dept *entity.Department) error
+	FindByID(ctx context.Context, id uuid.UUID) (*entity.Department, error)
+	Update(ctx context.Context, dept *entity.Department) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	List(ctx context.Context, filter DepartmentFilter) ([]*entity.Department, error)
 	HasTeamsOrUsers(ctx context.Context, id uuid.UUID) (bool, error)
 }
 
 type TeamFilter struct {
-	DivisionID *uuid.UUID
+	DepartmentID *uuid.UUID
 }
 
 type TeamRepository interface {

@@ -77,7 +77,7 @@ func main() {
 
 	// Use cases
 	authUC := usecase.NewAuthUseCase(userRepo, tokenRepo, jwtManager)
-	userUC := usecase.NewUserUseCase(userRepo, divRepo, teamRepo)
+	userUC := usecase.NewUserUseCase(userRepo, divRepo, deptRepo, teamRepo)
 	webhookUC := usecase.NewWebhookUseCase(webhookRepo, dispatcher)
 	ticketUC := usecase.NewTicketUseCase(ticketRepo, activityRepo, notifRepo, userRepo, teamRepo, webhookUC)
 	approvalUC := usecase.NewApprovalUseCase(ticketRepo, approvalRepo, activityRepo, notifRepo, userRepo, teamRepo, webhookUC)

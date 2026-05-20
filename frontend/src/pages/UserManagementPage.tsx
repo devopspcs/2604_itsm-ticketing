@@ -36,20 +36,20 @@ export function UserManagementPage() {
   useEffect(() => { fetchUsers() }, [])
 
   useEffect(() => {
-    if (showForm || editingUser) orgService.listDepartments().then(r => setDepartments(r.data ?? []))
+    if (showForm || editingUser) orgService.listDivisions().then(r => setDivisions(r.data ?? []))
   }, [showForm, editingUser])
 
   useEffect(() => {
-    if (form.department_id) {
-      orgService.listDivisions(form.department_id).then(r => setDivisions(r.data ?? []))
-    } else { setDivisions([]) }
-  }, [form.department_id])
+    if (form.division_id) {
+      orgService.listDepartments(form.division_id).then(r => setDepartments(r.data ?? []))
+    } else { setDepartments([]) }
+  }, [form.division_id])
 
   useEffect(() => {
-    if (form.division_id) {
-      orgService.listTeams(form.division_id).then(r => setTeams(r.data ?? []))
+    if (form.department_id) {
+      orgService.listTeams(form.department_id).then(r => setTeams(r.data ?? []))
     } else { setTeams([]) }
-  }, [form.division_id])
+  }, [form.department_id])
 
   const resetForm = () => {
     setForm({ full_name: '', email: '', password: '', role: 'user', department_id: '', division_id: '', team_id: '', position: '' })
@@ -188,18 +188,18 @@ export function UserManagementPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Department</label>
-                <select value={form.department_id} onChange={(e) => setForm({ ...form, department_id: e.target.value, division_id: '', team_id: '' })} className={inputStyle + ' appearance-none'}>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Division</label>
+                <select value={form.division_id} onChange={(e) => setForm({ ...form, division_id: e.target.value, department_id: '', team_id: '' })} className={inputStyle + ' appearance-none'}>
                   <option value="">-- None --</option>
-                  {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  {divisions.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Division</label>
-                <select value={form.division_id} onChange={(e) => setForm({ ...form, division_id: e.target.value, team_id: '' })}
-                  disabled={!form.department_id} className={inputStyle + ' appearance-none'}>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Department</label>
+                <select value={form.department_id} onChange={(e) => setForm({ ...form, department_id: e.target.value, team_id: '' })}
+                  disabled={!form.division_id} className={inputStyle + ' appearance-none'}>
                   <option value="">-- None --</option>
-                  {divisions.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                 </select>
               </div>
               <div>
@@ -208,12 +208,12 @@ export function UserManagementPage() {
                   <div className="w-full bg-surface-container-high/50 border-none rounded-xl px-4 py-3 text-sm text-on-surface-variant">
                     <span className="flex items-center gap-2">
                       <span className="material-symbols-outlined text-[16px]">info</span>
-                      Manager handles all teams in this division
+                      Manager handles all teams in this department
                     </span>
                   </div>
                 ) : (
                   <select value={form.team_id} onChange={(e) => setForm({ ...form, team_id: e.target.value })}
-                    disabled={!form.division_id} className={inputStyle + ' appearance-none'}>
+                    disabled={!form.department_id} className={inputStyle + ' appearance-none'}>
                     <option value="">-- None --</option>
                     {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </select>

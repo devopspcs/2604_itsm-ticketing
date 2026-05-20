@@ -6,7 +6,7 @@ export type ApprovalDecision = 'approved' | 'rejected'
 
 export type Position = 'manager' | 'leader' | 'staff'
 
-export interface Department {
+export interface Division {
   id: string
   name: string
   code: string
@@ -14,9 +14,9 @@ export interface Department {
   updated_at: string
 }
 
-export interface Division {
+export interface Department {
   id: string
-  department_id: string
+  division_id: string
   name: string
   code: string
   created_at: string
@@ -25,7 +25,7 @@ export interface Division {
 
 export interface Team {
   id: string
-  division_id: string
+  department_id: string
   name: string
   email?: string
   created_at: string
