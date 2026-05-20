@@ -51,6 +51,7 @@ ALTER TABLE users
 
 -- Step 7: Update unique constraint on departments
 ALTER TABLE departments DROP CONSTRAINT IF EXISTS departments_name_key;
+ALTER TABLE departments DROP CONSTRAINT IF EXISTS departments_code_key;
 ALTER TABLE departments ADD CONSTRAINT departments_division_id_code_key UNIQUE (division_id, code);
 
 -- Step 8: Create indexes
