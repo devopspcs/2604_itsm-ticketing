@@ -28,6 +28,7 @@ const navItems: NavItem[] = [
   { to: '/org-structure', icon: 'account_tree', label: 'Org Structure', roles: ['admin'] },
   { to: '/org-chart', icon: 'groups', label: 'Org Chart', roles: ['admin', 'approver'] },
   { to: '/settings', icon: 'settings', label: 'System Settings', roles: ['admin'] },
+  { to: '/app-management', icon: 'apps', label: 'App Management', roles: ['admin'] },
 ]
 
 export function Sidebar() {

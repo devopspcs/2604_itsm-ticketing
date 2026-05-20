@@ -189,6 +189,26 @@ type TeamRepository interface {
 }
 
 
+// --- Application Management ---
+
+type ApplicationRepository interface {
+	Create(ctx context.Context, app *entity.Application) error
+	FindByID(ctx context.Context, id uuid.UUID) (*entity.Application, error)
+	FindByCode(ctx context.Context, code string) (*entity.Application, error)
+	Update(ctx context.Context, app *entity.Application) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	List(ctx context.Context) ([]*entity.Application, error)
+}
+
+type UserAppAccessRepository interface {
+	Grant(ctx context.Context, access *entity.UserAppAccess) error
+	Revoke(ctx context.Context, userID, appID uuid.UUID) error
+	ListByUser(ctx context.Context, userID uuid.UUID) ([]*entity.UserAppAccess, error)
+	ListByApp(ctx context.Context, appID uuid.UUID) ([]*entity.UserAppAccess, error)
+	HasAccess(ctx context.Context, userID, appID uuid.UUID) (bool, error)
+	BulkGrant(ctx context.Context, userIDs []uuid.UUID, appID uuid.UUID, role string, grantedBy uuid.UUID) error
+}
+
 // --- Jira-like Features ---
 
 type IssueTypeRepository interface {

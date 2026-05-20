@@ -26,6 +26,7 @@ type Handlers struct {
 	Project             *handler.ProjectHandler
 	Jira                *handler.JiraHandler
 	ProjectBoardFeatures *handler.ProjectBoardFeaturesHandler
+	App                 *handler.ApplicationHandler
 }
 
 func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, userRepo repository.UserRepository, db interface{ Ping() error }) http.Handler {
@@ -94,6 +95,10 @@ func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, userRepo repository.User
 
 			// Dashboard — accessible to all authenticated users
 			r.Get("/dashboard", h.Dashboard.GetStats)
+
+			// Applications — accessible to all authenticated users
+			r.Get("/me/apps", h.App.GetMyApps)
+			r.Get("/applications", h.App.ListApps)
 
 			// User list for assign dropdown — all authenticated users can see
 			r.Get("/users/list", h.User.List)
@@ -259,6 +264,15 @@ func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, userRepo repository.User
 				r.Post("/webhooks", h.Webhook.Create)
 				r.Patch("/webhooks/{id}", h.Webhook.Update)
 				r.Delete("/webhooks/{id}", h.Webhook.Delete)
+
+				// Application management (admin only)
+				r.Post("/applications", h.App.CreateApp)
+				r.Patch("/applications/{id}", h.App.UpdateApp)
+				r.Delete("/applications/{id}", h.App.DeleteApp)
+				r.Get("/applications/{id}/users", h.App.GetAppUsers)
+				r.Post("/applications/{id}/access", h.App.GrantAccess)
+				r.Delete("/applications/{id}/access/{userId}", h.App.RevokeAccess)
+				r.Post("/applications/{id}/access/bulk", h.App.BulkGrantAccess)
 			})
 		})
 	})
