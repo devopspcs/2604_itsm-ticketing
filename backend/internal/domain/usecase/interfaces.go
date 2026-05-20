@@ -207,6 +207,61 @@ type OrgChartNode struct {
 	Children     []*OrgChartNode `json:"children"`
 }
 
+// --- Application Management ---
+
+type CreateApplicationRequest struct {
+	Name        string `json:"name" validate:"required"`
+	Code        string `json:"code" validate:"required"`
+	Description string `json:"description"`
+	Icon        string `json:"icon"`
+	Color       string `json:"color"`
+}
+
+type UpdateApplicationRequest struct {
+	Name        *string `json:"name"`
+	Description *string `json:"description"`
+	Icon        *string `json:"icon"`
+	Color       *string `json:"color"`
+	IsActive    *bool   `json:"is_active"`
+}
+
+type GrantAccessRequest struct {
+	UserID uuid.UUID `json:"user_id" validate:"required"`
+	AppID  uuid.UUID `json:"app_id" validate:"required"`
+	Role   string    `json:"role" validate:"required"`
+}
+
+type BulkGrantAccessRequest struct {
+	UserIDs []uuid.UUID `json:"user_ids" validate:"required"`
+	AppID   uuid.UUID   `json:"app_id" validate:"required"`
+	Role    string      `json:"role" validate:"required"`
+}
+
+type AppWithAccess struct {
+	Application entity.Application `json:"application"`
+	Role        string             `json:"role"`
+}
+
+type UserWithAppAccess struct {
+	User entity.User `json:"user"`
+	Role string      `json:"role"`
+}
+
+type ApplicationUseCase interface {
+	CreateApp(ctx context.Context, req CreateApplicationRequest) (*entity.Application, error)
+	UpdateApp(ctx context.Context, id uuid.UUID, req UpdateApplicationRequest) (*entity.Application, error)
+	DeleteApp(ctx context.Context, id uuid.UUID) error
+	ListApps(ctx context.Context) ([]*entity.Application, error)
+	GetApp(ctx context.Context, id uuid.UUID) (*entity.Application, error)
+
+	GrantAccess(ctx context.Context, req GrantAccessRequest, grantedBy uuid.UUID) error
+	RevokeAccess(ctx context.Context, userID, appID uuid.UUID) error
+	GetUserApps(ctx context.Context, userID uuid.UUID) ([]*AppWithAccess, error)
+	GetAppUsers(ctx context.Context, appID uuid.UUID) ([]*UserWithAppAccess, error)
+	BulkGrantAccess(ctx context.Context, req BulkGrantAccessRequest, grantedBy uuid.UUID) error
+	HasAccess(ctx context.Context, userID, appID uuid.UUID) (bool, error)
+}
+
 // --- Project Board ---
 
 type CreateProjectRequest struct {

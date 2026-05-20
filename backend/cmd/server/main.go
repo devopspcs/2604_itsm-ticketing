@@ -66,6 +66,10 @@ func main() {
 	projectActivityLogRepo := postgres.NewProjectActivityLogRepository(pool)
 	projectMemberRepo := postgres.NewProjectMemberRepository(pool)
 
+	// Application management repositories
+	appRepo := postgres.NewApplicationRepository(pool)
+	userAppAccessRepo := postgres.NewUserAppAccessRepository(pool)
+
 	// Infrastructure
 	dispatcher := webhook.NewDispatcher(webhookRepo, userRepo, cfg.BaseURL)
 	emailSvc := notifinfra.NewEmailService(cfg, log)
@@ -86,6 +90,9 @@ func main() {
 	notifUC := usecase.NewNotificationUseCase(notifRepo)
 	orgUC := usecase.NewOrgUseCase(deptRepo, divRepo, teamRepo, userRepo)
 	projectBoardUC := usecase.NewProjectBoardUseCase(projectRepo, projectColumnRepo, projectRecordRepo, projectActivityLogRepo, projectMemberRepo)
+
+	// Application management use case
+	appUC := usecase.NewApplicationUseCase(appRepo, userAppAccessRepo, userRepo)
 
 	// Jira-like features repositories
 	issueTypeRepo := postgres.NewIssueTypeRepository(pool)
@@ -156,6 +163,7 @@ func main() {
 		Project:              handler.NewProjectHandler(projectBoardUC),
 		Jira:                 handler.NewJiraHandler(issueTypeUC, customFieldUC, workflowUC, sprintUC, backlogUC, commentUC, attachmentUC, labelUC, bulkOpUC, searchUC),
 		ProjectBoardFeatures: handler.NewProjectBoardFeaturesHandler(reportsUC, releaseUC, componentUC, projectRecordRepo, projectActivityLogRepo, projectMemberRepo),
+		App:                  handler.NewApplicationHandler(appUC),
 	}
 
 	// Router

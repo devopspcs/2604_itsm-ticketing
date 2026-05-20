@@ -129,3 +129,30 @@ export interface TokenPair {
   refresh_token: string
   expires_in: number
 }
+
+// --- Application Management ---
+
+export interface Application {
+  id: string
+  name: string
+  code: string
+  description: string
+  icon: string
+  color: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface UserAppAccess {
+  id: string
+  user_id: string
+  app_id: string
+  role: string
+  granted_at: string
+}
+
+export interface AppWithAccess {
+  application: Application
+  role: string
+}
