@@ -57,7 +57,7 @@ export default function App() {
           <Route path="/acl" element={<RoleGuard roles={['admin']}><ACLDashboardPage /></RoleGuard>} />
           <Route path="/webhooks" element={<RoleGuard roles={['admin']}><WebhookConfigPage /></RoleGuard>} />
           <Route path="/org-structure" element={<RoleGuard roles={['admin']}><OrgStructurePage /></RoleGuard>} />
-          <Route path="/org-chart" element={<OrgChartPage />} />
+          <Route path="/org-chart" element={<RoleGuard roles={['admin', 'approver']}><OrgChartPage /></RoleGuard>} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<RoleGuard roles={['admin']}><UserManagementPage /></RoleGuard>} />
         </Route>
