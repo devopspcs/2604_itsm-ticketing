@@ -15,17 +15,20 @@ type orgUseCase struct {
 	divRepo  repository.DivisionRepository
 	deptRepo repository.DepartmentRepository
 	teamRepo repository.TeamRepository
+	userRepo repository.UserRepository
 }
 
 func NewOrgUseCase(
 	deptRepo repository.DepartmentRepository,
 	divRepo repository.DivisionRepository,
 	teamRepo repository.TeamRepository,
+	userRepo repository.UserRepository,
 ) domainUC.OrgUseCase {
 	return &orgUseCase{
 		deptRepo: deptRepo,
 		divRepo:  divRepo,
 		teamRepo: teamRepo,
+		userRepo: userRepo,
 	}
 }
 
@@ -209,4 +212,50 @@ func (uc *orgUseCase) DeleteTeam(ctx context.Context, id uuid.UUID) error {
 
 func (uc *orgUseCase) ListTeams(ctx context.Context, departmentID *uuid.UUID) ([]*entity.Team, error) {
 	return uc.teamRepo.List(ctx, repository.TeamFilter{DepartmentID: departmentID})
+}
+
+// --- Org Chart ---
+
+func (uc *orgUseCase) GetOrgChart(ctx context.Context) ([]*domainUC.OrgChartNode, error) {
+	users, err := uc.userRepo.List(ctx, repository.UserFilter{})
+	if err != nil {
+		return nil, err
+	}
+
+	// Build a map of user ID -> node
+	nodeMap := make(map[uuid.UUID]*domainUC.OrgChartNode)
+	for _, u := range users {
+		if !u.IsActive {
+			continue
+		}
+		nodeMap[u.ID] = &domainUC.OrgChartNode{
+			ID:           u.ID,
+			FullName:     u.FullName,
+			Email:        u.Email,
+			Position:     u.Position,
+			Role:         u.Role,
+			ReportsTo:    u.ReportsTo,
+			DivisionID:   u.DivisionID,
+			DepartmentID: u.DepartmentID,
+			TeamID:       u.TeamID,
+			Children:     []*domainUC.OrgChartNode{},
+		}
+	}
+
+	// Build tree: attach children to parents
+	var roots []*domainUC.OrgChartNode
+	for _, node := range nodeMap {
+		if node.ReportsTo != nil {
+			if parent, ok := nodeMap[*node.ReportsTo]; ok {
+				parent.Children = append(parent.Children, node)
+			} else {
+				// Parent not found (inactive or deleted), treat as root
+				roots = append(roots, node)
+			}
+		} else {
+			roots = append(roots, node)
+		}
+	}
+
+	return roots, nil
 }

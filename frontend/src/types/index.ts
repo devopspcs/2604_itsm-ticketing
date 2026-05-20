@@ -44,6 +44,20 @@ export interface User {
   division_id?: string
   team_id?: string
   position?: Position
+  reports_to?: string
+}
+
+export interface OrgChartNode {
+  id: string
+  full_name: string
+  email: string
+  position?: Position
+  role: Role
+  reports_to?: string
+  division_id?: string
+  department_id?: string
+  team_id?: string
+  children: OrgChartNode[]
 }
 
 export interface Ticket {

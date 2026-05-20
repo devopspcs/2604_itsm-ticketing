@@ -62,6 +62,7 @@ func (u *userUseCase) CreateUser(ctx context.Context, req usecase.CreateUserRequ
 		DivisionID:   req.DivisionID,
 		TeamID:       req.TeamID,
 		Position:     req.Position,
+		ReportsTo:    req.ReportsTo,
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}
@@ -149,6 +150,7 @@ func (u *userUseCase) UpdateUserOrg(ctx context.Context, userID uuid.UUID, req u
 	user.DivisionID = req.DivisionID
 	user.TeamID = req.TeamID
 	user.Position = req.Position
+	user.ReportsTo = req.ReportsTo
 	user.UpdatedAt = time.Now()
 
 	if err := u.userRepo.Update(ctx, user); err != nil {

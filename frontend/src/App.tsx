@@ -13,6 +13,7 @@ import { UserManagementPage } from './pages/UserManagementPage'
 import { ACLDashboardPage } from './pages/ACLDashboardPage'
 import { WebhookConfigPage } from './pages/WebhookConfigPage'
 import { OrgStructurePage } from './pages/OrgStructurePage'
+import { OrgChartPage } from './pages/OrgChartPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { SSOCallbackPage } from './pages/SSOCallbackPage'
 import { KanbanBoardPage } from './pages/KanbanBoardPage'
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="/acl" element={<RoleGuard roles={['admin']}><ACLDashboardPage /></RoleGuard>} />
           <Route path="/webhooks" element={<RoleGuard roles={['admin']}><WebhookConfigPage /></RoleGuard>} />
           <Route path="/org-structure" element={<RoleGuard roles={['admin']}><OrgStructurePage /></RoleGuard>} />
+          <Route path="/org-chart" element={<OrgChartPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<RoleGuard roles={['admin']}><UserManagementPage /></RoleGuard>} />
         </Route>
