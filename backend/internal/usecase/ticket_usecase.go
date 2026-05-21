@@ -167,9 +167,42 @@ func (uc *ticketUseCase) ListTickets(ctx context.Context, filter repository.Tick
 		return uc.ticketRepo.List(ctx, filter)
 	}
 
-	// Agent sees all tickets (they handle them)
+	// Agent sees: own tickets + tickets assigned to their team + subordinates' tickets
 	if requester.Role == entity.RoleAgent {
-		return uc.ticketRepo.List(ctx, filter)
+		agent, err := uc.userRepo.FindByID(ctx, requester.UserID)
+		if err != nil {
+			return uc.ticketRepo.List(ctx, filter)
+		}
+
+		// Get subordinate IDs
+		subordinateIDs := uc.getSubordinateIDs(ctx, agent.ID)
+		allIDs := append(subordinateIDs, agent.ID)
+
+		// Get own + subordinates' tickets
+		result, err := uc.listTicketsByUserIDs(ctx, filter, allIDs)
+		if err != nil {
+			return nil, err
+		}
+
+		// Also include tickets assigned to agent's team
+		if agent.TeamID != nil {
+			teamFilter := repository.TicketFilter{Page: 1, PageSize: 100000, AssignedTeamID: agent.TeamID}
+			teamResult, teamErr := uc.ticketRepo.List(ctx, teamFilter)
+			if teamErr == nil {
+				seen := make(map[uuid.UUID]bool)
+				for _, t := range result.Tickets {
+					seen[t.ID] = true
+				}
+				for _, t := range teamResult.Tickets {
+					if !seen[t.ID] {
+						result.Tickets = append(result.Tickets, t)
+						result.Total++
+					}
+				}
+			}
+		}
+
+		return result, nil
 	}
 
 	// Approver sees tickets assigned to teams in their department + unassigned tickets
