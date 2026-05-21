@@ -18,6 +18,7 @@ export function AppManagementPage() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [showAddUserModal, setShowAddUserModal] = useState(false)
   const [formData, setFormData] = useState({ name: '', code: '', description: '', icon: 'apps', color: '#1976d2' })
+  const [appUserSearch, setAppUserSearch] = useState('')
 
   useEffect(() => {
     loadApps()
@@ -55,6 +56,7 @@ export function AppManagementPage() {
 
   const handleSelectApp = (app: Application) => {
     setSelectedApp(app)
+    setAppUserSearch('')
     loadAppUsers(app.id)
   }
 
@@ -266,6 +268,19 @@ export function AppManagementPage() {
               </div>
 
               <div className="overflow-x-auto">
+                {/* Search users in this app */}
+                <div className="mb-3">
+                  <div className="relative">
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">search</span>
+                    <input
+                      type="text"
+                      placeholder="Search users..."
+                      value={appUserSearch}
+                      onChange={e => setAppUserSearch(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                  </div>
+                </div>
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-100">
@@ -276,7 +291,13 @@ export function AppManagementPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {appUsers.map(({ user, role }) => (
+                    {appUsers
+                      .filter(({ user }) => {
+                        if (!appUserSearch) return true
+                        const q = appUserSearch.toLowerCase()
+                        return user.full_name.toLowerCase().includes(q) || user.email.toLowerCase().includes(q)
+                      })
+                      .map(({ user, role }) => (
                       <tr key={user.id} className="border-b border-slate-50 hover:bg-slate-50">
                         <td className="py-2 px-3 font-medium text-slate-900">{user.full_name}</td>
                         <td className="py-2 px-3 text-slate-500">{user.email}</td>

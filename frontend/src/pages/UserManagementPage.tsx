@@ -27,6 +27,7 @@ export function UserManagementPage() {
   const [departments, setDepartments] = useState<Department[]>([])
   const [divisions, setDivisions] = useState<Division[]>([])
   const [teams, setTeams] = useState<Team[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
 
   const showMsg = (msg: string) => { setActionMsg(msg); setTimeout(() => setActionMsg(''), 3000) }
 
@@ -148,6 +149,20 @@ export function UserManagementPage() {
       </div>
 
       {error && <div className="mb-4"><ErrorMessage message={error} /></div>}
+
+      {/* Search Bar */}
+      <div className="mb-4">
+        <div className="relative max-w-md">
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant">search</span>
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 border border-outline-variant rounded-xl text-sm bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary/30"
+          />
+        </div>
+      </div>
 
       {/* Create/Edit Form */}
       {showForm && (
@@ -273,7 +288,13 @@ export function UserManagementPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-container-low">
-            {users.map((u) => (
+            {users
+              .filter(u => {
+                if (!searchQuery) return true
+                const q = searchQuery.toLowerCase()
+                return u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+              })
+              .map((u) => (
               <tr key={u.id} className="hover:bg-surface-container-low/30 transition-colors">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
