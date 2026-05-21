@@ -60,7 +60,6 @@ export default function App() {
           <Route path="/org-structure" element={<RoleGuard roles={['admin']}><OrgStructurePage /></RoleGuard>} />
           <Route path="/org-chart" element={<RoleGuard roles={['admin', 'approver']}><OrgChartPage /></RoleGuard>} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/settings" element={<RoleGuard roles={['admin']}><UserManagementPage /></RoleGuard>} />
           <Route path="/app-management" element={<RoleGuard roles={['admin']}><AppManagementPage /></RoleGuard>} />
         </Route>
         <Route element={<ProjectBoardLayout />}>
