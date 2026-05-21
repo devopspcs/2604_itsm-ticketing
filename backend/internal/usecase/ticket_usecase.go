@@ -83,6 +83,34 @@ func (uc *ticketUseCase) CreateTicket(ctx context.Context, req domainUC.CreateTi
 		CreatedAt: now,
 	})
 
+	// Auto-submit for approval when agent creates ticket
+	if requester.Role == entity.RoleAgent {
+		ticket.Status = entity.StatusPendingApproval
+		ticket.UpdatedAt = time.Now().UTC()
+		_ = uc.ticketRepo.Update(ctx, ticket)
+
+		_ = uc.activityRepo.Append(ctx, &entity.ActivityLog{
+			ID:        uuid.New(),
+			TicketID:  ticket.ID,
+			ActorID:   requester.UserID,
+			Action:    entity.ActionApprovalRequested,
+			CreatedAt: time.Now().UTC(),
+		})
+
+		// Notify agent's direct manager (reports_to)
+		creator, err := uc.userRepo.FindByID(ctx, requester.UserID)
+		if err == nil && creator.ReportsTo != nil {
+			_ = uc.notificationRepo.Create(ctx, &entity.Notification{
+				ID:        uuid.New(),
+				UserID:    *creator.ReportsTo,
+				TicketID:  ticket.ID,
+				Message:   "Ticket \"" + ticket.Title + "\" from " + creator.FullName + " needs your approval",
+				IsRead:    false,
+				CreatedAt: time.Now().UTC(),
+			})
+		}
+	}
+
 	// Notify agents and admins about new tickets from users
 	go uc.notifyAgentsAndAdmins(ctx, ticket)
 
