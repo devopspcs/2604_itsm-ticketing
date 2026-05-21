@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/org/itsm/internal/domain/entity"
 	"github.com/org/itsm/internal/domain/repository"
 	domainUC "github.com/org/itsm/internal/domain/usecase"
@@ -18,36 +19,50 @@ var slaTargets = map[entity.Priority]time.Duration{
 
 type dashboardUseCase struct {
 	ticketRepo repository.TicketRepository
+	userRepo   repository.UserRepository
 }
 
-func NewDashboardUseCase(ticketRepo repository.TicketRepository) domainUC.DashboardUseCase {
-	return &dashboardUseCase{ticketRepo: ticketRepo}
+func NewDashboardUseCase(ticketRepo repository.TicketRepository, userRepo repository.UserRepository) domainUC.DashboardUseCase {
+	return &dashboardUseCase{ticketRepo: ticketRepo, userRepo: userRepo}
 }
 
 func (uc *dashboardUseCase) GetStats(ctx context.Context, filter domainUC.DashboardFilter, requester domainUC.UserClaims) (*domainUC.DashboardStats, error) {
 	baseFilter := repository.TicketFilter{Page: 1, PageSize: 100000}
 
 	if requester.Role == entity.RoleUser {
-		// For user: we'll use the ticket usecase logic via direct repo calls
-		// Fetch created + assigned tickets
-		createdFilter := repository.TicketFilter{Page: 1, PageSize: 100000, CreatedBy: &requester.UserID}
-		assignedFilter := repository.TicketFilter{Page: 1, PageSize: 100000, AssignedTo: &requester.UserID}
+		// Get subordinate IDs (reports_to chain)
+		subordinateIDs := uc.getSubordinateIDs(ctx, requester.UserID)
 
-		createdResult, err := uc.ticketRepo.List(ctx, createdFilter)
-		if err != nil {
-			return nil, err
-		}
-		assignedResult, err := uc.ticketRepo.List(ctx, assignedFilter)
-		if err != nil {
-			return nil, err
-		}
+		// Collect all user IDs to fetch tickets for (self + subordinates)
+		userIDs := append(subordinateIDs, requester.UserID)
 
+		// Fetch tickets from all these users
 		seen := map[string]bool{}
 		var allTickets []*entity.Ticket
-		for _, t := range append(createdResult.Tickets, assignedResult.Tickets...) {
-			if !seen[t.ID.String()] {
-				seen[t.ID.String()] = true
-				allTickets = append(allTickets, t)
+		for _, uid := range userIDs {
+			uid := uid
+			f := repository.TicketFilter{Page: 1, PageSize: 100000, CreatedBy: &uid}
+			result, err := uc.ticketRepo.List(ctx, f)
+			if err != nil {
+				continue
+			}
+			for _, t := range result.Tickets {
+				if !seen[t.ID.String()] {
+					seen[t.ID.String()] = true
+					allTickets = append(allTickets, t)
+				}
+			}
+		}
+
+		// Also include tickets assigned to this user
+		assignedFilter := repository.TicketFilter{Page: 1, PageSize: 100000, AssignedTo: &requester.UserID}
+		assignedResult, err := uc.ticketRepo.List(ctx, assignedFilter)
+		if err == nil {
+			for _, t := range assignedResult.Tickets {
+				if !seen[t.ID.String()] {
+					seen[t.ID.String()] = true
+					allTickets = append(allTickets, t)
+				}
 			}
 		}
 
@@ -156,4 +171,37 @@ func calculateSLAMetrics(tickets []*entity.Ticket) (complianceRate float64, avgH
 	}
 
 	return complianceRate, avgHours, onTime, breached
+}
+
+// getSubordinateIDs returns all user IDs that report to the given user (recursively).
+func (uc *dashboardUseCase) getSubordinateIDs(ctx context.Context, managerID uuid.UUID) []uuid.UUID {
+	allUsers, err := uc.userRepo.List(ctx, repository.UserFilter{})
+	if err != nil {
+		return nil
+	}
+
+	// Build reports_to map
+	directReports := make(map[uuid.UUID][]uuid.UUID)
+	for _, u := range allUsers {
+		if u.ReportsTo != nil && u.IsActive {
+			directReports[*u.ReportsTo] = append(directReports[*u.ReportsTo], u.ID)
+		}
+	}
+
+	// BFS
+	var result []uuid.UUID
+	queue := directReports[managerID]
+	visited := make(map[uuid.UUID]bool)
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+		if visited[current] {
+			continue
+		}
+		visited[current] = true
+		result = append(result, current)
+		queue = append(queue, directReports[current]...)
+	}
+
+	return result
 }

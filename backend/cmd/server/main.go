@@ -86,7 +86,7 @@ func main() {
 	ticketUC := usecase.NewTicketUseCase(ticketRepo, activityRepo, notifRepo, userRepo, teamRepo, webhookUC)
 	approvalUC := usecase.NewApprovalUseCase(ticketRepo, approvalRepo, activityRepo, notifRepo, userRepo, teamRepo, webhookUC)
 	assignmentUC := usecase.NewAssignmentUseCase(ticketRepo, userRepo, teamRepo, activityRepo, notifRepo, webhookUC, emailSvc)
-	dashboardUC := usecase.NewDashboardUseCase(ticketRepo)
+	dashboardUC := usecase.NewDashboardUseCase(ticketRepo, userRepo)
 	notifUC := usecase.NewNotificationUseCase(notifRepo)
 	orgUC := usecase.NewOrgUseCase(deptRepo, divRepo, teamRepo, userRepo)
 	projectBoardUC := usecase.NewProjectBoardUseCase(projectRepo, projectColumnRepo, projectRecordRepo, projectActivityLogRepo, projectMemberRepo)
