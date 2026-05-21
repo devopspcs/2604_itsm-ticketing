@@ -184,6 +184,19 @@ func (uc *ticketUseCase) ListTickets(ctx context.Context, filter repository.Tick
 			return nil, err
 		}
 
+		// Filter out tickets assigned to OTHER teams (team isolation)
+		var filtered []*entity.Ticket
+		for _, t := range result.Tickets {
+			if t.AssignedTeamID == nil {
+				filtered = append(filtered, t)
+			} else if agent.TeamID != nil && *t.AssignedTeamID == *agent.TeamID {
+				filtered = append(filtered, t)
+			}
+			// else: assigned to another team — skip
+		}
+		result.Tickets = filtered
+		result.Total = int64(len(filtered))
+
 		// Also include tickets assigned to agent's team
 		if agent.TeamID != nil {
 			teamFilter := filter
@@ -257,7 +270,26 @@ func (uc *ticketUseCase) ListTickets(ctx context.Context, filter repository.Tick
 				return nil, err
 			}
 
-			// Merge team tickets
+			// Filter out tickets assigned to OTHER teams (not user's team)
+			// Only keep: tickets with no team assignment OR tickets assigned to user's team
+			var filtered []*entity.Ticket
+			for _, t := range result.Tickets {
+				if t.AssignedTeamID == nil {
+					// No team assignment — visible based on subordinate chain
+					filtered = append(filtered, t)
+				} else if user.TeamID != nil && *t.AssignedTeamID == *user.TeamID {
+					// Assigned to user's own team
+					filtered = append(filtered, t)
+				} else if user.Position != nil && *user.Position == entity.PositionManager {
+					// Manager can see all team tickets in their scope
+					filtered = append(filtered, t)
+				}
+				// else: ticket assigned to another team — skip
+			}
+			result.Tickets = filtered
+			result.Total = int64(len(filtered))
+
+			// Merge team tickets (already filtered by user's team)
 			if len(teamTickets) > 0 {
 				seen := make(map[uuid.UUID]bool)
 				for _, t := range result.Tickets {
