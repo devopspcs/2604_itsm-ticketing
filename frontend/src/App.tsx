@@ -30,6 +30,7 @@ import { ComponentsPage } from './pages/ComponentsPage'
 import { IssuesPage } from './pages/IssuesPage'
 import { RepositoryPage } from './pages/RepositoryPage'
 import { AppManagementPage } from './pages/AppManagementPage'
+import { AppAccessGuard } from './components/guards/AppAccessGuard'
 import type { RootState } from './store'
 
 function RoleGuard({ roles, children }: { roles: string[]; children: React.ReactNode }) {
@@ -62,7 +63,7 @@ export default function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/app-management" element={<RoleGuard roles={['admin']}><AppManagementPage /></RoleGuard>} />
         </Route>
-        <Route element={<ProjectBoardLayout />}>
+        <Route element={<AppAccessGuard appCode="project-board"><ProjectBoardLayout /></AppAccessGuard>}>
           <Route path="/projects" element={<ProjectHomePage />} />
           <Route path="/projects/calendar" element={<ProjectCalendarPage />} />
           <Route path="/projects/:id" element={<ProjectBoardPage />} />
