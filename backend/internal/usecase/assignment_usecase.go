@@ -191,6 +191,27 @@ func (uc *assignmentUseCase) AssignTicketToTeam(ctx context.Context, ticketID uu
 	ticket.AssignedTeamID = &teamID
 	ticket.UpdatedAt = time.Now().UTC()
 
+	// Auto-assign to a team member (prefer leader, then any staff)
+	allUsers, _ := uc.userRepo.List(ctx, repository.UserFilter{})
+	var teamLeader *entity.User
+	var teamMember *entity.User
+	for _, u := range allUsers {
+		if u.TeamID != nil && *u.TeamID == teamID && u.IsActive {
+			if u.Position != nil && *u.Position == entity.PositionLeader {
+				teamLeader = u
+			} else if teamMember == nil {
+				teamMember = u
+			}
+		}
+	}
+	autoAssignee := teamLeader
+	if autoAssignee == nil {
+		autoAssignee = teamMember
+	}
+	if autoAssignee != nil {
+		ticket.AssignedTo = &autoAssignee.ID
+	}
+
 	// If ticket is still open, move to in_progress
 	if ticket.Status == entity.StatusOpen {
 		ticket.Status = entity.StatusInProgress
@@ -211,7 +232,6 @@ func (uc *assignmentUseCase) AssignTicketToTeam(ctx context.Context, ticketID uu
 	})
 
 	// Notify all team members via in-app notification
-	allUsers, _ := uc.userRepo.List(ctx, repository.UserFilter{})
 	for _, u := range allUsers {
 		if u.TeamID != nil && *u.TeamID == teamID {
 			_ = uc.notificationRepo.Create(ctx, &entity.Notification{
@@ -223,6 +243,18 @@ func (uc *assignmentUseCase) AssignTicketToTeam(ctx context.Context, ticketID uu
 				CreatedAt: time.Now().UTC(),
 			})
 		}
+	}
+
+	// Notify auto-assigned person specifically
+	if autoAssignee != nil {
+		_ = uc.notificationRepo.Create(ctx, &entity.Notification{
+			ID:        uuid.New(),
+			UserID:    autoAssignee.ID,
+			TicketID:  ticket.ID,
+			Message:   "You have been auto-assigned to ticket: " + ticket.Title,
+			IsRead:    false,
+			CreatedAt: time.Now().UTC(),
+		})
 	}
 
 	// Dispatch webhook
