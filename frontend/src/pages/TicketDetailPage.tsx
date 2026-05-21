@@ -559,7 +559,13 @@ export function TicketDetailPage() {
               <div><span className="text-on-surface-variant">Category:</span> <span className="font-medium ml-1">{ticket.category || '-'}</span></div>
               <div><span className="text-on-surface-variant">Priority:</span> <span className="font-medium capitalize ml-1">{ticket.priority}</span></div>
               <div><span className="text-on-surface-variant">Created by:</span> <span className="font-medium ml-1">{userName(ticket.created_by)}</span></div>
-              <div><span className="text-on-surface-variant">Assigned to:</span> <span className="font-medium ml-1">{ticket.assigned_to ? userName(ticket.assigned_to) : 'Unassigned'}</span></div>
+              <div><span className="text-on-surface-variant">Assigned to:</span> <span className="font-medium ml-1">{
+                ticket.assigned_to
+                  ? userName(ticket.assigned_to)
+                  : ticket.assigned_team_id
+                    ? users.filter(u => u.team_id === ticket.assigned_team_id && u.is_active).map(u => u.full_name).join(', ') || 'Team Members'
+                    : 'Unassigned'
+              }</span></div>
               {ticket.assigned_team_id && (
                 <div><span className="text-on-surface-variant">Team:</span> <span className="font-medium ml-1 text-primary">{teamName(ticket.assigned_team_id)}</span></div>
               )}

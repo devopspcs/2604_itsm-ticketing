@@ -66,6 +66,12 @@ export function TicketListPage() {
     }
     if (ticket.assigned_team_id) {
       const t = teams.find(t => t.id === ticket.assigned_team_id)
+      const teamMembers = users.filter(u => u.team_id === ticket.assigned_team_id && u.is_active)
+      if (teamMembers.length > 0) {
+        const names = teamMembers.slice(0, 3).map(u => u.full_name).join(', ')
+        const suffix = teamMembers.length > 3 ? ` +${teamMembers.length - 3}` : ''
+        return `${names}${suffix}`
+      }
       return t ? `Team: ${t.name}` : 'Team assigned'
     }
     return null
