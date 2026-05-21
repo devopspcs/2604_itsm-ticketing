@@ -169,19 +169,48 @@ func (uc *ticketUseCase) ListTickets(ctx context.Context, filter repository.Tick
 	if err == nil {
 		// Get all subordinates (reports_to chain) for this user
 		subordinateIDs := uc.getSubordinateIDs(ctx, user.ID)
-		if len(subordinateIDs) > 0 {
-			// User has subordinates — show own tickets + all subordinates' tickets
-			allIDs := append(subordinateIDs, user.ID)
-			return uc.listTicketsByUserIDs(ctx, filter, allIDs)
+
+		// Also include tickets assigned to user's team
+		var teamTickets []*entity.Ticket
+		if user.TeamID != nil {
+			teamFilter := repository.TicketFilter{Page: 1, PageSize: 100000, AssignedTeamID: user.TeamID}
+			teamResult, teamErr := uc.ticketRepo.List(ctx, teamFilter)
+			if teamErr == nil {
+				teamTickets = teamResult.Tickets
+			}
 		}
 
-		// No subordinates — fall back to position-based visibility
+		if len(subordinateIDs) > 0 || len(teamTickets) > 0 {
+			// Collect tickets from subordinates + own + team-assigned
+			allIDs := append(subordinateIDs, user.ID)
+			result, err := uc.listTicketsByUserIDs(ctx, filter, allIDs)
+			if err != nil {
+				return nil, err
+			}
+
+			// Merge team tickets
+			if len(teamTickets) > 0 {
+				seen := make(map[uuid.UUID]bool)
+				for _, t := range result.Tickets {
+					seen[t.ID] = true
+				}
+				for _, t := range teamTickets {
+					if !seen[t.ID] {
+						result.Tickets = append(result.Tickets, t)
+						result.Total++
+					}
+				}
+			}
+			return result, nil
+		}
+
+		// No subordinates and no team tickets — fall back to position-based visibility
 		if user.Position != nil {
 			return uc.listTicketsByPosition(ctx, filter, user)
 		}
 	}
 
-	// Regular user: only own tickets
+	// Regular user: only own tickets + tickets assigned to their team
 	filter.CreatedBy = &requester.UserID
 	return uc.ticketRepo.List(ctx, filter)
 }
