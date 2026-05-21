@@ -254,10 +254,11 @@ export function UserManagementPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Reports To</label>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Reports To <span className="text-error">*</span></label>
                 <select value={form.reports_to} onChange={(e) => setForm({ ...form, reports_to: e.target.value })}
+                  required
                   className={inputStyle + ' appearance-none'}>
-                  <option value="">-- None (Top Level) --</option>
+                  <option value="">-- Select Superior --</option>
                   {users.filter(u => u.id !== editingUser?.id && u.is_active).map(u => (
                     <option key={u.id} value={u.id}>{u.full_name}</option>
                   ))}
