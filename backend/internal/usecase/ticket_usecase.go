@@ -186,7 +186,11 @@ func (uc *ticketUseCase) ListTickets(ctx context.Context, filter repository.Tick
 
 		// Also include tickets assigned to agent's team
 		if agent.TeamID != nil {
-			teamFilter := repository.TicketFilter{Page: 1, PageSize: 100000, AssignedTeamID: agent.TeamID}
+			teamFilter := filter
+			teamFilter.Page = 1
+			teamFilter.PageSize = 100000
+			teamFilter.AssignedTeamID = agent.TeamID
+			teamFilter.CreatedBy = nil
 			teamResult, teamErr := uc.ticketRepo.List(ctx, teamFilter)
 			if teamErr == nil {
 				seen := make(map[uuid.UUID]bool)
@@ -234,7 +238,11 @@ func (uc *ticketUseCase) ListTickets(ctx context.Context, filter repository.Tick
 		// Also include tickets assigned to user's team
 		var teamTickets []*entity.Ticket
 		if user.TeamID != nil {
-			teamFilter := repository.TicketFilter{Page: 1, PageSize: 100000, AssignedTeamID: user.TeamID}
+			teamFilter := filter
+			teamFilter.Page = 1
+			teamFilter.PageSize = 100000
+			teamFilter.AssignedTeamID = user.TeamID
+			teamFilter.CreatedBy = nil
 			teamResult, teamErr := uc.ticketRepo.List(ctx, teamFilter)
 			if teamErr == nil {
 				teamTickets = teamResult.Tickets
