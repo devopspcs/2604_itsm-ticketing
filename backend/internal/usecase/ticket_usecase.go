@@ -166,13 +166,57 @@ func (uc *ticketUseCase) ListTickets(ctx context.Context, filter repository.Tick
 
 	// Check if user has org assignment for position-based visibility
 	user, err := uc.userRepo.FindByID(ctx, requester.UserID)
-	if err == nil && user.Position != nil {
-		return uc.listTicketsByPosition(ctx, filter, user)
+	if err == nil {
+		// Get all subordinates (reports_to chain) for this user
+		subordinateIDs := uc.getSubordinateIDs(ctx, user.ID)
+		if len(subordinateIDs) > 0 {
+			// User has subordinates — show own tickets + all subordinates' tickets
+			allIDs := append(subordinateIDs, user.ID)
+			return uc.listTicketsByUserIDs(ctx, filter, allIDs)
+		}
+
+		// No subordinates — fall back to position-based visibility
+		if user.Position != nil {
+			return uc.listTicketsByPosition(ctx, filter, user)
+		}
 	}
 
 	// Regular user: only own tickets
 	filter.CreatedBy = &requester.UserID
 	return uc.ticketRepo.List(ctx, filter)
+}
+
+// getSubordinateIDs returns all user IDs that report to the given user (recursively).
+func (uc *ticketUseCase) getSubordinateIDs(ctx context.Context, managerID uuid.UUID) []uuid.UUID {
+	allUsers, err := uc.userRepo.List(ctx, repository.UserFilter{})
+	if err != nil {
+		return nil
+	}
+
+	// Build reports_to map: managerID -> list of direct reports
+	directReports := make(map[uuid.UUID][]uuid.UUID)
+	for _, u := range allUsers {
+		if u.ReportsTo != nil && u.IsActive {
+			directReports[*u.ReportsTo] = append(directReports[*u.ReportsTo], u.ID)
+		}
+	}
+
+	// BFS to find all subordinates
+	var result []uuid.UUID
+	queue := directReports[managerID]
+	visited := make(map[uuid.UUID]bool)
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+		if visited[current] {
+			continue
+		}
+		visited[current] = true
+		result = append(result, current)
+		queue = append(queue, directReports[current]...)
+	}
+
+	return result
 }
 
 // listTicketsByPosition applies position-based visibility filtering.
