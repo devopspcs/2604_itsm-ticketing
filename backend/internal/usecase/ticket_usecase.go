@@ -97,17 +97,68 @@ func (uc *ticketUseCase) CreateTicket(ctx context.Context, req domainUC.CreateTi
 			CreatedAt: time.Now().UTC(),
 		})
 
-		// Notify agent's direct manager (reports_to)
+		// Notify agent's direct manager (reports_to) and all relevant approvers
 		creator, err := uc.userRepo.FindByID(ctx, requester.UserID)
-		if err == nil && creator.ReportsTo != nil {
-			_ = uc.notificationRepo.Create(ctx, &entity.Notification{
-				ID:        uuid.New(),
-				UserID:    *creator.ReportsTo,
-				TicketID:  ticket.ID,
-				Message:   "Ticket \"" + ticket.Title + "\" from " + creator.FullName + " needs your approval",
-				IsRead:    false,
-				CreatedAt: time.Now().UTC(),
-			})
+		if err == nil {
+			// Notify direct manager
+			if creator.ReportsTo != nil {
+				_ = uc.notificationRepo.Create(ctx, &entity.Notification{
+					ID:        uuid.New(),
+					UserID:    *creator.ReportsTo,
+					TicketID:  ticket.ID,
+					Message:   "Ticket \"" + ticket.Title + "\" from " + creator.FullName + " needs your approval",
+					IsRead:    false,
+					CreatedAt: time.Now().UTC(),
+				})
+			}
+
+			// Notify all approvers in the same department/division
+			allUsers, _ := uc.userRepo.List(ctx, repository.UserFilter{})
+			notified := map[uuid.UUID]bool{}
+			if creator.ReportsTo != nil {
+				notified[*creator.ReportsTo] = true // already notified
+			}
+			for _, u := range allUsers {
+				if notified[u.ID] || u.ID == requester.UserID || !u.IsActive {
+					continue
+				}
+				// Notify approvers in same division
+				if u.Role == entity.RoleApprover && creator.DivisionID != nil && u.DivisionID != nil && *u.DivisionID == *creator.DivisionID {
+					_ = uc.notificationRepo.Create(ctx, &entity.Notification{
+						ID:        uuid.New(),
+						UserID:    u.ID,
+						TicketID:  ticket.ID,
+						Message:   "Ticket \"" + ticket.Title + "\" from " + creator.FullName + " needs your approval",
+						IsRead:    false,
+						CreatedAt: time.Now().UTC(),
+					})
+					notified[u.ID] = true
+				}
+				// Notify managers up the reports_to chain
+				if u.Position != nil && *u.Position == entity.PositionManager && !notified[u.ID] {
+					// Check if this manager is in the creator's chain
+					current := creator.ReportsTo
+					for current != nil {
+						if *current == u.ID {
+							_ = uc.notificationRepo.Create(ctx, &entity.Notification{
+								ID:        uuid.New(),
+								UserID:    u.ID,
+								TicketID:  ticket.ID,
+								Message:   "Ticket \"" + ticket.Title + "\" from " + creator.FullName + " needs your approval",
+								IsRead:    false,
+								CreatedAt: time.Now().UTC(),
+							})
+							notified[u.ID] = true
+							break
+						}
+						parent, _ := uc.userRepo.FindByID(ctx, *current)
+						if parent == nil {
+							break
+						}
+						current = parent.ReportsTo
+					}
+				}
+			}
 		}
 	}
 
