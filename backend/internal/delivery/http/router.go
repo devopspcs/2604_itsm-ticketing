@@ -29,7 +29,7 @@ type Handlers struct {
 	App                 *handler.ApplicationHandler
 }
 
-func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, userRepo repository.UserRepository, db interface{ Ping() error }) http.Handler {
+func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, userRepo repository.UserRepository, appRepo repository.ApplicationRepository, accessRepo repository.UserAppAccessRepository, db interface{ Ping() error }) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(chimw.Logger)
@@ -111,6 +111,7 @@ func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, userRepo repository.User
 
 			// Project Board
 			r.Route("/projects", func(r chi.Router) {
+				r.Use(middleware.RequireAppAccess(appRepo, accessRepo, "project-board"))
 				r.Post("/", h.Project.Create)
 				r.Get("/", h.Project.List)
 				r.Get("/home", h.Project.GetHome)

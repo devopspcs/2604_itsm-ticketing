@@ -167,7 +167,7 @@ func main() {
 	}
 
 	// Router
-	router := httpdelivery.NewRouter(handlers, jwtManager, userRepo, &dbPinger{pool: pool})
+	router := httpdelivery.NewRouter(handlers, jwtManager, userRepo, appRepo, userAppAccessRepo, &dbPinger{pool: pool})
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
 	log.Info("server starting", "addr", addr)
