@@ -61,8 +61,12 @@ export function Header() {
         <nav className="hidden md:flex items-center gap-4">
           <Link to="/dashboard" className="text-slate-500 hover:bg-slate-100 transition-colors px-3 py-1 rounded-xl text-sm font-medium">Overview</Link>
           <Link to="/tickets" className="text-slate-500 hover:bg-slate-100 transition-colors px-3 py-1 rounded-xl text-sm font-medium">Tickets</Link>
-          <Link to="/approvals" className="text-slate-500 hover:bg-slate-100 transition-colors px-3 py-1 rounded-xl text-sm font-medium">Approvals</Link>
-          <Link to="/activity-logs" className="text-slate-500 hover:bg-slate-100 transition-colors px-3 py-1 rounded-xl text-sm font-medium">Audit</Link>
+          {(role === 'admin' || role === 'approver') && (
+            <Link to="/approvals" className="text-slate-500 hover:bg-slate-100 transition-colors px-3 py-1 rounded-xl text-sm font-medium">Approvals</Link>
+          )}
+          {(role === 'admin' || role === 'approver' || role === 'agent') && (
+            <Link to="/activity-logs" className="text-slate-500 hover:bg-slate-100 transition-colors px-3 py-1 rounded-xl text-sm font-medium">Audit</Link>
+          )}
         </nav>
       </div>
 
