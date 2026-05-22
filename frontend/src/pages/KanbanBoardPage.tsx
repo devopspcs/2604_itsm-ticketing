@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { ticketService } from '../services/ticket.service'
 import { KanbanColumn } from '../components/kanban/KanbanColumn'
 import { TicketCard } from '../components/kanban/TicketCard'
 import { KANBAN_COLUMNS } from '../types/kanban'
 import type { Ticket, TicketStatus } from '../types'
+import type { RootState } from '../store'
 
 type ColumnsState = Record<TicketStatus, Ticket[]>
 type LoadingState = Record<TicketStatus, boolean>
@@ -22,6 +24,8 @@ export function KanbanBoardPage() {
   const [error, setError] = useState<string | null>(null)
   const [dragError, setDragError] = useState<string | null>(null)
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null)
+  const role = useSelector((s: RootState) => s.auth.role) ?? 'user'
+  const canDrag = role === 'admin' || role === 'approver'
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -84,7 +88,9 @@ export function KanbanBoardPage() {
       {/* Header */}
       <div className="px-8 pt-8 pb-4">
         <h1 className="text-2xl font-extrabold text-on-surface tracking-tight font-headline">Kanban Board</h1>
-        <p className="text-sm text-on-surface-variant font-medium mt-1">Drag tickets between columns to update status</p>
+        <p className="text-sm text-on-surface-variant font-medium mt-1">
+          {canDrag ? 'Drag tickets between columns to update status' : 'View ticket status across workflow stages'}
+        </p>
       </div>
 
       {/* Error banners */}
@@ -104,7 +110,7 @@ export function KanbanBoardPage() {
       )}
 
       {/* Kanban Board */}
-      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <DndContext sensors={canDrag ? sensors : []} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="flex-1 overflow-x-auto overflow-y-hidden px-8 pb-8">
           <div className="flex gap-8 h-full min-w-max">
             {KANBAN_COLUMNS.map((col) => (
