@@ -129,7 +129,7 @@ export function LoginPage() {
 
         <footer className="mt-8 text-center">
           <p className="text-xs text-on-surface-variant/60 font-medium">
-            © 2024 PCS Payments. All Rights Reserved.<br />
+            © 2026 PCS Payments. All Rights Reserved.<br />
             Managed by IT Department.
           </p>
         </footer>
