@@ -295,7 +295,7 @@ export function ActivityLogsPage() {
             <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Audit Service: Operational</span>
           </div>
         </div>
-        <span className="text-[10px] text-on-surface-variant">© 2024 PCS Payments. All Rights Reserved.</span>
+        <span className="text-[10px] text-on-surface-variant">© 2026 PCS Payments. All Rights Reserved.</span>
       </footer>
     </div>
   )
