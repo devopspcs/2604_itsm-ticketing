@@ -8,6 +8,7 @@ import { AppSwitcher } from './AppSwitcher'
 import type { RootState } from '../../store'
 import type { User } from '../../types'
 import api from '../../services/api'
+import logoPcs from '../../assets/logo-pcs.png'
 
 export function Header() {
   const { logout } = useAuth()
@@ -54,20 +55,11 @@ export function Header() {
   return (
     <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md shadow-sm flex justify-between items-center px-6 py-3">
       <div className="flex items-center gap-8">
-        <Link to="/dashboard" className="text-xl font-bold text-accent-900 font-headline">
-          PCS ITSM
+        <Link to="/dashboard" className="flex items-center gap-2">
+          <img src={logoPcs} alt="POSe" className="h-8 w-auto" />
+          <span className="text-[9px] uppercase tracking-widest text-slate-500 font-bold leading-tight">Enterprise<br/>Management</span>
         </Link>
         <AppSwitcher />
-        <nav className="hidden md:flex items-center gap-4">
-          <Link to="/dashboard" className="text-slate-500 hover:bg-slate-100 transition-colors px-3 py-1 rounded-xl text-sm font-medium">Overview</Link>
-          <Link to="/tickets" className="text-slate-500 hover:bg-slate-100 transition-colors px-3 py-1 rounded-xl text-sm font-medium">Tickets</Link>
-          {(role === 'admin' || role === 'approver') && (
-            <Link to="/approvals" className="text-slate-500 hover:bg-slate-100 transition-colors px-3 py-1 rounded-xl text-sm font-medium">Approvals</Link>
-          )}
-          {(role === 'admin' || role === 'approver' || role === 'agent') && (
-            <Link to="/activity-logs" className="text-slate-500 hover:bg-slate-100 transition-colors px-3 py-1 rounded-xl text-sm font-medium">Audit</Link>
-          )}
-        </nav>
       </div>
 
       <div className="flex items-center gap-3">

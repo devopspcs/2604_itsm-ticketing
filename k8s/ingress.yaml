@@ -1,0 +1,57 @@
+---
+# Ingress - routing dari browser ke service
+# Memerlukan ingress controller (minikube addons enable ingress)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: itsm-ingress
+  namespace: ticketing
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: itsm.local
+      http:
+        paths:
+          # API requests ke backend
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080
+          # Health check backend
+          - path: /health
+            pathType: Exact
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080
+          # SSO callback
+          - path: /sso
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080
+          # Webhook
+          - path: /webhook
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080
+          # Semua request lain ke frontend
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80

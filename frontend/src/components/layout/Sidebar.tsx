@@ -2,6 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
 import type { RootState } from '../../store'
+import logoPcs from '../../assets/logo-pcs.png'
 
 interface NavItem {
   to: string
@@ -103,8 +104,6 @@ export function Sidebar() {
   return (
     <aside className="h-screen w-64 fixed left-0 top-0 pt-16 bg-slate-50 flex flex-col gap-2 p-4 z-40 hidden md:flex">
       <div className="mb-6 px-2">
-        <h2 className="text-lg font-black text-accent-900 font-headline">Service Console</h2>
-        <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Enterprise Management</p>
       </div>
 
       <nav className="flex flex-col gap-1 flex-1 overflow-y-auto">
