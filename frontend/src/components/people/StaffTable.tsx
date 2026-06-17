@@ -379,10 +379,10 @@ export function StaffTable() {
             <tr className="bg-surface-container-low/50">
               <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant w-8"></th>
               <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Person ↕</th>
-              <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Role ↕</th>
+              <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Position ↕</th>
               <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Reporting Manager ↕</th>
               <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Work Status ↕</th>
-              <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Position</th>
+              <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Role</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-outline-variant/10">
