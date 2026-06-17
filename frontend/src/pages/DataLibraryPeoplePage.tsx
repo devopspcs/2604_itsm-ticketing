@@ -6,7 +6,7 @@ import type { User, Department, Division, Team } from '../types'
 
 // Tab content imports
 import { OrgChartPage } from './OrgChartPage'
-import { UserManagementPage } from './UserManagementPage'
+import { StaffTable } from '../components/people/StaffTable'
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: 'dashboard' },
@@ -241,7 +241,7 @@ export function DataLibraryPeoplePage() {
       {/* Tab Content */}
       <div>
         {activeTab === 'overview' && <OverviewTab />}
-        {activeTab === 'staff' && <UserManagementPage />}
+        {activeTab === 'staff' && <StaffTable />}
         {activeTab === 'monitoring' && <MonitoringTab />}
         {activeTab === 'roles' && <RolesTab />}
         {activeTab === 'org-chart' && <OrgChartPage />}
