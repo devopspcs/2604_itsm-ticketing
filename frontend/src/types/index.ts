@@ -45,6 +45,7 @@ export interface User {
   team_id?: string
   position?: Position
   reports_to?: string
+  avatar_url?: string
 }
 
 export interface OrgChartNode {

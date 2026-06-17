@@ -27,6 +27,7 @@ type User struct {
 	TeamID       *uuid.UUID `json:"team_id"`
 	Position     *Position  `json:"position"`
 	ReportsTo    *uuid.UUID `json:"reports_to"`
+	AvatarURL    string     `json:"avatar_url"`
 	CreatedAt    time.Time  `json:"created_at"`
 	UpdatedAt    time.Time  `json:"updated_at"`
 }

@@ -94,8 +94,10 @@ export function Header() {
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className="flex items-center gap-2 p-1 pr-3 rounded-full hover:bg-slate-100 transition-colors active:scale-[0.97]"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-container flex items-center justify-center text-white text-sm font-bold">
-              {initial}
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-container flex items-center justify-center text-white text-sm font-bold overflow-hidden">
+              {currentUser?.avatar_url ? (
+                <img src={currentUser.avatar_url} alt={displayName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              ) : initial}
             </div>
             <span className="hidden sm:block text-sm font-semibold text-on-surface max-w-[120px] truncate">{displayName}</span>
             <span className="material-symbols-outlined text-on-surface-variant text-[18px]">

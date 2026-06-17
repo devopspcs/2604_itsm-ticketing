@@ -115,6 +115,7 @@ type keycloakUserInfo struct {
 	GivenName         string `json:"given_name"`
 	FamilyName        string `json:"family_name"`
 	EmailVerified     bool   `json:"email_verified"`
+	Picture           string `json:"picture"`
 }
 
 func (h *SSOHandler) exchangeCode(code string) (*keycloakTokenResponse, error) {
@@ -180,6 +181,11 @@ func (h *SSOHandler) findOrCreateUser(ctx context.Context, info *keycloakUserInf
 	// Try to find existing user
 	user, err := h.userRepo.FindByEmail(ctx, email)
 	if err == nil && user != nil {
+		// Update avatar if changed
+		if info.Picture != "" && user.AvatarURL != info.Picture {
+			user.AvatarURL = info.Picture
+			h.userRepo.Update(ctx, user)
+		}
 		return user, nil
 	}
 
@@ -203,6 +209,7 @@ func (h *SSOHandler) findOrCreateUser(ctx context.Context, info *keycloakUserInf
 		PasswordHash: randomPass,
 		Role:         entity.RoleUser, // default role for SSO users
 		IsActive:     true,
+		AvatarURL:    info.Picture,
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}

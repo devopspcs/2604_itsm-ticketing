@@ -539,8 +539,10 @@ export function StaffTable() {
                 <tr key={u.id} className="hover:bg-surface-container-low/30 transition-colors cursor-pointer"
                   onClick={() => setSelectedUser(u)}>
                   <td className="px-4 py-3">
-                    <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-[10px] font-bold text-on-surface-variant">
-                      {initial}
+                    <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-[10px] font-bold text-on-surface-variant overflow-hidden">
+                      {u.avatar_url ? (
+                        <img src={u.avatar_url} alt={u.full_name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      ) : initial}
                     </div>
                   </td>
                   <td className="px-4 py-3">
