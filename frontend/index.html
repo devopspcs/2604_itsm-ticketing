@@ -274,6 +274,113 @@
       html.dark ::-webkit-scrollbar { width: 6px; }
       html.dark ::-webkit-scrollbar-track { background: #14161a; }
       html.dark ::-webkit-scrollbar-thumb { background: #3a3f4b; border-radius: 3px; }
+
+      /* Badges in dark mode */
+      html.dark .bg-emerald-100 {
+        background-color: rgba(16, 185, 129, 0.15) !important;
+        color: #6ee7b7 !important;
+      }
+      html.dark .bg-red-100 {
+        background-color: rgba(239, 68, 68, 0.15) !important;
+        color: #fca5a5 !important;
+      }
+      html.dark .bg-amber-100 {
+        background-color: rgba(245, 158, 11, 0.15) !important;
+        color: #fcd34d !important;
+      }
+      html.dark .bg-purple-100 {
+        background-color: rgba(139, 92, 246, 0.15) !important;
+        color: #c4b5fd !important;
+      }
+      html.dark .bg-blue-100 {
+        background-color: rgba(59, 130, 246, 0.15) !important;
+        color: #93c5fd !important;
+      }
+      html.dark .bg-slate-100 {
+        background-color: rgba(148, 163, 184, 0.15) !important;
+        color: #cbd5e1 !important;
+      }
+      /* Badge text colors override */
+      html.dark .text-emerald-700 { color: #6ee7b7 !important; }
+      html.dark .text-red-700 { color: #fca5a5 !important; }
+      html.dark .text-amber-700 { color: #fcd34d !important; }
+      html.dark .text-purple-700 { color: #c4b5fd !important; }
+      html.dark .text-blue-700 { color: #93c5fd !important; }
+      html.dark .text-emerald-600 { color: #6ee7b7 !important; }
+      html.dark .text-red-600 { color: #fca5a5 !important; }
+      html.dark .text-blue-600 { color: #93c5fd !important; }
+      html.dark .text-purple-600 { color: #c4b5fd !important; }
+      html.dark .text-slate-600 { color: #cbd5e1 !important; }
+
+      /* Primary fixed backgrounds in dark */
+      html.dark .bg-primary-fixed {
+        background-color: rgba(var(--color-primary), 0.15) !important;
+      }
+      html.dark .bg-primary\/5,
+      html.dark .bg-primary\/10 {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+      }
+
+      /* Buttons in dark mode */
+      html.dark .bg-gradient-to-r {
+        opacity: 0.95;
+      }
+
+      /* Surface container low/50 for table headers */
+      html.dark .bg-surface-container-low\/50 {
+        background-color: #14161a !important;
+      }
+
+      /* Border colors */
+      html.dark .border-outline-variant\/20,
+      html.dark .border-outline-variant\/30,
+      html.dark .border-outline-variant\/40 {
+        border-color: #2a2d35 !important;
+      }
+      html.dark .border-primary\/40 {
+        border-color: rgba(var(--color-primary), 0.4) !important;
+      }
+
+      /* Code/mono text */
+      html.dark code {
+        background-color: #282c34 !important;
+        color: #e5e7eb !important;
+      }
+
+      /* Modal/overlay backgrounds */
+      html.dark .bg-black\/40 {
+        background-color: rgba(0, 0, 0, 0.6) !important;
+      }
+
+      /* Divide colors */
+      html.dark .divide-outline-variant\/10 > :not([hidden]) ~ :not([hidden]),
+      html.dark .divide-surface-container-low > :not([hidden]) ~ :not([hidden]) {
+        border-color: #2a2d35 !important;
+      }
+
+      /* Fix text that uses specific color classes */
+      html.dark .text-on-surface-variant\/60,
+      html.dark .text-on-surface-variant\/30 {
+        color: #6b7280 !important;
+      }
+
+      /* Hover states */
+      html.dark .hover\:bg-surface-container-high:hover {
+        background-color: #282c34 !important;
+      }
+      html.dark .hover\:bg-surface-container-low\/30:hover {
+        background-color: #1f2229 !important;
+      }
+
+      /* Detail panel */
+      html.dark .border-l {
+        border-color: #2a2d35 !important;
+      }
+
+      /* Nav active state */
+      html.dark .bg-white.rounded-lg {
+        background-color: #1f2229 !important;
+      }
     </style>
   </head>
   <body>
