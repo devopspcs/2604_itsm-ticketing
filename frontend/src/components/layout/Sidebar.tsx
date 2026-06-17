@@ -48,22 +48,6 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    title: 'Organization',
-    icon: 'corporate_fare',
-    roles: ['admin', 'approver'],
-    collapsible: true,
-    items: [
-      {
-        to: '/users', icon: 'manage_accounts', label: 'User Management', roles: ['admin'],
-        children: [
-          { to: '/acl', icon: 'shield_person', label: 'Access Control' },
-        ],
-      },
-      { to: '/org-structure', icon: 'account_tree', label: 'Org Structure', roles: ['admin'] },
-      { to: '/org-chart', icon: 'groups', label: 'Org Chart', roles: ['admin', 'approver'] },
-    ],
-  },
-  {
     title: 'Administration',
     icon: 'admin_panel_settings',
     roles: ['admin'],

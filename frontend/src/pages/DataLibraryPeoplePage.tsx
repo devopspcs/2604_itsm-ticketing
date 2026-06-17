@@ -6,6 +6,7 @@ import type { User, Department, Division, Team } from '../types'
 
 // Tab content imports
 import { OrgChartPage } from './OrgChartPage'
+import { OrgStructurePage } from './OrgStructurePage'
 import { StaffTable } from '../components/people/StaffTable'
 
 const tabs = [
@@ -188,16 +189,7 @@ function RolesTab() {
 }
 
 function ConfigurationTab() {
-  return (
-    <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm">
-      <div className="text-center py-12">
-        <span className="material-symbols-outlined text-5xl text-on-surface-variant/30 mb-4">settings</span>
-        <h3 className="text-lg font-bold text-on-surface mb-2">Configuration</h3>
-        <p className="text-sm text-on-surface-variant">Configure people management settings, sync options, and integrations.</p>
-        <p className="text-xs text-on-surface-variant/60 mt-2">Coming soon</p>
-      </div>
-    </div>
-  )
+  return <OrgStructurePage />
 }
 
 export function DataLibraryPeoplePage() {
