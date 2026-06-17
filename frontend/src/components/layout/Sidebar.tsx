@@ -32,6 +32,22 @@ const navSections: NavSection[] = [
     ],
   },
   {
+    title: 'Data Library',
+    icon: 'database',
+    roles: ['admin', 'approver', 'agent'],
+    collapsible: true,
+    items: [
+      { to: '/data-library/people', icon: 'people', label: 'People', roles: ['admin', 'approver'] },
+      { to: '/data-library/assets', icon: 'devices', label: 'Asset Register', roles: ['admin', 'approver', 'agent'] },
+      { to: '/data-library/vendors', icon: 'store', label: 'Vendors', roles: ['admin'] },
+      { to: '/data-library/change-management', icon: 'change_circle', label: 'Change Management', roles: ['admin', 'approver'] },
+      { to: '/data-library/incidents', icon: 'warning', label: 'Incidents', roles: ['admin', 'approver', 'agent'] },
+      { to: '/data-library/knowledge-base', icon: 'menu_book', label: 'Knowledge Base', roles: ['admin', 'approver', 'agent'] },
+      { to: '/data-library/sla-templates', icon: 'timer', label: 'SLA Templates', roles: ['admin'] },
+      { to: '/data-library/categories', icon: 'category', label: 'Categories', roles: ['admin'] },
+    ],
+  },
+  {
     title: 'Organization',
     icon: 'corporate_fare',
     roles: ['admin', 'approver'],
