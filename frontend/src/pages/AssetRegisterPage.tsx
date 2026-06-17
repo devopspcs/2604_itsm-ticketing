@@ -29,6 +29,8 @@ interface DeviceResponse {
 
 interface DeviceStats {
   total_devices: number
+  laptop_count: number
+  mobile_count: number
   online_count: number
   offline_count: number
   os_breakdown: Record<string, number>
@@ -105,23 +107,27 @@ export function AssetRegisterPage() {
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="bg-surface-container-lowest rounded-xl p-5 shadow-sm border-l-4 border-primary">
             <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Total Devices</p>
             <p className="text-2xl font-black text-on-surface">{stats.total_devices}</p>
+          </div>
+          <div className="bg-surface-container-lowest rounded-xl p-5 shadow-sm border-l-4 border-blue-500">
+            <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Laptop/Desktop</p>
+            <p className="text-2xl font-black text-blue-600">{stats.laptop_count}</p>
+          </div>
+          <div className="bg-surface-container-lowest rounded-xl p-5 shadow-sm border-l-4 border-purple-500">
+            <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Smartphone</p>
+            <p className="text-2xl font-black text-purple-600">{stats.mobile_count}</p>
           </div>
           <div className="bg-surface-container-lowest rounded-xl p-5 shadow-sm border-l-4 border-emerald-500">
             <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Online</p>
             <p className="text-2xl font-black text-emerald-600">{stats.online_count}</p>
           </div>
-          <div className="bg-surface-container-lowest rounded-xl p-5 shadow-sm border-l-4 border-red-500">
-            <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Offline</p>
-            <p className="text-2xl font-black text-red-600">{stats.offline_count}</p>
-          </div>
-          <div className="bg-surface-container-lowest rounded-xl p-5 shadow-sm border-l-4 border-purple-500">
+          <div className="bg-surface-container-lowest rounded-xl p-5 shadow-sm border-l-4 border-amber-500">
             <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">OS Types</p>
             <p className="text-2xl font-black text-on-surface">{Object.keys(stats.os_breakdown).length}</p>
-            <div className="flex gap-2 mt-1">
+            <div className="flex flex-wrap gap-2 mt-1">
               {Object.entries(stats.os_breakdown).map(([os, count]) => (
                 <span key={os} className="text-[10px] text-on-surface-variant capitalize">{os}: {count}</span>
               ))}
