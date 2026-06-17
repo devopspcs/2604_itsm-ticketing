@@ -27,6 +27,7 @@ type Handlers struct {
 	Jira                *handler.JiraHandler
 	ProjectBoardFeatures *handler.ProjectBoardFeaturesHandler
 	App                 *handler.ApplicationHandler
+	MDM                 *handler.MDMHandler
 }
 
 func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, userRepo repository.UserRepository, appRepo repository.ApplicationRepository, accessRepo repository.UserAppAccessRepository, db interface{ Ping() error }) http.Handler {
@@ -108,6 +109,11 @@ func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, userRepo repository.User
 			r.Get("/divisions", h.Org.ListDivisions)
 			r.Get("/teams", h.Org.ListTeams)
 			r.Get("/org-chart", h.Org.GetOrgChart)
+
+			// MDM / Asset Register (proxy to psops)
+			r.Get("/assets/devices", h.MDM.ListDevices)
+			r.Get("/assets/devices/stats", h.MDM.GetDeviceStats)
+			r.Get("/assets/devices/{id}", h.MDM.GetDevice)
 
 			// Project Board
 			r.Route("/projects", func(r chi.Router) {

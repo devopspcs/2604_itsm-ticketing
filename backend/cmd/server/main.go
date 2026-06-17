@@ -164,6 +164,7 @@ func main() {
 		Jira:                 handler.NewJiraHandler(issueTypeUC, customFieldUC, workflowUC, sprintUC, backlogUC, commentUC, attachmentUC, labelUC, bulkOpUC, searchUC),
 		ProjectBoardFeatures: handler.NewProjectBoardFeaturesHandler(reportsUC, releaseUC, componentUC, projectRecordRepo, projectActivityLogRepo, projectMemberRepo),
 		App:                  handler.NewApplicationHandler(appUC),
+		MDM:                  handler.NewMDMHandler(),
 	}
 
 	// Router
