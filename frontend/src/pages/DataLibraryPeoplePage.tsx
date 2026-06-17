@@ -128,7 +128,7 @@ function OverviewTab() {
                       <p className="text-[10px] text-on-surface-variant">{dept.code}</p>
                     </div>
                     <span className="text-xs font-bold text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-full">
-                      {deptUsers.length} staff
+                      {deptUsers.length} members
                     </span>
                   </div>
                 )
