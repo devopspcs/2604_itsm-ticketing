@@ -128,7 +128,7 @@ function OverviewTab() {
                       <p className="text-[10px] text-on-surface-variant">{dept.code}</p>
                     </div>
                     <span className="text-xs font-bold text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-full">
-                      {deptUsers.length} members
+                      {deptUsers.length} staff
                     </span>
                   </div>
                 )
@@ -139,24 +139,87 @@ function OverviewTab() {
       </div>
 
       {/* Divisions overview */}
-      <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm">
-        <h3 className="text-sm font-bold text-on-surface mb-4 uppercase tracking-wider">Organization Structure</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {divisions.map(div => {
-            const divDepts = departments.filter(d => d.division_id === div.id)
-            const divTeams = teams.filter(t => divDepts.some(d => d.id === t.department_id))
-            return (
-              <div key={div.id} className="p-4 rounded-lg border border-outline-variant/20 hover:shadow-sm transition-all">
-                <p className="text-sm font-bold text-on-surface">{div.name}</p>
-                <p className="text-[10px] text-on-surface-variant mb-2">{div.code}</p>
-                <div className="flex gap-3 text-[10px]">
-                  <span className="text-on-surface-variant"><strong className="text-on-surface">{divDepts.length}</strong> depts</span>
-                  <span className="text-on-surface-variant"><strong className="text-on-surface">{divTeams.length}</strong> teams</span>
+      <OrgStructureSection divisions={divisions} departments={departments} teams={teams} users={users} />
+    </div>
+  )
+}
+
+function OrgStructureSection({ divisions, departments, teams, users }: {
+  divisions: Division[], departments: Department[], teams: Team[], users: User[]
+}) {
+  const [expandedDiv, setExpandedDiv] = useState<string | null>(null)
+
+  return (
+    <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm">
+      <h3 className="text-sm font-bold text-on-surface mb-4 uppercase tracking-wider">Organization Structure</h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {divisions.map(div => {
+          const divDepts = departments.filter(d => d.division_id === div.id)
+          const divTeams = teams.filter(t => divDepts.some(d => d.id === t.department_id))
+          const isExpanded = expandedDiv === div.id
+
+          return (
+            <div key={div.id}
+              className={`p-4 rounded-lg border transition-all cursor-pointer ${
+                isExpanded ? 'border-primary/40 shadow-md col-span-1 md:col-span-3 bg-primary/5' : 'border-outline-variant/20 hover:shadow-sm hover:border-primary/20'
+              }`}
+              onClick={() => setExpandedDiv(isExpanded ? null : div.id)}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold text-on-surface">{div.name}</p>
+                  <p className="text-[10px] text-on-surface-variant">{div.code}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex gap-3 text-[10px]">
+                    <span className="text-on-surface-variant"><strong className="text-on-surface">{divDepts.length}</strong> depts</span>
+                    <span className="text-on-surface-variant"><strong className="text-on-surface">{divTeams.length}</strong> teams</span>
+                  </div>
+                  <span className="material-symbols-outlined text-[16px] text-on-surface-variant">
+                    {isExpanded ? 'expand_less' : 'expand_more'}
+                  </span>
                 </div>
               </div>
-            )
-          })}
-        </div>
+
+              {isExpanded && (
+                <div className="mt-4 pt-4 border-t border-outline-variant/20" onClick={e => e.stopPropagation()}>
+                  {divDepts.length === 0 ? (
+                    <p className="text-xs text-on-surface-variant">No departments in this division</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {divDepts.map(dept => {
+                        const deptTeams = teams.filter(t => t.department_id === dept.id)
+                        const deptUsers = users.filter(u => u.department_id === dept.id)
+                        return (
+                          <div key={dept.id} className="p-3 rounded-lg bg-surface-container-lowest border border-outline-variant/10">
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <p className="text-sm font-semibold text-on-surface">{dept.name}</p>
+                                <p className="text-[10px] text-on-surface-variant">{dept.code}</p>
+                              </div>
+                              <span className="text-[10px] font-bold text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-full">
+                                {deptUsers.length} staff
+                              </span>
+                            </div>
+                            {deptTeams.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 mt-2">
+                                {deptTeams.map(t => (
+                                  <span key={t.id} className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                                    {t.name}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
