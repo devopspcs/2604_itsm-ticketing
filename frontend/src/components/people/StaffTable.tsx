@@ -311,12 +311,28 @@ export function StaffTable() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('active')
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [sortField, setSortField] = useState<'name' | 'position' | 'role' | 'status'>('name')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
   const fetchUsers = () => {
     api.get<User[]>('/users').then(r => setUsers(r.data ?? [])).finally(() => setLoading(false))
   }
 
   useEffect(() => { fetchUsers() }, [])
+
+  const handleSort = (field: 'name' | 'position' | 'role' | 'status') => {
+    if (sortField === field) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDir('asc')
+    }
+  }
+
+  const sortIcon = (field: string) => {
+    if (sortField !== field) return '↕'
+    return sortDir === 'asc' ? '↑' : '↓'
+  }
 
   const filteredUsers = users
     .filter(u => {
@@ -328,6 +344,24 @@ export function StaffTable() {
       if (!searchQuery) return true
       const q = searchQuery.toLowerCase()
       return u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+    })
+    .sort((a, b) => {
+      let cmp = 0
+      switch (sortField) {
+        case 'name':
+          cmp = a.full_name.localeCompare(b.full_name)
+          break
+        case 'position':
+          cmp = (a.position || 'zzz').localeCompare(b.position || 'zzz')
+          break
+        case 'role':
+          cmp = a.role.localeCompare(b.role)
+          break
+        case 'status':
+          cmp = (a.is_active === b.is_active) ? 0 : a.is_active ? -1 : 1
+          break
+      }
+      return sortDir === 'asc' ? cmp : -cmp
     })
 
   const getReportingManager = (userId?: string) => {
@@ -378,11 +412,11 @@ export function StaffTable() {
           <thead>
             <tr className="bg-surface-container-low/50">
               <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant w-8"></th>
-              <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Person ↕</th>
-              <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Position ↕</th>
-              <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Reporting Manager ↕</th>
-              <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Work Status ↕</th>
-              <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Role</th>
+              <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant cursor-pointer hover:text-on-surface select-none" onClick={() => handleSort('name')}>Person {sortIcon('name')}</th>
+              <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant cursor-pointer hover:text-on-surface select-none" onClick={() => handleSort('position')}>Position {sortIcon('position')}</th>
+              <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Reporting Manager</th>
+              <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant cursor-pointer hover:text-on-surface select-none" onClick={() => handleSort('status')}>Work Status {sortIcon('status')}</th>
+              <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant cursor-pointer hover:text-on-surface select-none" onClick={() => handleSort('role')}>Role {sortIcon('role')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-outline-variant/10">
