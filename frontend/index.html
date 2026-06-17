@@ -153,6 +153,22 @@
       html.dark .bg-white {
         background-color: #1a1d23 !important;
       }
+      html.dark .bg-surface-container-lowest {
+        background-color: #1a1d23 !important;
+      }
+      html.dark .bg-white\/60 {
+        background-color: rgba(26, 29, 35, 0.6) !important;
+      }
+      html.dark .bg-white\/80 {
+        background-color: rgba(26, 29, 35, 0.9) !important;
+      }
+      html.dark .bg-white\/20,
+      html.dark .bg-white\/15,
+      html.dark .bg-white\/10,
+      html.dark .bg-white\/25,
+      html.dark .bg-white\/30 {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+      }
       html.dark .bg-slate-50 {
         background-color: #14161a !important;
       }
@@ -225,6 +241,19 @@
       html.dark tr:hover td {
         background-color: #1f2229 !important;
       }
+      /* Main content area */
+      html.dark main,
+      html.dark .min-h-screen {
+        background-color: #0f1115 !important;
+      }
+      /* Fix dropdown menu in dark */
+      html.dark [class*="absolute"][class*="bg-white"] {
+        background-color: #1f2229 !important;
+      }
+      /* Scrollbar */
+      html.dark ::-webkit-scrollbar { width: 6px; }
+      html.dark ::-webkit-scrollbar-track { background: #14161a; }
+      html.dark ::-webkit-scrollbar-thumb { background: #3a3f4b; border-radius: 3px; }
     </style>
   </head>
   <body>
