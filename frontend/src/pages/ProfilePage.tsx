@@ -179,8 +179,8 @@ export function ProfilePage() {
             </div>
             <div className="p-6 space-y-4">
               {[
-                { icon: 'domain', label: 'Department', value: deptName || '—' },
                 { icon: 'workspaces', label: 'Division', value: divName || '—' },
+                { icon: 'domain', label: 'Department', value: deptName || '—' },
                 { icon: 'groups', label: 'Team', value: teamName || '—' },
                 { icon: 'badge', label: 'Position', value: user.position ? POSITION_LABELS[user.position] : '—' },
               ].map(({ icon, label, value }) => (
@@ -200,15 +200,15 @@ export function ProfilePage() {
                 <div className="bg-surface-container-low rounded-xl p-4">
                   <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-3">Organization Path</p>
                   <div className="flex items-center gap-2 text-sm flex-wrap">
-                    {deptName && (
-                      <>
-                        <span className="px-2.5 py-1 bg-primary-fixed text-primary rounded-lg font-semibold text-xs">{deptName}</span>
-                      </>
-                    )}
                     {divName && (
                       <>
-                        <span className="material-symbols-outlined text-on-surface-variant/40 text-[16px]">chevron_right</span>
                         <span className="px-2.5 py-1 bg-tertiary-fixed text-on-tertiary-fixed rounded-lg font-semibold text-xs">{divName}</span>
+                      </>
+                    )}
+                    {deptName && (
+                      <>
+                        <span className="material-symbols-outlined text-on-surface-variant/40 text-[16px]">chevron_right</span>
+                        <span className="px-2.5 py-1 bg-primary-fixed text-primary rounded-lg font-semibold text-xs">{deptName}</span>
                       </>
                     )}
                     {teamName && (
