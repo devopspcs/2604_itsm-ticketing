@@ -17,15 +17,23 @@ const MODE_STORAGE_KEY = 'itsm-theme-mode'
 function getInitialTheme(): ThemeColor {
   const saved = localStorage.getItem(STORAGE_KEY)
   if (saved && THEMES.some(t => t.id === saved)) return saved as ThemeColor
-  return 'blue'
+  return 'red'
 }
 
 function getInitialMode(): ThemeMode {
   const saved = localStorage.getItem(MODE_STORAGE_KEY)
   if (saved === 'dark' || saved === 'light') return saved
-  // Default: ikuti system preference
   if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark'
   return 'light'
+}
+
+function applyMode(m: ThemeMode) {
+  const html = document.documentElement
+  if (m === 'dark') {
+    html.classList.add('dark')
+  } else {
+    html.classList.remove('dark')
+  }
 }
 
 export function useTheme() {
@@ -41,25 +49,21 @@ export function useTheme() {
   const setMode = useCallback((m: ThemeMode) => {
     setModeState(m)
     localStorage.setItem(MODE_STORAGE_KEY, m)
-    if (m === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
+    applyMode(m)
   }, [])
 
   const toggleMode = useCallback(() => {
-    setMode(mode === 'light' ? 'dark' : 'light')
-  }, [mode, setMode])
+    const newMode = mode === 'light' ? 'dark' : 'light'
+    setModeState(newMode)
+    localStorage.setItem(MODE_STORAGE_KEY, newMode)
+    applyMode(newMode)
+  }, [mode])
 
+  // Apply on mount
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
-    if (mode === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-  }, [theme, mode])
+    applyMode(mode)
+  }, [])
 
   return { theme, setTheme, mode, setMode, toggleMode, themes: THEMES }
 }

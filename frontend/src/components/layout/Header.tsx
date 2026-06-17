@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { useAuth } from '../../hooks/useAuth'
 import { useNotifications } from '../../hooks/useNotifications'
-import { useTheme, THEMES } from '../../hooks/useTheme'
+import { useTheme } from '../../hooks/useTheme'
 import { AppSwitcher } from './AppSwitcher'
 import type { RootState } from '../../store'
 import type { User } from '../../types'
@@ -13,7 +13,7 @@ import logoPcs from '../../assets/logo-pcs.png'
 export function Header() {
   const { logout } = useAuth()
   const { unreadCount } = useNotifications()
-  const { theme, setTheme, mode, toggleMode } = useTheme()
+  const { mode, toggleMode } = useTheme()
   const navigate = useNavigate()
   const userId = useSelector((s: RootState) => s.auth.userId)
   const role = useSelector((s: RootState) => s.auth.role)
@@ -153,25 +153,10 @@ export function Header() {
                 </Link>
               </div>
 
-              {/* Theme Picker */}
+              {/* Light/Dark Toggle */}
               <div className="border-t border-outline-variant/10 px-5 py-3">
-                <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Theme</p>
-                <div className="flex items-center gap-2">
-                  {THEMES.map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => setTheme(t.id)}
-                      title={t.label}
-                      className={`w-7 h-7 rounded-full transition-all hover:scale-110 active:scale-95 ${
-                        theme === t.id ? 'ring-2 ring-offset-2 ring-on-surface scale-110' : ''
-                      }`}
-                      style={{ backgroundColor: t.color }}
-                    />
-                  ))}
-                </div>
-                {/* Light/Dark Toggle */}
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-outline-variant/10">
-                  <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Mode</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Appearance</span>
                   <button
                     onClick={toggleMode}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors text-sm font-medium text-on-surface"
