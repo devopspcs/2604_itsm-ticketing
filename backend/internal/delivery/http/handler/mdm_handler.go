@@ -33,10 +33,19 @@ func (h *MDMHandler) ListDevices(w http.ResponseWriter, r *http.Request) {
 		limit = "20"
 	}
 	deviceType := r.URL.Query().Get("device_type")
+	category := r.URL.Query().Get("category") // "laptop" or "mobile"
 
-	url := fmt.Sprintf("%s/mdm/device?page=%s&limit=%s", mdmBaseURL, page, limit)
-	if deviceType != "" {
-		url += "&device_type=" + deviceType
+	var url string
+	if category == "mobile" {
+		url = fmt.Sprintf("%s/mdm/device-mobile?page=%s&limit=%s", mdmBaseURL, page, limit)
+		if deviceType != "" {
+			url += "&device_type=" + deviceType
+		}
+	} else {
+		url = fmt.Sprintf("%s/mdm/device?page=%s&limit=%s", mdmBaseURL, page, limit)
+		if deviceType != "" {
+			url += "&device_type=" + deviceType
+		}
 	}
 
 	resp, err := h.client.Get(url)

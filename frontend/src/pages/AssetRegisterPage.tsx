@@ -5,8 +5,10 @@ interface Device {
   id: number
   name: string
   os: string
-  serial_number: string
-  is_online: boolean
+  serial_number?: string
+  is_online?: boolean
+  brand?: string
+  model?: string
   created_at: string
   updated_at: string
 }
@@ -39,13 +41,14 @@ export function AssetRegisterPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
+  const [category, setCategory] = useState<'laptop' | 'mobile'>('laptop')
   const [deviceType, setDeviceType] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const limit = 20
 
   const fetchDevices = () => {
     setLoading(true)
-    let url = `/assets/devices?page=${page}&limit=${limit}`
+    let url = `/assets/devices?page=${page}&limit=${limit}&category=${category}`
     if (deviceType) url += `&device_type=${deviceType}`
 
     api.get<DeviceResponse>(url)
@@ -67,13 +70,16 @@ export function AssetRegisterPage() {
       .catch(() => {})
   }
 
-  useEffect(() => { fetchDevices() }, [page, deviceType])
+  useEffect(() => { fetchDevices() }, [page, deviceType, category])
   useEffect(() => { fetchStats() }, [])
 
   const filteredDevices = devices.filter(d => {
     if (!searchQuery) return true
     const q = searchQuery.toLowerCase()
-    return d.name.toLowerCase().includes(q) || d.serial_number.toLowerCase().includes(q)
+    return d.name.toLowerCase().includes(q) || 
+      (d.serial_number || '').toLowerCase().includes(q) ||
+      (d.brand || '').toLowerCase().includes(q) ||
+      (d.model || '').toLowerCase().includes(q)
   })
 
   const getOSIcon = (os: string) => {
@@ -124,17 +130,43 @@ export function AssetRegisterPage() {
         </div>
       )}
 
+      {/* Category Tabs */}
+      <div className="flex gap-1 border-b border-outline-variant/20">
+        <button
+          onClick={() => { setCategory('laptop'); setDeviceType(''); setPage(1) }}
+          className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+            category === 'laptop' ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant hover:text-on-surface'
+          }`}
+        >
+          <span className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">laptop</span>
+            Laptop / Desktop
+          </span>
+        </button>
+        <button
+          onClick={() => { setCategory('mobile'); setDeviceType('smartphone'); setPage(1) }}
+          className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+            category === 'mobile' ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant hover:text-on-surface'
+          }`}
+        >
+          <span className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">smartphone</span>
+            Smartphone
+          </span>
+        </button>
+      </div>
+
       {/* Toolbar */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <select value={deviceType} onChange={e => { setDeviceType(e.target.value); setPage(1) }}
-            className="text-sm font-medium border border-outline-variant/30 rounded-lg px-3 py-2 bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary/30">
-            <option value="">All Devices</option>
-            <option value="laptop">Laptop</option>
-            <option value="desktop">Desktop</option>
-            <option value="mobile">Mobile</option>
-            <option value="tablet">Tablet</option>
-          </select>
+          {category === 'laptop' && (
+            <select value={deviceType} onChange={e => { setDeviceType(e.target.value); setPage(1) }}
+              className="text-sm font-medium border border-outline-variant/30 rounded-lg px-3 py-2 bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary/30">
+              <option value="">All</option>
+              <option value="laptop">Laptop</option>
+              <option value="desktop">Desktop</option>
+            </select>
+          )}
           <span className="text-sm text-on-surface-variant">{totalItems} devices</span>
         </div>
         <div className="relative">
@@ -159,24 +191,28 @@ export function AssetRegisterPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-surface-container-low/50">
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Status</th>
+                {category === 'laptop' && <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Status</th>}
                 <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Device Name</th>
                 <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">OS</th>
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Serial Number</th>
+                {category === 'laptop' && <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Serial Number</th>}
+                {category === 'mobile' && <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Brand</th>}
+                {category === 'mobile' && <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Model</th>}
                 <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Registered</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/10">
               {filteredDevices.map(d => (
                 <tr key={d.id} className="hover:bg-surface-container-low/30 transition-colors">
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full ${
-                      d.is_online ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
-                    }`}>
-                      <span className={`w-2 h-2 rounded-full ${d.is_online ? 'bg-emerald-500 animate-pulse' : 'bg-red-400'}`} />
-                      {d.is_online ? 'Online' : 'Offline'}
-                    </span>
-                  </td>
+                  {category === 'laptop' && (
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full ${
+                        d.is_online ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        <span className={`w-2 h-2 rounded-full ${d.is_online ? 'bg-emerald-500 animate-pulse' : 'bg-red-400'}`} />
+                        {d.is_online ? 'Online' : 'Offline'}
+                      </span>
+                    </td>
+                  )}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">{getOSIcon(d.os)}</span>
@@ -186,9 +222,21 @@ export function AssetRegisterPage() {
                   <td className="px-4 py-3">
                     <span className="text-xs text-on-surface-variant capitalize">{d.os}</span>
                   </td>
-                  <td className="px-4 py-3">
-                    <code className="text-xs text-on-surface-variant font-mono bg-surface-container-high px-2 py-0.5 rounded">{d.serial_number}</code>
-                  </td>
+                  {category === 'laptop' && (
+                    <td className="px-4 py-3">
+                      <code className="text-xs text-on-surface-variant font-mono bg-surface-container-high px-2 py-0.5 rounded">{d.serial_number}</code>
+                    </td>
+                  )}
+                  {category === 'mobile' && (
+                    <td className="px-4 py-3">
+                      <span className="text-xs font-medium text-on-surface">{d.brand || '—'}</span>
+                    </td>
+                  )}
+                  {category === 'mobile' && (
+                    <td className="px-4 py-3">
+                      <span className="text-xs text-on-surface-variant">{d.model || '—'}</span>
+                    </td>
+                  )}
                   <td className="px-4 py-3">
                     <span className="text-xs text-on-surface-variant">
                       {new Date(d.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -198,7 +246,7 @@ export function AssetRegisterPage() {
               ))}
               {filteredDevices.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center py-12 text-on-surface-variant text-sm">No devices found</td>
+                  <td colSpan={category === 'laptop' ? 5 : 5} className="text-center py-12 text-on-surface-variant text-sm">No devices found</td>
                 </tr>
               )}
             </tbody>
