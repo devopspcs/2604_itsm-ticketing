@@ -313,12 +313,40 @@ export function StaffTable() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [sortField, setSortField] = useState<'name' | 'position' | 'role' | 'status'>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [addForm, setAddForm] = useState({ full_name: '', email: '', password: '', role: 'user' as Role, position: '', reports_to: '' })
+  const [addError, setAddError] = useState('')
+  const [addLoading, setAddLoading] = useState(false)
 
   const fetchUsers = () => {
     api.get<User[]>('/users').then(r => setUsers(r.data ?? [])).finally(() => setLoading(false))
   }
 
   useEffect(() => { fetchUsers() }, [])
+
+  const handleAddStaff = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setAddError('')
+    setAddLoading(true)
+    try {
+      const payload: Record<string, string> = {
+        full_name: addForm.full_name,
+        email: addForm.email,
+        password: addForm.password,
+        role: addForm.role,
+      }
+      if (addForm.position) payload.position = addForm.position
+      if (addForm.reports_to) payload.reports_to = addForm.reports_to
+      await api.post('/users', payload)
+      setShowAddForm(false)
+      setAddForm({ full_name: '', email: '', password: '', role: 'user', position: '', reports_to: '' })
+      fetchUsers()
+    } catch (err: any) {
+      setAddError(err?.response?.data?.message || 'Failed to create staff')
+    } finally {
+      setAddLoading(false)
+    }
+  }
 
   const handleSort = (field: 'name' | 'position' | 'role' | 'status') => {
     if (sortField === field) {
@@ -403,8 +431,92 @@ export function StaffTable() {
               className="pl-8 pr-3 py-2 text-sm border border-outline-variant/30 rounded-lg bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary/30 w-56"
             />
           </div>
+          <button onClick={() => setShowAddForm(true)}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:opacity-90 transition-all">
+            <span className="material-symbols-outlined text-[16px]">person_add</span>
+            Add Staff
+          </button>
         </div>
       </div>
+
+      {/* Add Staff Modal */}
+      {showAddForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant/20">
+              <h3 className="text-lg font-bold text-on-surface">Add New Staff</h3>
+              <button onClick={() => { setShowAddForm(false); setAddError('') }} className="p-1 hover:bg-surface-container-high rounded-lg">
+                <span className="material-symbols-outlined text-on-surface-variant">close</span>
+              </button>
+            </div>
+            <form onSubmit={handleAddStaff} className="px-6 py-5 space-y-4">
+              {addError && (
+                <div className="px-3 py-2 rounded-lg bg-red-100 text-red-700 text-xs font-bold">{addError}</div>
+              )}
+              <div>
+                <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Full Name *</label>
+                <input value={addForm.full_name} onChange={e => setAddForm({ ...addForm, full_name: e.target.value })}
+                  required placeholder="e.g. Ahmad Fauzi"
+                  className="w-full px-3 py-2.5 text-sm border border-outline-variant/30 rounded-lg bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Email *</label>
+                <input type="email" value={addForm.email} onChange={e => setAddForm({ ...addForm, email: e.target.value })}
+                  required placeholder="e.g. ahmad@pcsindonesia.co.id"
+                  className="w-full px-3 py-2.5 text-sm border border-outline-variant/30 rounded-lg bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Password *</label>
+                <input type="password" value={addForm.password} onChange={e => setAddForm({ ...addForm, password: e.target.value })}
+                  required placeholder="Min 8 characters"
+                  className="w-full px-3 py-2.5 text-sm border border-outline-variant/30 rounded-lg bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Role *</label>
+                  <select value={addForm.role} onChange={e => setAddForm({ ...addForm, role: e.target.value as Role })}
+                    className="w-full px-3 py-2.5 text-sm border border-outline-variant/30 rounded-lg bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary/30">
+                    <option value="user">User</option>
+                    <option value="agent">Agent</option>
+                    <option value="approver">Approver</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Position</label>
+                  <select value={addForm.position} onChange={e => setAddForm({ ...addForm, position: e.target.value })}
+                    className="w-full px-3 py-2.5 text-sm border border-outline-variant/30 rounded-lg bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary/30">
+                    <option value="">— None —</option>
+                    <option value="manager">Manager</option>
+                    <option value="leader">Leader</option>
+                    <option value="staff">Staff</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Reports To</label>
+                <select value={addForm.reports_to} onChange={e => setAddForm({ ...addForm, reports_to: e.target.value })}
+                  className="w-full px-3 py-2.5 text-sm border border-outline-variant/30 rounded-lg bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary/30">
+                  <option value="">— Select Superior —</option>
+                  {users.filter(u => u.is_active).map(u => (
+                    <option key={u.id} value={u.id}>{u.full_name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={() => { setShowAddForm(false); setAddError('') }}
+                  className="px-4 py-2 text-sm font-medium text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" disabled={addLoading}
+                  className="px-5 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:opacity-90 disabled:opacity-50 transition-all">
+                  {addLoading ? 'Creating...' : 'Create Staff'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Table */}
       <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/10 overflow-x-auto">
