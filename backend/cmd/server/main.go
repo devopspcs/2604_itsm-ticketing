@@ -165,6 +165,7 @@ func main() {
 		ProjectBoardFeatures: handler.NewProjectBoardFeaturesHandler(reportsUC, releaseUC, componentUC, projectRecordRepo, projectActivityLogRepo, projectMemberRepo),
 		App:                  handler.NewApplicationHandler(appUC),
 		MDM:                  handler.NewMDMHandler(),
+		GoogleOAuth:          handler.NewGoogleOAuthHandler(cfg, userRepo, jwtManager),
 	}
 
 	// Router

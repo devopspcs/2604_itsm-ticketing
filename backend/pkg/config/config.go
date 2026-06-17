@@ -22,6 +22,8 @@ type Config struct {
 	KeycloakRealm    string
 	KeycloakClientID string
 	KeycloakSecret   string
+	GoogleClientID     string
+	GoogleClientSecret string
 }
 
 func Load() *Config {
@@ -42,6 +44,8 @@ func Load() *Config {
 		KeycloakRealm:    getEnv("KEYCLOAK_REALM", "sso-internal"),
 		KeycloakClientID: getEnv("KEYCLOAK_CLIENT_ID", "itsm-app"),
 		KeycloakSecret:   getEnv("KEYCLOAK_CLIENT_SECRET", ""),
+		GoogleClientID:     getEnv("GOOGLE_CLIENT_ID", ""),
+		GoogleClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
 	}
 }
 

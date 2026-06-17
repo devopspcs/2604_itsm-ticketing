@@ -23,6 +23,7 @@ type Handlers struct {
 	Attachment          *handler.AttachmentHandler
 	Org                 *handler.OrgHandler
 	SSO                 *handler.SSOHandler
+	GoogleOAuth         *handler.GoogleOAuthHandler
 	Project             *handler.ProjectHandler
 	Jira                *handler.JiraHandler
 	ProjectBoardFeatures *handler.ProjectBoardFeaturesHandler
@@ -57,6 +58,11 @@ func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, userRepo repository.User
 		r.Get("/auth/sso/login-url", h.SSO.GetLoginURL)
 		r.Get("/auth/sso/redirect", h.SSO.Redirect)
 		r.Get("/auth/sso/callback", h.SSO.Callback)
+
+		// Google OAuth routes (public)
+		r.Get("/auth/google/login-url", h.GoogleOAuth.GetLoginURL)
+		r.Get("/auth/google/redirect", h.GoogleOAuth.Redirect)
+		r.Get("/auth/google/callback", h.GoogleOAuth.Callback)
 
 		// Authenticated routes
 		r.Group(func(r chi.Router) {
