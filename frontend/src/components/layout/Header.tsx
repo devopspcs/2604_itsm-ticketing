@@ -13,7 +13,7 @@ import logoPcs from '../../assets/logo-pcs.png'
 export function Header() {
   const { logout } = useAuth()
   const { unreadCount } = useNotifications()
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, mode, toggleMode } = useTheme()
   const navigate = useNavigate()
   const userId = useSelector((s: RootState) => s.auth.userId)
   const role = useSelector((s: RootState) => s.auth.role)
@@ -168,6 +168,19 @@ export function Header() {
                       style={{ backgroundColor: t.color }}
                     />
                   ))}
+                </div>
+                {/* Light/Dark Toggle */}
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-outline-variant/10">
+                  <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Mode</span>
+                  <button
+                    onClick={toggleMode}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors text-sm font-medium text-on-surface"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">
+                      {mode === 'dark' ? 'dark_mode' : 'light_mode'}
+                    </span>
+                    {mode === 'dark' ? 'Dark' : 'Light'}
+                  </button>
                 </div>
               </div>
 

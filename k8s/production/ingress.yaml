@@ -1,0 +1,58 @@
+---
+# Production Ingress dengan TLS/HTTPS
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: itsm-ingress
+  namespace: ticketing
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    # Uncomment jika pakai cert-manager untuk auto SSL
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  # Uncomment untuk HTTPS
+  # tls:
+  #   - hosts:
+  #       - itsm.pcsindonesia.com
+  #     secretName: itsm-tls
+  rules:
+    - host: itsm.pcsindonesia.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080
+          - path: /health
+            pathType: Exact
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080
+          - path: /sso
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080
+          - path: /webhook
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
