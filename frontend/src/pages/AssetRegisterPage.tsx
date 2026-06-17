@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import api from '../services/api'
+import { StaffTable } from '../components/people/StaffTable'
 
 interface Device {
   id: number
@@ -255,16 +256,7 @@ function CodeReposTab() {
 }
 
 function PeopleAssetsTab() {
-  return (
-    <div className="bg-surface-container-lowest rounded-xl p-6 shadow-sm">
-      <div className="text-center py-12">
-        <span className="material-symbols-outlined text-5xl text-on-surface-variant/30 mb-4">people</span>
-        <h3 className="text-lg font-bold text-on-surface mb-2">People</h3>
-        <p className="text-sm text-on-surface-variant">People-related assets: access accounts, security training, and compliance status.</p>
-        <p className="text-xs text-on-surface-variant/60 mt-2">Coming soon</p>
-      </div>
-    </div>
-  )
+  return <StaffTable />
 }
 
 function SystemsTab() {
