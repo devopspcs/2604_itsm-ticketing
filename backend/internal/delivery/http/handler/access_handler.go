@@ -163,21 +163,7 @@ func (h *AccessHandler) GetUserAccess(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	// Also list services where user has NO access
-	svcRows, _ := h.db.Query(r.Context(), `SELECT name, type FROM external_services WHERE is_active = true`)
-	if svcRows != nil {
-		defer svcRows.Close()
-		for svcRows.Next() {
-			var name, stype string
-			svcRows.Scan(&name, &stype)
-			if !found[name] {
-				results = append(results, ServiceAccessEntry{
-					Service: name, ServiceType: stype, HasAccess: false, Roles: []string{}, Status: "no_access",
-				})
-			}
-		}
-	}
-
+	// Only return services where user HAS access
 	if results == nil {
 		results = []ServiceAccessEntry{}
 	}
