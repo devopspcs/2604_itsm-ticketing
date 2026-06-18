@@ -165,7 +165,7 @@ func main() {
 		ProjectBoardFeatures: handler.NewProjectBoardFeaturesHandler(reportsUC, releaseUC, componentUC, projectRecordRepo, projectActivityLogRepo, projectMemberRepo),
 		App:                  handler.NewApplicationHandler(appUC),
 		MDM:                  handler.NewMDMHandler(),
-		Access:               handler.NewAccessHandler(cfg),
+		Access:               handler.NewAccessHandler(pool),
 		GoogleOAuth:          handler.NewGoogleOAuthHandler(cfg, userRepo, jwtManager),
 	}
 
