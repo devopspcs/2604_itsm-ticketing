@@ -32,6 +32,7 @@ import { RepositoryPage } from './pages/RepositoryPage'
 import { AppManagementPage } from './pages/AppManagementPage'
 import { DataLibraryPeoplePage } from './pages/DataLibraryPeoplePage'
 import { AssetRegisterPage } from './pages/AssetRegisterPage'
+import { AccessPage } from './pages/AccessPage'
 import { AppAccessGuard } from './components/guards/AppAccessGuard'
 import type { RootState } from './store'
 
@@ -66,6 +67,7 @@ export default function App() {
           <Route path="/app-management" element={<RoleGuard roles={['admin']}><AppManagementPage /></RoleGuard>} />
           <Route path="/data-library/people" element={<RoleGuard roles={['admin', 'approver']}><DataLibraryPeoplePage /></RoleGuard>} />
           <Route path="/data-library/assets" element={<RoleGuard roles={['admin', 'approver', 'agent']}><AssetRegisterPage /></RoleGuard>} />
+          <Route path="/data-library/access" element={<RoleGuard roles={['admin', 'approver']}><AccessPage /></RoleGuard>} />
         </Route>
         <Route element={<AppAccessGuard appCode="project-board"><ProjectBoardLayout /></AppAccessGuard>}>
           <Route path="/projects" element={<ProjectHomePage />} />

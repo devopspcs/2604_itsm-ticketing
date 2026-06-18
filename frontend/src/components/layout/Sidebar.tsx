@@ -39,6 +39,7 @@ const navSections: NavSection[] = [
     items: [
       { to: '/data-library/people', icon: 'people', label: 'People', roles: ['admin', 'approver'] },
       { to: '/data-library/assets', icon: 'devices', label: 'Asset Register', roles: ['admin', 'approver', 'agent'] },
+      { to: '/data-library/access', icon: 'shield_person', label: 'Access', roles: ['admin', 'approver'] },
       { to: '/data-library/vendors', icon: 'store', label: 'Vendors', roles: ['admin'] },
       { to: '/data-library/change-management', icon: 'change_circle', label: 'Change Management', roles: ['admin', 'approver'] },
       { to: '/data-library/incidents', icon: 'warning', label: 'Incidents', roles: ['admin', 'approver', 'agent'] },
