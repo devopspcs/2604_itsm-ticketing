@@ -125,6 +125,7 @@ func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, userRepo repository.User
 			// Access / Service mapping
 			r.Get("/access/check", h.Access.GetUserAccess)
 			r.Get("/access/services", h.Access.ListServices)
+			r.Get("/access/sync-status", h.Access.GetSyncStatus)
 
 			// Project Board
 			r.Route("/projects", func(r chi.Router) {
@@ -296,6 +297,7 @@ func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, userRepo repository.User
 				r.Post("/access/services", h.Access.CreateService)
 				r.Patch("/access/services/{id}", h.Access.UpdateService)
 				r.Delete("/access/services/{id}", h.Access.DeleteService)
+				r.Post("/access/sync", h.Access.SyncAll)
 			})
 		})
 	})

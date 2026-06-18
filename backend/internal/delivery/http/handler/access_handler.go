@@ -67,13 +67,12 @@ func (h *AccessHandler) ListServices(w http.ResponseWriter, r *http.Request) {
 		if err := rows.Scan(&s.ID, &s.Name, &s.Type, &s.URL, &s.AuthUsername, &s.AuthToken, &s.ExtraConfig, &s.IsActive, &s.CreatedAt, &s.UpdatedAt); err != nil {
 			continue
 		}
-		s.AuthPassword = "" // Don't expose password in list
+		s.AuthPassword = ""
 		services = append(services, s)
 	}
 	if services == nil {
 		services = []ExternalService{}
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(services)
 }
@@ -91,16 +90,13 @@ func (h *AccessHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 	if s.ExtraConfig == nil {
 		s.ExtraConfig = json.RawMessage(`{}`)
 	}
-
 	err := h.db.QueryRow(r.Context(),
-		`INSERT INTO external_services (name, type, url, auth_username, auth_token, auth_password, extra_config, is_active) 
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+		`INSERT INTO external_services (name, type, url, auth_username, auth_token, auth_password, extra_config, is_active) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
 		s.Name, s.Type, s.URL, s.AuthUsername, s.AuthToken, s.AuthPassword, s.ExtraConfig, true).Scan(&s.ID)
 	if err != nil {
-		http.Error(w, fmt.Sprintf(`{"error":"Failed to create service: %s"}`, err.Error()), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf(`{"error":"%s"}`, err.Error()), http.StatusInternalServerError)
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(s)
@@ -116,39 +112,101 @@ func (h *AccessHandler) UpdateService(w http.ResponseWriter, r *http.Request) {
 	if s.ExtraConfig == nil {
 		s.ExtraConfig = json.RawMessage(`{}`)
 	}
-
 	_, err := h.db.Exec(r.Context(),
 		`UPDATE external_services SET name=$1, type=$2, url=$3, auth_username=$4, auth_token=$5, auth_password=$6, extra_config=$7, is_active=$8, updated_at=NOW() WHERE id=$9`,
 		s.Name, s.Type, s.URL, s.AuthUsername, s.AuthToken, s.AuthPassword, s.ExtraConfig, s.IsActive, id)
 	if err != nil {
-		http.Error(w, `{"error":"Failed to update service"}`, http.StatusInternalServerError)
+		http.Error(w, `{"error":"Failed to update"}`, http.StatusInternalServerError)
 		return
 	}
-
 	apperror.WriteJSON(w, http.StatusOK, map[string]string{"message": "updated"})
 }
 
 func (h *AccessHandler) DeleteService(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	_, err := h.db.Exec(r.Context(), `DELETE FROM external_services WHERE id=$1`, id)
-	if err != nil {
-		http.Error(w, `{"error":"Failed to delete service"}`, http.StatusInternalServerError)
-		return
-	}
+	h.db.Exec(r.Context(), `DELETE FROM external_services WHERE id=$1`, id)
 	apperror.WriteJSON(w, http.StatusOK, map[string]string{"message": "deleted"})
 }
 
-// ==================== Access Check ====================
+// ==================== Access Check (reads from cache) ====================
 
 func (h *AccessHandler) GetUserAccess(w http.ResponseWriter, r *http.Request) {
-	email := r.URL.Query().Get("email")
+	email := strings.ToLower(r.URL.Query().Get("email"))
 	if email == "" {
 		http.Error(w, `{"error":"email parameter required"}`, http.StatusBadRequest)
 		return
 	}
-	email = strings.ToLower(email)
 
-	// Get all active services from DB
+	// Read from cache
+	rows, err := h.db.Query(r.Context(),
+		`SELECT service_name, service_type, account_name, roles, status FROM service_access_cache WHERE email = $1`, email)
+	if err != nil {
+		http.Error(w, `{"error":"Failed to query cache"}`, http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	found := map[string]bool{}
+	var results []ServiceAccessEntry
+	for rows.Next() {
+		var name, stype, accountName, status string
+		var roles []string
+		if err := rows.Scan(&name, &stype, &accountName, &roles, &status); err != nil {
+			continue
+		}
+		found[name] = true
+		results = append(results, ServiceAccessEntry{
+			Service: name, ServiceType: stype, HasAccess: true,
+			Roles: roles, AccountName: accountName, Status: status,
+		})
+	}
+
+	// Also list services where user has NO access
+	svcRows, _ := h.db.Query(r.Context(), `SELECT name, type FROM external_services WHERE is_active = true`)
+	if svcRows != nil {
+		defer svcRows.Close()
+		for svcRows.Next() {
+			var name, stype string
+			svcRows.Scan(&name, &stype)
+			if !found[name] {
+				results = append(results, ServiceAccessEntry{
+					Service: name, ServiceType: stype, HasAccess: false, Roles: []string{}, Status: "no_access",
+				})
+			}
+		}
+	}
+
+	if results == nil {
+		results = []ServiceAccessEntry{}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(results)
+}
+
+// ==================== Sync Status ====================
+
+func (h *AccessHandler) GetSyncStatus(w http.ResponseWriter, r *http.Request) {
+	var lastSynced *time.Time
+	var status string
+	var totalRecords int
+	h.db.QueryRow(r.Context(), `SELECT last_synced_at, status, total_records FROM sync_status WHERE id='service_access'`).Scan(&lastSynced, &status, &totalRecords)
+
+	resp := map[string]interface{}{
+		"last_synced_at": lastSynced,
+		"status":         status,
+		"total_records":  totalRecords,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+// ==================== Sync (Admin triggers this) ====================
+
+func (h *AccessHandler) SyncAll(w http.ResponseWriter, r *http.Request) {
+	// Mark as syncing
+	h.db.Exec(r.Context(), `UPDATE sync_status SET status='syncing' WHERE id='service_access'`)
+
+	// Get all active services
 	rows, err := h.db.Query(r.Context(), `SELECT id, name, type, url, auth_username, auth_token, auth_password, extra_config FROM external_services WHERE is_active = true`)
 	if err != nil {
 		http.Error(w, `{"error":"Failed to load services"}`, http.StatusInternalServerError)
@@ -156,39 +214,52 @@ func (h *AccessHandler) GetUserAccess(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var results []ServiceAccessEntry
+	var services []ExternalService
 	for rows.Next() {
 		var s ExternalService
-		if err := rows.Scan(&s.ID, &s.Name, &s.Type, &s.URL, &s.AuthUsername, &s.AuthToken, &s.AuthPassword, &s.ExtraConfig); err != nil {
-			continue
+		rows.Scan(&s.ID, &s.Name, &s.Type, &s.URL, &s.AuthUsername, &s.AuthToken, &s.AuthPassword, &s.ExtraConfig)
+		services = append(services, s)
+	}
+
+	// Clear old cache
+	h.db.Exec(r.Context(), `DELETE FROM service_access_cache`)
+
+	totalRecords := 0
+
+	for _, svc := range services {
+		var entries []struct {
+			Email       string
+			AccountName string
+			Roles       []string
+			Status      string
 		}
 
-		var entry ServiceAccessEntry
-		switch s.Type {
+		switch svc.Type {
 		case "pose":
-			entry = h.checkPoseAccess(email, s)
+			entries = h.syncPose(svc)
 		case "pritunl":
-			entry = h.checkPritunlAccess(email, s)
-		default:
-			entry = ServiceAccessEntry{
-				Service:     s.Name,
-				ServiceType: s.Type,
-				HasAccess:   false,
-				Status:      "unsupported_type",
-			}
+			entries = h.syncPritunl(svc)
 		}
-		results = append(results, entry)
+
+		for _, e := range entries {
+			h.db.Exec(r.Context(),
+				`INSERT INTO service_access_cache (service_id, service_name, service_type, email, account_name, roles, status) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+				svc.ID, svc.Name, svc.Type, strings.ToLower(e.Email), e.AccountName, e.Roles, e.Status)
+			totalRecords++
+		}
 	}
 
-	if results == nil {
-		results = []ServiceAccessEntry{}
-	}
+	// Update sync status
+	h.db.Exec(r.Context(), `UPDATE sync_status SET last_synced_at=NOW(), status='completed', total_records=$1 WHERE id='service_access'`, totalRecords)
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(results)
+	apperror.WriteJSON(w, http.StatusOK, map[string]interface{}{
+		"message":       "sync completed",
+		"total_records": totalRecords,
+		"services":      len(services),
+	})
 }
 
-// ==================== POSe Integration ====================
+// ==================== POSe Sync ====================
 
 type poseUserEntry struct {
 	Email  string `json:"email"`
@@ -199,70 +270,83 @@ type poseUserEntry struct {
 	} `json:"Role"`
 }
 
-type poseResponse struct {
-	Count int             `json:"count"`
-	Data  []poseUserEntry `json:"data"`
-}
-
-func (h *AccessHandler) checkPoseAccess(email string, svc ExternalService) ServiceAccessEntry {
-	users, err := h.fetchPoseUsers(svc)
-	if err != nil {
-		return ServiceAccessEntry{Service: svc.Name, ServiceType: svc.Type, HasAccess: false, Status: "error"}
-	}
-
-	roles := []string{}
-	accountName := ""
-	found := false
-	for _, u := range users {
-		if strings.ToLower(u.Email) == email {
-			found = true
-			if u.Name != "" && accountName == "" {
-				accountName = u.Name
-			}
-			roleExists := false
-			for _, r := range roles {
-				if r == u.Role.Name {
-					roleExists = true
-					break
-				}
-			}
-			if !roleExists && u.Role.Name != "" {
-				roles = append(roles, u.Role.Name)
-			}
-		}
-	}
-
-	status := "no_access"
-	if found {
-		status = "active"
-	}
-	return ServiceAccessEntry{Service: svc.Name, ServiceType: svc.Type, HasAccess: found, Roles: roles, AccountName: accountName, Status: status}
-}
-
-func (h *AccessHandler) fetchPoseUsers(svc ExternalService) ([]poseUserEntry, error) {
-	req, err := http.NewRequest("GET", svc.URL, nil)
-	if err != nil {
-		return nil, err
-	}
+func (h *AccessHandler) syncPose(svc ExternalService) []struct {
+	Email       string
+	AccountName string
+	Roles       []string
+	Status      string
+} {
+	req, _ := http.NewRequest("GET", svc.URL, nil)
 	req.Header.Set("Authorization", "Bearer "+svc.AuthToken)
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", "PCS-Pose-App/1.0")
 
 	resp, err := h.client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil
 	}
 	defer resp.Body.Close()
-
 	body, _ := io.ReadAll(resp.Body)
-	var result poseResponse
-	if err := json.Unmarshal(body, &result); err != nil {
-		return nil, err
+
+	var result struct {
+		Data []poseUserEntry `json:"data"`
 	}
-	return result.Data, nil
+	json.Unmarshal(body, &result)
+
+	// Group by email
+	emailMap := map[string]*struct {
+		Email       string
+		AccountName string
+		Roles       []string
+		Status      string
+	}{}
+
+	for _, u := range result.Data {
+		e := strings.ToLower(u.Email)
+		if !strings.HasSuffix(e, "@pcsindonesia.co.id") {
+			continue
+		}
+		if existing, ok := emailMap[e]; ok {
+			roleExists := false
+			for _, r := range existing.Roles {
+				if r == u.Role.Name {
+					roleExists = true
+				}
+			}
+			if !roleExists && u.Role.Name != "" {
+				existing.Roles = append(existing.Roles, u.Role.Name)
+			}
+		} else {
+			roles := []string{}
+			if u.Role.Name != "" {
+				roles = []string{u.Role.Name}
+			}
+			status := "inactive"
+			if u.Status {
+				status = "active"
+			}
+			emailMap[e] = &struct {
+				Email       string
+				AccountName string
+				Roles       []string
+				Status      string
+			}{Email: e, AccountName: u.Name, Roles: roles, Status: status}
+		}
+	}
+
+	var entries []struct {
+		Email       string
+		AccountName string
+		Roles       []string
+		Status      string
+	}
+	for _, v := range emailMap {
+		entries = append(entries, *v)
+	}
+	return entries
 }
 
-// ==================== Pritunl VPN Integration ====================
+// ==================== Pritunl Sync ====================
 
 type pritunlUser struct {
 	ID       string `json:"id"`
@@ -272,47 +356,27 @@ type pritunlUser struct {
 	Disabled bool   `json:"disabled"`
 }
 
-func (h *AccessHandler) checkPritunlAccess(email string, svc ExternalService) ServiceAccessEntry {
-	users, err := h.fetchPritunlUsers(svc)
-	if err != nil {
-		return ServiceAccessEntry{Service: svc.Name, ServiceType: svc.Type, HasAccess: false, Status: "error"}
-	}
-
-	for _, u := range users {
-		if strings.ToLower(u.Email) == email {
-			status := "active"
-			if u.Disabled {
-				status = "disabled"
-			}
-			roles := []string{"VPN User"}
-			if u.Status {
-				roles = append(roles, "Online")
-			}
-			return ServiceAccessEntry{Service: svc.Name, ServiceType: svc.Type, HasAccess: true, Roles: roles, AccountName: u.Name, Status: status}
-		}
-	}
-
-	return ServiceAccessEntry{Service: svc.Name, ServiceType: svc.Type, HasAccess: false, Roles: []string{}, Status: "no_access"}
-}
-
-func (h *AccessHandler) fetchPritunlUsers(svc ExternalService) ([]pritunlUser, error) {
-	// Parse org_id from extra_config
+func (h *AccessHandler) syncPritunl(svc ExternalService) []struct {
+	Email       string
+	AccountName string
+	Roles       []string
+	Status      string
+} {
 	var extra struct {
 		OrgID string `json:"org_id"`
 	}
 	json.Unmarshal(svc.ExtraConfig, &extra)
 	if extra.OrgID == "" {
-		return nil, fmt.Errorf("org_id not configured")
+		return nil
 	}
 
-	// Step 1: Login
+	// Login
 	loginPayload := fmt.Sprintf(`{"username":"%s","password":"%s"}`, svc.AuthUsername, svc.AuthPassword)
 	loginReq, _ := http.NewRequest("POST", svc.URL+"/auth/session", strings.NewReader(loginPayload))
 	loginReq.Header.Set("Content-Type", "application/json")
-
 	loginResp, err := h.client.Do(loginReq)
 	if err != nil {
-		return nil, fmt.Errorf("pritunl login failed: %w", err)
+		return nil
 	}
 	defer loginResp.Body.Close()
 
@@ -320,44 +384,63 @@ func (h *AccessHandler) fetchPritunlUsers(svc ExternalService) ([]pritunlUser, e
 	for _, c := range loginResp.Cookies() {
 		if c.Name == "session" {
 			sessionCookie = c.Value
-			break
 		}
 	}
 	if sessionCookie == "" {
-		return nil, fmt.Errorf("no session cookie")
+		return nil
 	}
 
-	// Step 2: Get CSRF token
+	// CSRF
 	stateReq, _ := http.NewRequest("GET", svc.URL+"/state", nil)
 	stateReq.Header.Set("Cookie", "session="+sessionCookie)
 	stateResp, err := h.client.Do(stateReq)
 	if err != nil {
-		return nil, fmt.Errorf("state failed: %w", err)
+		return nil
 	}
 	defer stateResp.Body.Close()
-
 	var stateData struct {
 		CsrfToken string `json:"csrf_token"`
 	}
 	json.NewDecoder(stateResp.Body).Decode(&stateData)
 
-	// Step 3: Get users
+	// Users
 	usersReq, _ := http.NewRequest("GET", fmt.Sprintf("%s/user/%s", svc.URL, extra.OrgID), nil)
 	usersReq.Header.Set("Cookie", "session="+sessionCookie)
 	usersReq.Header.Set("Csrf-Token", stateData.CsrfToken)
-
 	usersResp, err := h.client.Do(usersReq)
 	if err != nil {
-		return nil, fmt.Errorf("users fetch failed: %w", err)
+		return nil
 	}
 	defer usersResp.Body.Close()
-
 	body, _ := io.ReadAll(usersResp.Body)
-	if usersResp.StatusCode != 200 {
-		return nil, fmt.Errorf("users returned %d", usersResp.StatusCode)
-	}
 
 	var users []pritunlUser
 	json.Unmarshal(body, &users)
-	return users, nil
+
+	var entries []struct {
+		Email       string
+		AccountName string
+		Roles       []string
+		Status      string
+	}
+	for _, u := range users {
+		if u.Email == "" || u.Email == "None" {
+			continue
+		}
+		status := "active"
+		if u.Disabled {
+			status = "disabled"
+		}
+		roles := []string{"VPN User"}
+		if u.Status {
+			roles = append(roles, "Online")
+		}
+		entries = append(entries, struct {
+			Email       string
+			AccountName string
+			Roles       []string
+			Status      string
+		}{Email: strings.ToLower(u.Email), AccountName: u.Name, Roles: roles, Status: status})
+	}
+	return entries
 }
