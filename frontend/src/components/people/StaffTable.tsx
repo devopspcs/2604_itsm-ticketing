@@ -82,6 +82,17 @@ function StaffDetailPanel({ user, users, onClose, onUpdated }: StaffDetailPanelP
 
   const initial = user.full_name.charAt(0).toUpperCase()
 
+  // Fetch service access
+  const [serviceAccess, setServiceAccess] = useState<{service: string, has_access: boolean, roles: string[], account_name: string, status: string}[]>([])
+  const [accessLoading, setAccessLoading] = useState(true)
+
+  useEffect(() => {
+    api.get(`/access/check?email=${encodeURIComponent(user.email)}`)
+      .then(res => setServiceAccess(res.data as any || []))
+      .catch(() => {})
+      .finally(() => setAccessLoading(false))
+  }, [user.email])
+
   return (
     <div className="fixed inset-y-0 right-0 w-full max-w-md bg-surface-container-lowest shadow-2xl z-50 flex flex-col overflow-hidden border-l border-outline-variant/20">
       {/* Header */}
@@ -261,6 +272,41 @@ function StaffDetailPanel({ user, users, onClose, onUpdated }: StaffDetailPanelP
               </select>
             }
           />
+        </div>
+
+        {/* Service Access */}
+        <div className="space-y-1">
+          <h4 className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-3">Service Access</h4>
+          {accessLoading ? (
+            <div className="flex justify-center py-4">
+              <div className="animate-spin w-5 h-5 border-2 border-primary border-t-transparent rounded-full" />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {serviceAccess.map(sa => (
+                <div key={sa.service} className="flex items-center justify-between py-2.5 border-b border-outline-variant/10 last:border-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${sa.has_access ? 'bg-emerald-500' : sa.status === 'not_configured' ? 'bg-slate-400' : 'bg-red-400'}`} />
+                    <span className="text-sm font-medium text-on-surface">{sa.service}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {sa.has_access && sa.roles.length > 0 && (
+                      <span className="text-[10px] font-bold text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-full">
+                        {sa.roles.join(', ')}
+                      </span>
+                    )}
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      sa.has_access ? 'bg-emerald-100 text-emerald-700' :
+                      sa.status === 'not_configured' ? 'bg-slate-100 text-slate-500' :
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      {sa.has_access ? 'Active' : sa.status === 'not_configured' ? 'N/A' : 'No Access'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

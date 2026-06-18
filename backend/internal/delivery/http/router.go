@@ -29,6 +29,7 @@ type Handlers struct {
 	ProjectBoardFeatures *handler.ProjectBoardFeaturesHandler
 	App                 *handler.ApplicationHandler
 	MDM                 *handler.MDMHandler
+	Access              *handler.AccessHandler
 }
 
 func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, userRepo repository.UserRepository, appRepo repository.ApplicationRepository, accessRepo repository.UserAppAccessRepository, db interface{ Ping() error }) http.Handler {
@@ -120,6 +121,10 @@ func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, userRepo repository.User
 			r.Get("/assets/devices", h.MDM.ListDevices)
 			r.Get("/assets/devices/stats", h.MDM.GetDeviceStats)
 			r.Get("/assets/devices/{id}", h.MDM.GetDevice)
+
+			// Access / Service mapping
+			r.Get("/access/check", h.Access.GetUserAccess)
+			r.Get("/access/services/all", h.Access.GetAllServiceUsers)
 
 			// Project Board
 			r.Route("/projects", func(r chi.Router) {
