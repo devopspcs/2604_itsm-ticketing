@@ -46,6 +46,9 @@ func main() {
 		panic(err)
 	}
 
+	// Sync external service credentials from env vars
+	syncServiceCredentials(context.Background(), pool, cfg, log)
+
 	// JWT
 	jwtManager := jwtpkg.NewManager(cfg.JWTSecret, cfg.JWTRefreshSecret)
 
@@ -244,4 +247,32 @@ type dbPinger struct {
 
 func (d *dbPinger) Ping() error {
 	return d.pool.Ping(context.Background())
+}
+
+// syncServiceCredentials updates external_services credentials from env vars on startup
+func syncServiceCredentials(ctx context.Context, pool *pgxpool.Pool, cfg *config.Config, log *logger.Logger) {
+	// Update Pritunl VPN credentials (shared across all Pritunl instances)
+	if cfg.PritunlUsername != "" && cfg.PritunlPassword != "" {
+		result, err := pool.Exec(ctx,
+			`UPDATE external_services SET auth_username=$1, auth_password=$2 WHERE type='pritunl' AND (auth_username='' OR auth_username IS NULL OR auth_username != $1)`,
+			cfg.PritunlUsername, cfg.PritunlPassword)
+		if err == nil && result.RowsAffected() > 0 {
+			log.Info("synced Pritunl credentials from env", "updated", result.RowsAffected())
+		}
+	}
+
+	// Update POSe token
+	if cfg.PoseAPIToken != "" {
+		result, err := pool.Exec(ctx,
+			`UPDATE external_services SET auth_token=$1 WHERE type='pose' AND (auth_token='' OR auth_token IS NULL OR auth_token != $1)`,
+			cfg.PoseAPIToken)
+		if err == nil && result.RowsAffected() > 0 {
+			log.Info("synced POSe token from env", "updated", result.RowsAffected())
+		}
+	}
+
+	// Update POSe URL if configured
+	if cfg.PoseAPIURL != "" {
+		pool.Exec(ctx, `UPDATE external_services SET url=$1 WHERE type='pose'`, cfg.PoseAPIURL)
+	}
 }
