@@ -54,9 +54,9 @@ type ServiceAccessEntry struct {
 // ==================== CRUD for External Services ====================
 
 func (h *AccessHandler) ListServices(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.db.Query(r.Context(), `SELECT id, name, type, url, auth_username, auth_token, extra_config, is_active, created_at, updated_at FROM external_services ORDER BY name`)
+	rows, err := h.db.Query(r.Context(), `SELECT id::text, name, type, url, auth_username, COALESCE(auth_token,''), COALESCE(extra_config,'{}')::text, is_active, created_at::text, updated_at::text FROM external_services ORDER BY name`)
 	if err != nil {
-		http.Error(w, `{"error":"Failed to list services"}`, http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf(`{"error":"Failed to list services: %s"}`, err.Error()), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
@@ -64,9 +64,11 @@ func (h *AccessHandler) ListServices(w http.ResponseWriter, r *http.Request) {
 	var services []ExternalService
 	for rows.Next() {
 		var s ExternalService
-		if err := rows.Scan(&s.ID, &s.Name, &s.Type, &s.URL, &s.AuthUsername, &s.AuthToken, &s.ExtraConfig, &s.IsActive, &s.CreatedAt, &s.UpdatedAt); err != nil {
+		var extraStr string
+		if err := rows.Scan(&s.ID, &s.Name, &s.Type, &s.URL, &s.AuthUsername, &s.AuthToken, &extraStr, &s.IsActive, &s.CreatedAt, &s.UpdatedAt); err != nil {
 			continue
 		}
+		s.ExtraConfig = json.RawMessage(extraStr)
 		s.AuthPassword = ""
 		services = append(services, s)
 	}
