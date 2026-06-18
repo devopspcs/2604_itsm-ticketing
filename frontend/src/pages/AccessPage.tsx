@@ -159,17 +159,16 @@ function StaffAccessTab() {
               <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Staff ↕</th>
               <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Role ↕</th>
               <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Status</th>
-              {activeServices.map(s => (
-                <th key={s.id} className="px-3 py-3 text-[9px] font-black uppercase tracking-widest text-on-surface-variant text-center" title={s.name}>
-                  {s.name.length > 12 ? s.name.slice(0, 12) + '…' : s.name}
-                </th>
-              ))}
-              <th className="px-3 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">Total</th>
+              <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Has access to</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-outline-variant/10">
             {filteredUsers.map(u => {
               const initial = u.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+              const userAccess = accessMap[u.email] || []
+              const activeAccess = userAccess.filter(e => e.has_access)
+              const maxIcons = 3
+
               return (
                 <tr key={u.id} className="hover:bg-surface-container-low/30 transition-colors">
                   <td className="px-4 py-2.5">
@@ -187,17 +186,41 @@ function StaffAccessTab() {
                   <td className="px-4 py-2.5">
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Active</span>
                   </td>
-                  {activeServices.map(s => (
-                    <td key={s.id} className="px-3 py-2.5 text-center">
-                      {getAccessIcon(u.email, s.name)}
-                    </td>
-                  ))}
-                  <td className="px-3 py-2.5 text-center">
-                    {getAccessCount(u.email) > 0 ? (
-                      <span className="text-xs font-bold text-primary">+{getAccessCount(u.email)}</span>
-                    ) : (
-                      <span className="text-xs text-on-surface-variant/30">0</span>
-                    )}
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center gap-1">
+                      {activeAccess.slice(0, maxIcons).map((entry, i) => {
+                        const iconMap: Record<string, { icon: string; color: string; bg: string }> = {
+                          'pose': { icon: 'point_of_sale', color: 'text-amber-600', bg: 'bg-amber-100' },
+                          'pritunl': { icon: 'vpn_lock', color: 'text-blue-600', bg: 'bg-blue-100' },
+                        }
+                        const style = iconMap[entry.service_type] || { icon: 'cloud', color: 'text-slate-600', bg: 'bg-slate-100' }
+                        return (
+                          <div key={i} className="relative group">
+                            <div className={`w-7 h-7 rounded-full ${style.bg} ${style.color} flex items-center justify-center cursor-pointer`}>
+                              <span className="material-symbols-outlined text-[14px]">{style.icon}</span>
+                            </div>
+                            {/* Tooltip on hover */}
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-inverse-surface text-inverse-on-surface text-[10px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-lg">
+                              {entry.service}
+                              {entry.roles.length > 0 && <span className="ml-1 opacity-70">({entry.roles.join(', ')})</span>}
+                            </div>
+                          </div>
+                        )
+                      })}
+                      {activeAccess.length > maxIcons && (
+                        <div className="relative group">
+                          <div className="w-7 h-7 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center text-[10px] font-bold cursor-pointer">
+                            +{activeAccess.length - maxIcons}
+                          </div>
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-inverse-surface text-inverse-on-surface text-[10px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-lg">
+                            {activeAccess.slice(maxIcons).map(e => e.service).join(', ')}
+                          </div>
+                        </div>
+                      )}
+                      {activeAccess.length === 0 && (
+                        <span className="text-xs text-on-surface-variant/40">—</span>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )
