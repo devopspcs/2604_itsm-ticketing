@@ -24,6 +24,12 @@ type Config struct {
 	KeycloakSecret   string
 	GoogleClientID     string
 	GoogleClientSecret string
+	PoseAPIURL         string
+	PoseAPIToken       string
+	PritunlURL         string
+	PritunlUsername    string
+	PritunlPassword    string
+	PritunlOrgID       string
 }
 
 func Load() *Config {
@@ -46,6 +52,12 @@ func Load() *Config {
 		KeycloakSecret:   getEnv("KEYCLOAK_CLIENT_SECRET", ""),
 		GoogleClientID:     getEnv("GOOGLE_CLIENT_ID", ""),
 		GoogleClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
+		PoseAPIURL:         getEnv("POSE_API_URL", "https://pose-api.pcsindonesia.co.id/master/user?filter=pcsindonesia.co.id&order=created_at:-1&page_size=-1&page=1"),
+		PoseAPIToken:       getEnv("POSE_API_TOKEN", ""),
+		PritunlURL:         getEnv("PRITUNL_URL", ""),
+		PritunlUsername:    getEnv("PRITUNL_USERNAME", ""),
+		PritunlPassword:    getEnv("PRITUNL_PASSWORD", ""),
+		PritunlOrgID:       getEnv("PRITUNL_ORG_ID", ""),
 	}
 }
 

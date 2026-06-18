@@ -1,26 +1,38 @@
 package handler
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/org/itsm/pkg/config"
 )
 
 const (
 	poseAPIURL   = "https://pose-api.pcsindonesia.co.id/master/user?filter=pcsindonesia.co.id&order=created_at:-1&page_size=-1&page=1"
 	poseAPIToken = "51Fr9WJ4nt6bWpvBVpw6piyHbm1VSAsVjA5vfMtczahHOjO7dcbMW2gOhU2Ayr3o"
+
+	pritunlURL      = "https://35.219.125.94"
+	pritunlUsername = "devopspcs"
+	pritunlPass     = "!*%bXMq|EoYJF0wh"
+	pritunlOrgID    = "659b7e2851948a075375d28a"
 )
 
 type AccessHandler struct {
 	client *http.Client
+	cfg    *config.Config
 }
 
-func NewAccessHandler() *AccessHandler {
+func NewAccessHandler(cfg *config.Config) *AccessHandler {
+	tlsConfig := &tls.Config{InsecureSkipVerify: true}
+	transport := &http.Transport{TLSClientConfig: tlsConfig}
 	return &AccessHandler{
-		client: &http.Client{Timeout: 30 * time.Second},
+		client: &http.Client{Timeout: 30 * time.Second, Transport: transport},
+		cfg:    cfg,
 	}
 }
 
@@ -61,13 +73,9 @@ func (h *AccessHandler) GetUserAccess(w http.ResponseWriter, r *http.Request) {
 	poseAccess := h.checkPoseAccess(email)
 	results = append(results, poseAccess)
 
-	// Pritunl VPN placeholder (will implement when API token is available)
-	results = append(results, ServiceAccessEntry{
-		Service:   "VPN (Pritunl)",
-		HasAccess: false,
-		Roles:     []string{},
-		Status:    "not_configured",
-	})
+	// Check Pritunl VPN access
+	vpnAccess := h.checkPritunlAccess(email)
+	results = append(results, vpnAccess)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(results)
@@ -171,11 +179,11 @@ func (h *AccessHandler) checkPoseAccess(email string) ServiceAccessEntry {
 }
 
 func (h *AccessHandler) fetchPoseUsers() ([]poseUserEntry, error) {
-	req, err := http.NewRequest("GET", poseAPIURL, nil)
+	req, err := http.NewRequest("GET", h.cfg.PoseAPIURL, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Bearer "+poseAPIToken)
+	req.Header.Set("Authorization", "Bearer "+h.cfg.PoseAPIToken)
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", "PCS-Pose-App/1.0")
 
@@ -196,4 +204,116 @@ func (h *AccessHandler) fetchPoseUsers() ([]poseUserEntry, error) {
 	}
 
 	return result.Data, nil
+}
+
+
+// Pritunl VPN integration
+type pritunlUser struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Status   bool   `json:"status"`
+	Disabled bool   `json:"disabled"`
+}
+
+func (h *AccessHandler) checkPritunlAccess(email string) ServiceAccessEntry {
+	users, err := h.fetchPritunlUsers()
+	if err != nil {
+		return ServiceAccessEntry{
+			Service:   "VPN (Pritunl)",
+			HasAccess: false,
+			Status:    "error",
+		}
+	}
+
+	for _, u := range users {
+		if strings.ToLower(u.Email) == email {
+			status := "active"
+			if u.Disabled {
+				status = "disabled"
+			}
+			roles := []string{"VPN User"}
+			if u.Status {
+				roles = append(roles, "Online")
+			}
+			return ServiceAccessEntry{
+				Service:     "VPN (Pritunl)",
+				HasAccess:   true,
+				Roles:       roles,
+				AccountName: u.Name,
+				Status:      status,
+			}
+		}
+	}
+
+	return ServiceAccessEntry{
+		Service:   "VPN (Pritunl)",
+		HasAccess: false,
+		Roles:     []string{},
+		Status:    "no_access",
+	}
+}
+
+func (h *AccessHandler) fetchPritunlUsers() ([]pritunlUser, error) {
+	// Step 1: Login to get session cookie
+	loginPayload := fmt.Sprintf(`{"username":"%s","password":"%s"}`, h.cfg.PritunlUsername, h.cfg.PritunlPassword)
+	loginReq, _ := http.NewRequest("POST", h.cfg.PritunlURL+"/auth/session", strings.NewReader(loginPayload))
+	loginReq.Header.Set("Content-Type", "application/json")
+
+	loginResp, err := h.client.Do(loginReq)
+	if err != nil {
+		return nil, fmt.Errorf("pritunl login failed: %w", err)
+	}
+	defer loginResp.Body.Close()
+
+	// Extract session cookie
+	var sessionCookie string
+	for _, c := range loginResp.Cookies() {
+		if c.Name == "session" {
+			sessionCookie = c.Value
+			break
+		}
+	}
+	if sessionCookie == "" {
+		return nil, fmt.Errorf("no session cookie from pritunl")
+	}
+
+	// Step 2: Get CSRF token from /state
+	stateReq, _ := http.NewRequest("GET", h.cfg.PritunlURL+"/state", nil)
+	stateReq.Header.Set("Cookie", "session="+sessionCookie)
+	stateResp, err := h.client.Do(stateReq)
+	if err != nil {
+		return nil, fmt.Errorf("pritunl state failed: %w", err)
+	}
+	defer stateResp.Body.Close()
+
+	var stateData struct {
+		CsrfToken string `json:"csrf_token"`
+	}
+	if err := json.NewDecoder(stateResp.Body).Decode(&stateData); err != nil {
+		return nil, fmt.Errorf("pritunl state parse failed: %w", err)
+	}
+
+	// Step 3: Get users with session + CSRF
+	usersReq, _ := http.NewRequest("GET", fmt.Sprintf("%s/user/%s", h.cfg.PritunlURL, h.cfg.PritunlOrgID), nil)
+	usersReq.Header.Set("Cookie", "session="+sessionCookie)
+	usersReq.Header.Set("Csrf-Token", stateData.CsrfToken)
+
+	usersResp, err := h.client.Do(usersReq)
+	if err != nil {
+		return nil, fmt.Errorf("pritunl users fetch failed: %w", err)
+	}
+	defer usersResp.Body.Close()
+
+	body, _ := io.ReadAll(usersResp.Body)
+	if usersResp.StatusCode != 200 {
+		return nil, fmt.Errorf("pritunl users returned %d: %s", usersResp.StatusCode, string(body))
+	}
+
+	var users []pritunlUser
+	if err := json.Unmarshal(body, &users); err != nil {
+		return nil, fmt.Errorf("pritunl users parse failed: %w", err)
+	}
+
+	return users, nil
 }
