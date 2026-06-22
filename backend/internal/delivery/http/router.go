@@ -30,6 +30,7 @@ type Handlers struct {
 	App                 *handler.ApplicationHandler
 	MDM                 *handler.MDMHandler
 	Access              *handler.AccessHandler
+	Public              *handler.PublicHandler
 }
 
 func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, userRepo repository.UserRepository, appRepo repository.ApplicationRepository, accessRepo repository.UserAppAccessRepository, db interface{ Ping() error }) http.Handler {
@@ -51,6 +52,9 @@ func NewRouter(h *Handlers, jwtManager *jwtpkg.Manager, userRepo repository.User
 	})
 
 	r.Route("/api/v1", func(r chi.Router) {
+		// Public routes (no auth required)
+		r.Get("/public/overview", h.Public.GetOverview)
+
 		// Public auth routes
 		r.Post("/auth/login", h.Auth.Login)
 		r.Post("/auth/refresh", h.Auth.Refresh)

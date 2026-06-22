@@ -169,6 +169,7 @@ func main() {
 		App:                  handler.NewApplicationHandler(appUC),
 		MDM:                  handler.NewMDMHandler(),
 		Access:               handler.NewAccessHandler(pool),
+		Public:               handler.NewPublicHandler(pool),
 		GoogleOAuth:          handler.NewGoogleOAuthHandler(cfg, userRepo, jwtManager),
 	}
 
