@@ -27,7 +27,9 @@ services:
         max-file: "3"
 
   backend:
-    image: devopspcs/itsm-backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: itsm-backend-prod
     ports:
       - "8080:8080"
@@ -70,7 +72,9 @@ services:
         max-file: "3"
 
   frontend:
-    image: devopspcs/itsm-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: itsm-frontend-prod
     ports:
       - "3000:80"
