@@ -49,9 +49,9 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/welcome" element={<LandingPage />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/sso/callback" element={<SSOCallbackPage />} />
         <Route element={<AppLayout />}>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/tickets" element={<TicketListPage />} />
           <Route path="/tickets/new" element={<TicketFormPage />} />
