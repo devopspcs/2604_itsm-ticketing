@@ -49,7 +49,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/welcome" element={<LandingPage />} />
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<Navigate to="/welcome" replace />} />
         <Route path="/sso/callback" element={<SSOCallbackPage />} />
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
